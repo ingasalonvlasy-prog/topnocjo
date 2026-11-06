@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Brand {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  logo      String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+
+  @@map("brands")
+}
+
+model Category {
+  id        String            @id @default(cuid())
+  name      String
+  slug      String            @unique
+  parentId  String?
+  parent    Category?         @relation("CategoryTree", fields: [parentId], references: [id])
+  children  Category[]        @relation("CategoryTree")
+  seoTitle  String?
+  seoDesc   String?
+  image     String?
+  position  Int               @default(0)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  products  ProductCategory[]
+
+  @@index([parentId])
+  @@map("categories")
+}
+
+model Product {
+  id             String            @id @default(cuid())
+  name           String
+  slug           String            @unique
+  description    String?
+  bodyHtml       String?
+  brandId        String
+  brand          Brand             @relation(fields: [brandId], references: [id])
+  productType    String?
+  tags           String            @default("[]")
+  seoTitle       String?
+  seoDescription String?
+  photos         String            @default("[]")
+  status         String            @default("ACTIVE")
+  sourceHandle   String?
+  sourceId       String?
+  importedAt     DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  variants       Variant[]
+  categories     ProductCategory[]
+
+  @@index([brandId])
+  @@index([status])
+  @@map("products")
+}
+
+model Variant {
+  id           String   @id @default(cuid())
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku          String?  @unique
+  title        String
+  size         String?
+  color        String?
+  price        Int
+  comparePrice Int?
+  costPrice    Int?
+  stock        Int      @default(0)
+  weight       Int?
+  barcode      String?
+  position     Int      @default(0)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([productId, size, color])
+  @@index([productId])
+  @@map("variants")
+}
+
+model ProductCategory {
+  productId  String
+  categoryId String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([productId, categoryId])
+  @@map("product_categories")
+}
