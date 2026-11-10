@@ -61,13 +61,21 @@ function Highlight({ text, query }: { text: string; query: string }) {
 }
 
 const popularSuggestions = [
-  { label: "Běžecké boty", href: "/kategorie/bezecke-boty" },
-  { label: "Kopačky", href: "/kategorie/kopacky" },
+  { label: "On boty", href: "/znacky/on" },
+  { label: "POC helmy", href: "/znacky/poc" },
+  { label: "Maloja", href: "/znacky/maloja" },
+  { label: "Běžecké boty", href: "/kategorie/beh" },
+  { label: "Zimní vybavení", href: "/kategorie/zima" },
   { label: "Oblečení", href: "/kategorie/obleceni" },
-  { label: "Doplňky", href: "/kategorie/doplnky" },
 ];
 
-export function SearchAutocomplete({ placeholder = "Hledat produkty..." }: { placeholder?: string }) {
+export function SearchAutocomplete({
+  placeholder = "Hledat produkty...",
+  variant = "default",
+}: {
+  placeholder?: string;
+  variant?: "default" | "hero";
+}) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult | null>(null);
@@ -199,13 +207,17 @@ export function SearchAutocomplete({ placeholder = "Hledat produkty..." }: { pla
             }
           }}
           placeholder={placeholder}
-          className="w-full py-2.5 pl-10 pr-4 text-[14px] font-medium border border-line rounded-[var(--radius-field)] bg-wash focus:bg-white focus:border-navy focus:shadow-[0_0_0_3px_rgba(11,23,39,0.06)] outline-none transition-all"
+          className={
+            variant === "hero"
+              ? "w-full py-4 pl-12 pr-4 text-[16px] font-medium border-0 rounded-[var(--radius-pill)] bg-white text-ink shadow-lg focus:shadow-xl outline-none transition-all"
+              : "w-full py-2.5 pl-10 pr-4 text-[14px] font-medium border border-line rounded-[var(--radius-field)] bg-wash focus:bg-white focus:border-navy focus:shadow-[0_0_0_3px_rgba(11,23,39,0.06)] outline-none transition-all"
+          }
           autoComplete="off"
         />
         <svg
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted"
-          width="18"
-          height="18"
+          className={`absolute ${variant === "hero" ? "left-4" : "left-3"} top-1/2 -translate-y-1/2 text-muted`}
+          width={variant === "hero" ? 22 : 18}
+          height={variant === "hero" ? 22 : 18}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -223,7 +235,7 @@ export function SearchAutocomplete({ placeholder = "Hledat produkty..." }: { pla
 
       {/* Dropdown */}
       {isOpen && results && totalResults > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-line rounded-[var(--radius-card)] shadow-lg z-[60] overflow-hidden max-h-[420px] overflow-y-auto">
+        <div className={`absolute top-full left-0 right-0 ${variant === "hero" ? "mt-2" : "mt-1"} bg-white border border-line rounded-[var(--radius-card)] shadow-lg z-[60] overflow-hidden max-h-[420px] overflow-y-auto text-ink`}>
           {/* Products */}
           {results.products.length > 0 && (
             <div>

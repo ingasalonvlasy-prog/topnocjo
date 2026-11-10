@@ -2,11 +2,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/db";
 import { ProductCard } from "@/components/ProductCard";
-import { formatPrice, getMinPrice } from "@/lib/products";
+import { HeroSearch } from "@/components/HeroSearch";
 import { getLatestBlogPosts } from "@/lib/blog";
 import { BlogCard } from "@/components/BlogCard";
 import { NewsletterForm } from "@/components/NewsletterForm";
 import { buildOrganizationJsonLd, buildWebSiteJsonLd } from "@/lib/structured-data";
+import { getInstagramPosts } from "@/lib/instagram";
+import { InstagramGrid } from "@/components/InstagramGrid";
 
 const categoryPastels: Record<string, string> = {
   "bezecke-boty": "bg-mint",
@@ -39,7 +41,7 @@ const categoryIcons: Record<string, string> = {
 // Row 2: (Běh continues), Batohy (1 row), Bazar (1 row)
 
 export default async function HomePage() {
-  const [categories, brands, newest, bestsellers, blogPosts] = await Promise.all([
+  const [categories, brands, newest, bestsellers, blogPosts, instagramPosts] = await Promise.all([
     prisma.category.findMany({ orderBy: { position: "asc" } }),
     prisma.brand.findMany({ orderBy: { name: "asc" } }),
     prisma.product.findMany({
@@ -63,85 +65,38 @@ export default async function HomePage() {
       take: 4,
     }),
     getLatestBlogPosts(3),
+    getInstagramPosts(6),
   ]);
 
   return (
     <div>
-      {/* 1. Hero — navy bg, 2-col: text left + featured product right */}
-      {(() => {
-        const hero = bestsellers[0];
-        const heroPhotos: string[] = hero ? JSON.parse(hero.photos || "[]") : [];
-        const heroPhoto = heroPhotos[0] || "";
-        const heroPrice = hero ? getMinPrice(hero.variants) : 0;
-        const heroCatSlug = hero?.categories[0]?.category?.slug || "";
-        const heroPastel = categoryPastels[heroCatSlug] || "bg-mint";
-
-        return (
-          <section className="bg-navy text-white">
-            <div className="max-w-[var(--container)] mx-auto px-6 py-10 lg:py-16 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-              {/* Left — text + CTAs */}
-              <div>
-                <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-lime mb-4">
-                  Nová sezóna · On Waterproof
-                </div>
-                <h1 className="text-[36px] lg:text-[52px] font-extrabold leading-[1.05] tracking-[-0.04em] mb-4">
-                  On do<br />
-                  každého{" "}
-                  <span
-                    className="relative inline-block"
-                  >
-                    počasí.
-                    <span className="absolute bottom-[2px] left-0 w-full h-[5px] bg-lime rounded-full" />
-                  </span>
-                </h1>
-                <p className="text-[15px] text-white/50 font-medium max-w-[380px] mb-8 leading-relaxed">
-                  Nepromokavé boty na trail i do města. Déšť? Bláto? Pohoda.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Link
-                    href="/hledat"
-                    className="inline-flex items-center justify-center h-12 bg-lime text-navy text-[12px] font-extrabold uppercase tracking-[0.12em] px-8 rounded-[var(--radius-pill)] hover:brightness-110 transition-all"
-                  >
-                    Nakupovat
-                  </Link>
-                  <Link
-                    href="/znacky/on"
-                    className="inline-flex items-center justify-center h-12 border border-white/30 text-white text-[12px] font-extrabold uppercase tracking-[0.12em] px-8 rounded-[var(--radius-pill)] hover:bg-white/10 transition-all"
-                  >
-                    Všechny On
-                  </Link>
-                </div>
-              </div>
-
-              {/* Right — featured product card */}
-              {hero && heroPhoto && (
-                <Link href={`/produkt/${hero.slug}`} className="relative block">
-                  <div className={`relative ${heroPastel} rounded-[16px] aspect-square overflow-hidden`}>
-                    {/* BESTSELLER badge */}
-                    <span className="absolute top-4 left-4 z-10 bg-lime text-navy text-[10px] font-extrabold uppercase tracking-[0.08em] px-3 py-1.5 rounded-[var(--radius-pill)]">
-                      Bestseller
-                    </span>
-                    {/* Product image */}
-                    <Image
-                      src={heroPhoto}
-                      alt={hero.name}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 50vw"
-                      className="object-contain p-10 lg:p-14"
-                      style={{ mixBlendMode: "multiply" }}
-                      priority
-                    />
-                    {/* Lime price circle */}
-                    <div className="absolute bottom-4 right-4 w-[72px] h-[72px] lg:w-[88px] lg:h-[88px] bg-lime rounded-full flex flex-col items-center justify-center z-10">
-                      <span className="text-[16px] lg:text-[20px] font-extrabold text-navy leading-tight">{formatPrice(heroPrice)}</span>
-                    </div>
-                  </div>
-                </Link>
-              )}
-            </div>
-          </section>
-        );
-      })()}
+      {/* 1. Hero — search-first */}
+      <section className="bg-navy text-white">
+        <div className="max-w-[var(--container)] mx-auto px-6 py-14 lg:py-20 text-center">
+          <h1 className="text-[32px] lg:text-[48px] font-extrabold tracking-[-0.04em] mb-2">
+            Výkon bez{" "}
+            <span className="relative inline-block">
+              kompromisů.
+              <span className="absolute bottom-[2px] left-0 w-full h-[5px] bg-lime rounded-full" />
+            </span>
+          </h1>
+          <p className="text-[15px] text-white/50 font-medium mb-8">
+            Sportovní vybavení od značek On, POC, Maloja, Alpina a Mizuno
+          </p>
+          <HeroSearch />
+          <div className="flex flex-wrap justify-center gap-2 mt-6">
+            {["Běžecké boty", "POC helmy", "Maloja bundy", "Trailové boty", "Zimní bundy", "Doplňky"].map((q) => (
+              <Link
+                key={q}
+                href={`/hledat?q=${encodeURIComponent(q)}`}
+                className="px-4 py-2 rounded-full border border-white/20 text-white/70 text-[13px] font-medium hover:bg-white/10 hover:text-white transition-colors"
+              >
+                {q}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* 2. Prémiové značky — logo strip */}
       <section className="border-b border-line">
@@ -362,17 +317,7 @@ export default async function HomePage() {
             Sledovat
           </a>
         </div>
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="aspect-square bg-wash rounded-[10px] flex items-center justify-center text-muted/30">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <rect x="2" y="2" width="20" height="20" rx="5" />
-                <circle cx="12" cy="12" r="5" />
-                <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none" />
-              </svg>
-            </div>
-          ))}
-        </div>
+        <InstagramGrid posts={instagramPosts} />
       </section>
 
       {/* 8. Newsletter — navy pozadí, lime tlačítko */}

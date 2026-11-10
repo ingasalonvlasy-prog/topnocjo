@@ -23,14 +23,14 @@ model Category {
   name      String
   slug      String            @unique
   parentId  String?
-  parent    Category?         @relation("CategoryTree", fields: [parentId], references: [id])
-  children  Category[]        @relation("CategoryTree")
   seoTitle  String?
   seoDesc   String?
   image     String?
   position  Int               @default(0)
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
+  parent    Category?         @relation("CategoryTree", fields: [parentId], references: [id])
+  children  Category[]        @relation("CategoryTree")
   products  ProductCategory[]
 
   @@index([parentId])
@@ -44,22 +44,24 @@ model Product {
   description    String?
   bodyHtml       String?
   brandId        String
-  brand          Brand             @relation(fields: [brandId], references: [id])
   productType    String?
   tags           String            @default("[]")
   seoTitle       String?
   seoDescription String?
   photos         String            @default("[]")
   status         String            @default("ACTIVE")
+  avgRating      Float             @default(0)
+  reviewCount    Int               @default(0)
   sourceHandle   String?
   sourceId       String?
   importedAt     DateTime?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
-  variants       Variant[]
   categories     ProductCategory[]
-  wishlists      Wishlist[]
   reviews        ProductReview[]
+  brand          Brand             @relation(fields: [brandId], references: [id])
+  variants       Variant[]
+  wishlists      Wishlist[]
 
   @@index([brandId])
   @@index([status])
@@ -67,24 +69,24 @@ model Product {
 }
 
 model Variant {
-  id           String   @id @default(cuid())
-  productId    String
-  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  sku          String?  @unique
-  title        String
-  size         String?
-  color        String?
-  price        Int
-  comparePrice Int?
-  costPrice    Int?
+  id            String   @id @default(cuid())
+  productId     String
+  sku           String?  @unique
+  title         String
+  size          String?
+  color         String?
+  price         Int
+  comparePrice  Int?
+  costPrice     Int?
   ownStock      Int      @default(0)
   supplierStock Int      @default(0)
-  weight       Int?
-  barcode      String?
-  position     Int      @default(0)
-  active       Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  weight        Int?
+  barcode       String?
+  position      Int      @default(0)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([productId, size, color])
   @@index([productId])
@@ -94,8 +96,8 @@ model Variant {
 model ProductCategory {
   productId  String
   categoryId String
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@id([productId, categoryId])
   @@map("product_categories")
@@ -105,7 +107,6 @@ model ShippingMethod {
   id          String   @id @default(cuid())
   name        String
   code        String   @unique
-  type        String   @default("address") // "address" | "pickup_point" | "personal"
   description String?
   price       Int      @default(0)
   freeFrom    Int?
@@ -114,7 +115,7 @@ model ShippingMethod {
   config      String   @default("{}")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
+  type        String   @default("address")
   orders      Order[]
 
   @@map("shipping_methods")
@@ -125,10 +126,10 @@ model BlogPost {
   title           String
   slug            String    @unique
   excerpt         String?
-  content         String    // HTML content
+  content         String
   coverImage      String?
   author          String    @default("Qsport.cz")
-  tags            String    @default("[]") // JSON array of strings
+  tags            String    @default("[]")
   published       Boolean   @default(false)
   publishedAt     DateTime?
   section         String    @default("NOVINKY")
@@ -147,69 +148,70 @@ model BlogPost {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  passwordHash  String
-  firstName     String?
-  lastName      String?
-  phone         String?
-  street        String?
-  city          String?
-  zip           String?
-  newsletter    Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  lastLoginAt   DateTime?
-  orders        Order[]
-  wishlists     Wishlist[]
-  reviews       ProductReview[]
+  id           String          @id @default(cuid())
+  email        String          @unique
+  passwordHash String
+  firstName    String?
+  lastName     String?
+  phone        String?
+  street       String?
+  city         String?
+  zip          String?
+  newsletter   Boolean         @default(false)
+  adminNote    String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  lastLoginAt  DateTime?
+  orders       Order[]
+  reviews      ProductReview[]
+  wishlists    Wishlist[]
 
   @@map("users")
 }
 
 model Order {
-  id               String         @id @default(cuid())
-  orderNumber      String         @unique
-  status           String         @default("NEW")
-  email            String
-  phone            String?
-  firstName        String
-  lastName         String
-  street           String
-  city             String
-  zip              String
-  shippingName     String?
-  shippingStreet   String?
-  shippingCity     String?
-  shippingZip      String?
-  shippingId       String
-  shipping         ShippingMethod @relation(fields: [shippingId], references: [id])
-  shippingPrice    Int            @default(0)
-  packetaPointId   String?
-  packetaPointName String?
-  paymentMethod    String         @default("card")
-  paymentStatus    String         @default("PENDING")
-  comgateTransId   String?
-  subtotal         Int            @default(0)
-  discountCode     String?
-  discountAmount   Int            @default(0)
-  total            Int            @default(0)
-  note             String?
-  adminNote        String?
-  trackingNumber   String?
-  trackingUrl      String?
-  userId           String?
-  user             User?          @relation(fields: [userId], references: [id])
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  paidAt           DateTime?
-  shippedAt        DateTime?
-  deliveredAt      DateTime?
-  cancelledAt      DateTime?
-  needsSupplierOrder  Boolean  @default(false)
-  supplierOrderedAt   DateTime?
-  supplierReceivedAt  DateTime?
-  items            OrderItem[]
+  id                 String         @id @default(cuid())
+  orderNumber        String         @unique
+  status             String         @default("NEW")
+  email              String
+  phone              String?
+  firstName          String
+  lastName           String
+  street             String
+  city               String
+  zip                String
+  shippingName       String?
+  shippingStreet     String?
+  shippingCity       String?
+  shippingZip        String?
+  shippingId         String
+  shippingPrice      Int            @default(0)
+  packetaPointId     String?
+  packetaPointName   String?
+  paymentMethod      String         @default("card")
+  paymentStatus      String         @default("PENDING")
+  comgateTransId     String?
+  subtotal           Int            @default(0)
+  discountCode       String?
+  discountAmount     Int            @default(0)
+  total              Int            @default(0)
+  note               String?
+  adminNote          String?
+  trackingNumber     String?
+  trackingUrl        String?
+  userId             String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  paidAt             DateTime?
+  shippedAt          DateTime?
+  deliveredAt        DateTime?
+  cancelledAt        DateTime?
+  needsSupplierOrder Boolean        @default(false)
+  supplierOrderedAt  DateTime?
+  supplierReceivedAt DateTime?
+  items              OrderItem[]
+  user               User?          @relation(fields: [userId], references: [id])
+  shipping           ShippingMethod @relation(fields: [shippingId], references: [id])
 
   @@index([status])
   @@index([email])
@@ -220,38 +222,43 @@ model Order {
 }
 
 model OrderItem {
-  id           String @id @default(cuid())
-  orderId      String
-  order        Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId    String?
-  variantId    String?
-  productName  String
-  variantTitle String
-  sku          String?
-  quantity     Int    @default(1)
-  unitPrice    Int
-  totalPrice   Int
-  fromOwnStock      Int  @default(0)
-  fromSupplierStock Int  @default(0)
+  id                String  @id @default(cuid())
+  orderId           String
+  productId         String?
+  variantId         String?
+  productName       String
+  variantTitle      String
+  sku               String?
+  quantity          Int     @default(1)
+  unitPrice         Int
+  totalPrice        Int
+  fromOwnStock      Int     @default(0)
+  fromSupplierStock Int     @default(0)
+  order             Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
   @@map("order_items")
 }
 
 model Supplier {
-  id                String    @id @default(cuid())
-  name              String
-  code              String    @unique
-  feedUrl           String
-  feedFormat        String    // "xml" | "csv" | "json"
-  feedConfig        String    @default("{}")
-  active            Boolean   @default(true)
-  lastImportAt      DateTime?
-  lastImportStatus  String?
-  lastImportCount   Int?
-  lastImportError   String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id               String    @id @default(cuid())
+  name             String
+  code             String    @unique
+  contactName      String?
+  contactEmail     String?
+  contactPhone     String?
+  website          String?
+  note             String?
+  feedUrl          String
+  feedFormat       String
+  feedConfig       String    @default("{}")
+  active           Boolean   @default(true)
+  lastImportAt     DateTime?
+  lastImportStatus String?
+  lastImportCount  Int?
+  lastImportError  String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   @@map("suppliers")
 }
@@ -275,14 +282,16 @@ model FeedImportLog {
 model DiscountCode {
   id             String    @id @default(cuid())
   code           String    @unique
-  type           String    @default("percentage") // "percentage" | "fixed"
-  value          Int       // procento (1-100) nebo částka v haléřích
+  type           String    @default("percentage")
+  value          Int
   minOrderAmount Int?
   usageLimit     Int?
   usageCount     Int       @default(0)
   validFrom      DateTime?
   validTo        DateTime?
   active         Boolean   @default(true)
+  restrictCategories String?
+  restrictBrands     String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -310,10 +319,10 @@ model Setting {
 model Wishlist {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
   @@index([userId])
@@ -324,15 +333,15 @@ model Wishlist {
 model ProductReview {
   id         String   @id @default(cuid())
   productId  String
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   userId     String?
-  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   authorName String
-  rating     Int      // 1-5
+  rating     Int
   title      String?
   content    String
   approved   Boolean  @default(false)
   createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
   @@index([approved])
@@ -341,8 +350,8 @@ model ProductReview {
 
 model AdminLog {
   id        String   @id @default(cuid())
-  action    String   // "create" | "update" | "delete" | "status_change" | "bulk_update" | "bulk_delete"
-  entity    String   // "product" | "order" | "discount" | "review"
+  action    String
+  entity    String
   entityId  String?
   detail    String?
   createdAt DateTime @default(now())

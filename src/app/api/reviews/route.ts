@@ -34,6 +34,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Text je příliš dlouhý." }, { status: 400 });
   }
 
+  // Rate-limiting: max 1 review per product per author per day
+  const recentReview = await prisma.productReview.findFirst({
+    where: {
+      productId,
+      authorName: authorName.trim(),
+      createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+    },
+  });
+  if (recentReview) {
+    return NextResponse.json(
+      { error: "Můžete přidat jen jednu recenzi za den." },
+      { status: 429 },
+    );
+  }
+
   const review = await prisma.productReview.create({
     data: {
       productId,

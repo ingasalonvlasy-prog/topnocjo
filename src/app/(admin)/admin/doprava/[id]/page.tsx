@@ -28,6 +28,7 @@ export default async function ShippingEditPage({
     const freeFrom = freeFromStr ? parseInt(freeFromStr, 10) || null : null;
     const active = formData.get("active") === "on";
     const type = formData.get("type") as string;
+    const position = parseInt(formData.get("position") as string, 10) || 0;
 
     // Build config from provider-specific fields
     const configObj: Record<string, string> = {};
@@ -57,6 +58,7 @@ export default async function ShippingEditPage({
         freeFrom,
         active,
         type,
+        position,
         config: JSON.stringify(configObj),
       },
     });
@@ -164,6 +166,18 @@ export default async function ShippingEditPage({
               />
               <label className="ml-2 text-sm font-medium text-gray-700">Aktivní</label>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Pořadí</label>
+            <input
+              name="position"
+              type="number"
+              min={0}
+              defaultValue={method.position}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <p className="text-xs text-gray-400 mt-1">Nižší číslo = zobrazí se výš</p>
           </div>
 
           {/* Provider-specific config */}

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { formatPrice } from "@/lib/products";
 import { updateDiscountCode, deleteDiscountCode } from "../actions";
 
 interface Props {
@@ -26,6 +27,27 @@ export default async function EditDiscountPage({ params }: Props) {
 
   const displayValue = code.type === "fixed" ? code.value / 100 : code.value;
   const minOrderDisplay = code.minOrderAmount ? code.minOrderAmount / 100 : "";
+
+  const existingCategories = code.restrictCategories
+    ? (JSON.parse(code.restrictCategories) as string[]).join(", ")
+    : "";
+  const existingBrands = code.restrictBrands
+    ? (JSON.parse(code.restrictBrands) as string[]).join(", ")
+    : "";
+
+  const usages = await prisma.order.findMany({
+    where: { discountCode: code.code },
+    select: {
+      id: true,
+      orderNumber: true,
+      email: true,
+      discountAmount: true,
+      total: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+  });
 
   const updateAction = updateDiscountCode.bind(null, id);
   const deleteAction = deleteDiscountCode.bind(null, id);
@@ -128,6 +150,30 @@ export default async function EditDiscountPage({ params }: Props) {
               </div>
             </div>
 
+            <div>
+              <label className={labelCls}>Omezení na kategorie (slugy, oddělené čárkou)</label>
+              <input
+                name="restrictCategories"
+                type="text"
+                defaultValue={existingCategories}
+                placeholder="beh, hory-a-outdoor, zima"
+                className={inputCls}
+              />
+              <p className="text-xs text-gray-400 mt-1">Prázdné = platí pro všechny kategorie</p>
+            </div>
+
+            <div>
+              <label className={labelCls}>Omezení na značky (názvy, oddělené čárkou)</label>
+              <input
+                name="restrictBrands"
+                type="text"
+                defaultValue={existingBrands}
+                placeholder="On, POC, Maloja"
+                className={inputCls}
+              />
+              <p className="text-xs text-gray-400 mt-1">Prázdné = platí pro všechny značky</p>
+            </div>
+
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -158,8 +204,8 @@ export default async function EditDiscountPage({ params }: Props) {
           </div>
         </form>
 
-        {/* Sidebar: delete */}
-        <div>
+        {/* Sidebar */}
+        <div className="space-y-4">
           <div className="bg-white rounded-lg border border-red-200 shadow-sm p-4">
             <h3 className="text-sm font-bold text-red-700 mb-2">Smazat kód</h3>
             <p className="text-xs text-gray-500 mb-3">
@@ -173,6 +219,39 @@ export default async function EditDiscountPage({ params }: Props) {
                 Smazat
               </button>
             </form>
+          </div>
+
+          {/* Použití kódu */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+            <h3 className="text-sm font-bold text-gray-900 mb-3">
+              Použití ({usages.length})
+            </h3>
+            {usages.length === 0 ? (
+              <p className="text-xs text-gray-500">Kód zatím nebyl použit.</p>
+            ) : (
+              <div className="space-y-2">
+                {usages.map((o) => (
+                  <Link
+                    key={o.id}
+                    href={`/admin/objednavky/${o.id}`}
+                    className="block text-xs hover:bg-gray-50 p-2 rounded -mx-2"
+                  >
+                    <div className="flex justify-between">
+                      <span className="font-mono font-bold text-blue-600">#{o.orderNumber}</span>
+                      <span className="text-gray-500">
+                        {o.createdAt.toLocaleDateString("cs-CZ")}
+                      </span>
+                    </div>
+                    <div className="flex justify-between mt-0.5">
+                      <span className="text-gray-600">{o.email}</span>
+                      <span className="font-bold text-green-700">
+                        −{formatPrice(o.discountAmount)}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

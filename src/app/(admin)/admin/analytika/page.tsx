@@ -9,10 +9,17 @@ import {
 import type { OrderStatus } from "@/lib/order-constants";
 import Link from "next/link";
 
-export default async function AdminAnalyticsPage() {
+interface Props {
+  searchParams: Promise<Record<string, string | undefined>>;
+}
+
+export default async function AdminAnalyticsPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const days = parseInt(params.obdobi || "30", 10);
+  const validDays = [7, 30, 90].includes(days) ? days : 30;
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const periodStart = new Date(now.getTime() - validDays * 24 * 60 * 60 * 1000);
 
   // ==================== Data fetching ====================
   const [
@@ -22,9 +29,11 @@ export default async function AdminAnalyticsPage() {
     monthOrders,
     totalCustomers,
     monthCustomers,
-    paidOrders30d,
-    orderItems30d,
+    paidOrdersPeriod,
+    orderItemsPeriod,
     statusCounts,
+    periodOrderCount,
+    periodPaidCount,
   ] = await Promise.all([
     // Total revenue (all time, PAID only)
     prisma.order.aggregate({
@@ -47,14 +56,14 @@ export default async function AdminAnalyticsPage() {
     prisma.user.count({ where: { createdAt: { gte: monthStart } } }),
     // Paid orders last 30 days (for daily chart)
     prisma.order.findMany({
-      where: { paymentStatus: "PAID", paidAt: { gte: thirtyDaysAgo } },
+      where: { paymentStatus: "PAID", paidAt: { gte: periodStart } },
       select: { total: true, paidAt: true },
       orderBy: { paidAt: "asc" },
     }),
     // Order items last 30 days (for top products + brands)
     prisma.orderItem.findMany({
       where: {
-        order: { paymentStatus: "PAID", paidAt: { gte: thirtyDaysAgo } },
+        order: { paymentStatus: "PAID", paidAt: { gte: periodStart } },
       },
       select: {
         productId: true,
@@ -70,6 +79,10 @@ export default async function AdminAnalyticsPage() {
         count: await prisma.order.count({ where: { status } }),
       }))
     ),
+    // Period order count (for conversion rate)
+    prisma.order.count({ where: { createdAt: { gte: periodStart } } }),
+    // Period paid count (for conversion rate)
+    prisma.order.count({ where: { paymentStatus: "PAID", createdAt: { gte: periodStart } } }),
   ]);
 
   // ==================== Computed values ====================
@@ -84,17 +97,19 @@ export default async function AdminAnalyticsPage() {
         )
       : 0;
 
-  // ==================== Daily revenue (last 30 days) ====================
+  const conversionRate = periodOrderCount > 0 ? Math.round((periodPaidCount / periodOrderCount) * 100) : 0;
+
+  // ==================== Daily revenue ====================
   const dailyMap = new Map<string, { orders: number; revenue: number }>();
 
-  // Pre-fill all 30 days
-  for (let i = 29; i >= 0; i--) {
+  // Pre-fill all days in period
+  for (let i = validDays - 1; i >= 0; i--) {
     const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
     const key = d.toISOString().slice(0, 10);
     dailyMap.set(key, { orders: 0, revenue: 0 });
   }
 
-  for (const order of paidOrders30d) {
+  for (const order of paidOrdersPeriod) {
     if (!order.paidAt) continue;
     const key = order.paidAt.toISOString().slice(0, 10);
     const entry = dailyMap.get(key);
@@ -116,7 +131,7 @@ export default async function AdminAnalyticsPage() {
     string,
     { name: string; quantity: number; revenue: number }
   >();
-  for (const item of orderItems30d) {
+  for (const item of orderItemsPeriod) {
     const key = item.productId || item.productName;
     const existing = productMap.get(key);
     if (existing) {
@@ -135,7 +150,7 @@ export default async function AdminAnalyticsPage() {
     .slice(0, 10);
 
   // ==================== Top brands ====================
-  const productIds = orderItems30d
+  const productIds = orderItemsPeriod
     .map((i) => i.productId)
     .filter((id): id is string => !!id);
   const uniqueProductIds = [...new Set(productIds)];
@@ -144,7 +159,11 @@ export default async function AdminAnalyticsPage() {
     uniqueProductIds.length > 0
       ? await prisma.product.findMany({
           where: { id: { in: uniqueProductIds } },
-          select: { id: true, brand: { select: { name: true } } },
+          select: {
+            id: true,
+            brand: { select: { name: true } },
+            categories: { include: { category: { select: { name: true } } } },
+          },
         })
       : [];
 
@@ -157,7 +176,7 @@ export default async function AdminAnalyticsPage() {
     string,
     { quantity: number; revenue: number }
   >();
-  for (const item of orderItems30d) {
+  for (const item of orderItemsPeriod) {
     const brandName = item.productId
       ? productBrandMap.get(item.productId) || "Neznámá"
       : "Neznámá";
@@ -177,10 +196,51 @@ export default async function AdminAnalyticsPage() {
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, 10);
 
+  // ==================== Top categories ====================
+  const productCatMap = new Map<string, string[]>();
+  for (const p of products) {
+    productCatMap.set(p.id, p.categories.map((pc) => pc.category.name));
+  }
+
+  const categoryMap = new Map<string, { quantity: number; revenue: number }>();
+  for (const item of orderItemsPeriod) {
+    const catNames = item.productId ? productCatMap.get(item.productId) || ["Nezařazeno"] : ["Nezařazeno"];
+    for (const catName of catNames) {
+      const existing = categoryMap.get(catName);
+      if (existing) {
+        existing.quantity += item.quantity;
+        existing.revenue += item.totalPrice;
+      } else {
+        categoryMap.set(catName, { quantity: item.quantity, revenue: item.totalPrice });
+      }
+    }
+  }
+  const topCategories = Array.from(categoryMap.entries())
+    .map(([name, data]) => ({ name, ...data }))
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 10);
+
   // ==================== Render ====================
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Analytika</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-4">Analytika</h1>
+
+      {/* Period selector */}
+      <div className="flex gap-2 mb-6">
+        {[7, 30, 90].map((d) => (
+          <Link
+            key={d}
+            href={`/admin/analytika?obdobi=${d}`}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              validDays === d
+                ? "bg-gray-900 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            {d} dní
+          </Link>
+        ))}
+      </div>
 
       {/* Section A — Overview stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
@@ -235,6 +295,17 @@ export default async function AdminAnalyticsPage() {
             </svg>
           }
         />
+        <StatCard
+          label={`Konverze plateb (${validDays}d)`}
+          value={`${conversionRate} %`}
+          change={`${periodPaidCount} z ${periodOrderCount}`}
+          changeType={conversionRate > 50 ? "up" : "neutral"}
+          icon={
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+            </svg>
+          }
+        />
         <Link href="/admin/objednavky?status=NEW">
           <StatCard
             label="Nové objednávky"
@@ -254,7 +325,7 @@ export default async function AdminAnalyticsPage() {
         {/* Section B — Daily revenue (last 30 days) */}
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-200">
-            <h2 className="font-semibold text-gray-900">Tržby za posledních 30 dní</h2>
+            <h2 className="font-semibold text-gray-900">Tržby za posledních {validDays} dní</h2>
           </div>
           <div className="overflow-x-auto max-h-[480px] overflow-y-auto">
             <table className="w-full text-sm">
@@ -324,7 +395,7 @@ export default async function AdminAnalyticsPage() {
           {/* Section E — Top brands */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-200">
-              <h2 className="font-semibold text-gray-900">Top značky (30 dní)</h2>
+              <h2 className="font-semibold text-gray-900">Top značky ({validDays} dní)</h2>
             </div>
             {topBrands.length === 0 ? (
               <div className="p-6 text-center text-sm text-gray-500">Žádná data.</div>
@@ -351,16 +422,47 @@ export default async function AdminAnalyticsPage() {
               </table>
             )}
           </div>
+
+          {/* Section F — Top categories */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-200">
+              <h2 className="font-semibold text-gray-900">Top kategorie ({validDays} dní)</h2>
+            </div>
+            {topCategories.length === 0 ? (
+              <div className="p-6 text-center text-sm text-gray-500">Žádná data.</div>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="px-4 py-2 text-left font-medium text-gray-600">Kategorie</th>
+                    <th className="px-4 py-2 text-center font-medium text-gray-600">Prodáno ks</th>
+                    <th className="px-4 py-2 text-right font-medium text-gray-600">Tržby</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {topCategories.map((cat) => (
+                    <tr key={cat.name}>
+                      <td className="px-4 py-2 font-medium text-gray-900">{cat.name}</td>
+                      <td className="px-4 py-2 text-center text-gray-600">{cat.quantity}</td>
+                      <td className="px-4 py-2 text-right font-medium text-gray-900 whitespace-nowrap">
+                        {formatPrice(cat.revenue)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Section C — Top products */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-200">
-          <h2 className="font-semibold text-gray-900">Top produkty (30 dní)</h2>
+          <h2 className="font-semibold text-gray-900">Top produkty ({validDays} dní)</h2>
         </div>
         {topProducts.length === 0 ? (
-          <div className="p-8 text-center text-sm text-gray-500">Žádné prodeje za posledních 30 dní.</div>
+          <div className="p-8 text-center text-sm text-gray-500">Žádné prodeje za posledních {validDays} dní.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

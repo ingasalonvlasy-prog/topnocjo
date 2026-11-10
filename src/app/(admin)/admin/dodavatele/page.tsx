@@ -10,11 +10,15 @@ async function createSupplier(formData: FormData) {
   const code = (formData.get("code") as string)?.trim().toLowerCase();
   const feedUrl = (formData.get("feedUrl") as string)?.trim();
   const feedFormat = (formData.get("feedFormat") as string) || "xml";
+  const contactName = (formData.get("contactName") as string)?.trim() || null;
+  const contactEmail = (formData.get("contactEmail") as string)?.trim() || null;
+  const website = (formData.get("website") as string)?.trim() || null;
+  const note = (formData.get("note") as string)?.trim() || null;
 
   if (!name || !code || !feedUrl) return;
 
   await prisma.supplier.create({
-    data: { name, code, feedUrl, feedFormat },
+    data: { name, code, feedUrl, feedFormat, contactName, contactEmail, website, note },
   });
 
   revalidatePath("/admin/dodavatele");
@@ -91,6 +95,7 @@ export default async function SuppliersPage() {
             <tr>
               <th className="text-left px-4 py-3 font-medium text-gray-500">Dodavatel</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500">Formát</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500">Kontakt</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500">Poslední import</th>
               <th className="text-center px-4 py-3 font-medium text-gray-500">Stav</th>
               <th className="text-center px-4 py-3 font-medium text-gray-500">Akce</th>
@@ -109,6 +114,17 @@ export default async function SuppliersPage() {
                   <span className="inline-block px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-600 uppercase">
                     {s.feedFormat}
                   </span>
+                </td>
+                <td className="px-4 py-3">
+                  {s.contactEmail ? (
+                    <a href={`mailto:${s.contactEmail}`} className="text-xs text-green-600 hover:text-green-800">
+                      {s.contactName || s.contactEmail}
+                    </a>
+                  ) : s.contactName ? (
+                    <span className="text-xs text-gray-600">{s.contactName}</span>
+                  ) : (
+                    <span className="text-xs text-gray-400">—</span>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-gray-600">
                   {s.lastImportAt
@@ -151,7 +167,7 @@ export default async function SuppliersPage() {
             ))}
             {suppliers.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
+                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
                   Žádní dodavatelé. Přidej prvního níže.
                 </td>
               </tr>
@@ -163,51 +179,71 @@ export default async function SuppliersPage() {
       {/* Add supplier form */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-8">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Přidat dodavatele</h2>
-        <form action={createSupplier} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Název</label>
-            <input
-              name="name"
-              required
-              placeholder="Levelek"
-              className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md focus:border-green-500 outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Kód (prefix)</label>
-            <input
-              name="code"
-              required
-              placeholder="levelek"
-              className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md font-mono focus:border-green-500 outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Feed URL</label>
-            <input
-              name="feedUrl"
-              required
-              placeholder="https://..."
-              className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md font-mono focus:border-green-500 outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Formát</label>
-            <select
-              name="feedFormat"
-              className="w-full h-9 px-2 text-sm border border-gray-300 rounded-md bg-white focus:border-green-500 outline-none"
+        <form action={createSupplier} className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Název</label>
+              <input
+                name="name"
+                required
+                placeholder="Levelek"
+                className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md focus:border-green-500 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Kód (prefix)</label>
+              <input
+                name="code"
+                required
+                placeholder="levelek"
+                className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md font-mono focus:border-green-500 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Feed URL</label>
+              <input
+                name="feedUrl"
+                required
+                placeholder="https://..."
+                className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md font-mono focus:border-green-500 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Formát</label>
+              <select
+                name="feedFormat"
+                className="w-full h-9 px-2 text-sm border border-gray-300 rounded-md bg-white focus:border-green-500 outline-none"
+              >
+                <option value="xml">XML</option>
+                <option value="csv">CSV</option>
+                <option value="json">JSON</option>
+              </select>
+            </div>
+            <button
+              type="submit"
+              className="h-9 px-4 text-sm font-medium bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors"
             >
-              <option value="xml">XML</option>
-              <option value="csv">CSV</option>
-              <option value="json">JSON</option>
-            </select>
+              Přidat
+            </button>
           </div>
-          <button
-            type="submit"
-            className="h-9 px-4 text-sm font-medium bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors"
-          >
-            Přidat
-          </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Kontaktní osoba</label>
+              <input name="contactName" placeholder="Jan Novák" className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md focus:border-green-500 outline-none" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Email</label>
+              <input name="contactEmail" type="email" placeholder="info@dodavatel.cz" className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md focus:border-green-500 outline-none" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Web</label>
+              <input name="website" placeholder="https://..." className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md font-mono focus:border-green-500 outline-none" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Poznámka</label>
+              <input name="note" placeholder="Interní poznámka..." className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md focus:border-green-500 outline-none" />
+            </div>
+          </div>
         </form>
       </div>
 

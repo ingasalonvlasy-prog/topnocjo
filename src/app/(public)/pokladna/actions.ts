@@ -31,7 +31,7 @@ interface CheckoutData {
   shippingMethodId: string;
   packetaPointId: string;
   packetaPointName: string;
-  paymentMethod: "card" | "transfer";
+  paymentMethod: "card" | "transfer" | "cod";
   note: string;
   discountCode: string;
   items: CheckoutItem[];

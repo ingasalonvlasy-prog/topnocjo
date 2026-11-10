@@ -8,13 +8,40 @@ import { formatPrice } from "@/lib/products";
 const FREE_SHIPPING_THRESHOLD = 200000; // 2000 Kč in haléře
 const CHEAPEST_SHIPPING = 4900; // 49 Kč
 
+function CartSkeleton() {
+  return (
+    <div className="max-w-[var(--container)] mx-auto px-6 py-12">
+      <nav className="text-[13px] text-muted mb-6">
+        <Link href="/" className="hover:text-navy transition-colors">Domů</Link>
+        <span className="mx-1.5 text-line">/</span>
+        <span className="text-ink font-medium">Košík</span>
+      </nav>
+      <div className="animate-pulse space-y-4">
+        <div className="h-9 w-48 bg-wash rounded" />
+        <div className="h-24 bg-wash rounded-[10px]" />
+        <div className="h-24 bg-wash rounded-[10px]" />
+      </div>
+    </div>
+  );
+}
+
 export default function CartPage() {
-  const { items, itemCount, subtotal, updateQuantity, removeItem } = useCart();
+  const { items, itemCount, subtotal, loaded, updateQuantity, removeItem } = useCart();
+
+  if (!loaded) {
+    return <CartSkeleton />;
+  }
 
   const freeShippingRemaining = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
   const freeShippingPercent = Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100);
   const estimatedShipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : CHEAPEST_SHIPPING;
   const total = subtotal + estimatedShipping;
+  const totalSavings = items.reduce((sum, item) => {
+    if (item.comparePrice && item.comparePrice > item.price) {
+      return sum + (item.comparePrice - item.price) * item.quantity;
+    }
+    return sum;
+  }, 0);
 
   if (items.length === 0) {
     return (
@@ -32,7 +59,7 @@ export default function CartPage() {
             </svg>
           </div>
           <h1 className="text-[22px] font-extrabold text-navy mb-2">Košík je prázdný</h1>
-          <p className="text-[14px] text-muted mb-6">Zatím tu nic není. Mrkni, co máme nového.</p>
+          <p className="text-[14px] text-muted mb-6">Zatím tu nic není. Mrkni na novinky.</p>
           <Link
             href="/"
             className="inline-flex h-[44px] items-center px-8 bg-navy text-white text-[13px] font-extrabold uppercase tracking-[0.12em] rounded-[var(--radius-pill)] hover:bg-ink transition-colors"
@@ -92,13 +119,13 @@ export default function CartPage() {
               <div key={item.variantId} className="flex gap-4 py-5">
                 {/* Photo */}
                 <Link href={`/produkt/${item.productSlug}`} className="shrink-0">
-                  <div className="w-[80px] h-[80px] bg-wash rounded-[8px] overflow-hidden">
+                  <div className="w-[80px] h-[80px] sm:w-[100px] sm:h-[100px] bg-wash rounded-[8px] overflow-hidden">
                     {item.photo ? (
                       <Image
                         src={item.photo}
                         alt={item.productName}
-                        width={80}
-                        height={80}
+                        width={100}
+                        height={100}
                         className="w-full h-full object-contain p-2"
                         style={{ mixBlendMode: "multiply" }}
                       />
@@ -117,23 +144,42 @@ export default function CartPage() {
                     {item.productName}
                   </Link>
                   <p className="text-[13px] text-muted mt-0.5">{item.variantTitle}</p>
+                  {item.quantity > 1 && (
+                    <p className="text-[12px] text-muted mt-0.5">
+                      {item.quantity} &times; {formatPrice(item.price)}
+                    </p>
+                  )}
 
-                  {/* Qty + price — mobile stacked, desktop row */}
-                  <div className="flex items-center justify-between mt-3">
+                  {/* Qty + price */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-3 gap-2">
                     <div className="flex items-center gap-0 border border-line rounded-[6px] overflow-hidden">
                       <button
-                        onClick={() => updateQuantity(item.variantId, item.quantity - 1)}
+                        onClick={() => {
+                          if (item.quantity === 1) {
+                            removeItem(item.variantId);
+                          } else {
+                            updateQuantity(item.variantId, item.quantity - 1);
+                          }
+                        }}
                         className="w-10 h-10 flex items-center justify-center text-ink hover:bg-wash transition-colors"
+                        aria-label={item.quantity === 1 ? "Odebrat z košíku" : "Snížit množství"}
                       >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
+                        {item.quantity === 1 ? (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-sale">
+                            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                          </svg>
+                        ) : (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                          </svg>
+                        )}
                       </button>
                       <span className="w-10 h-10 flex items-center justify-center text-[14px] font-bold text-navy border-x border-line">
                         {item.quantity}
                       </span>
                       <button
                         onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
+                        aria-label="Zvýšit množství"
                         className="w-10 h-10 flex items-center justify-center text-ink hover:bg-wash transition-colors"
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -143,13 +189,18 @@ export default function CartPage() {
                     </div>
 
                     <div className="flex items-center gap-3">
+                      {item.comparePrice && item.comparePrice > item.price && (
+                        <span className="text-[13px] text-muted line-through">
+                          {formatPrice(item.comparePrice * item.quantity)}
+                        </span>
+                      )}
                       <span className="text-[16px] font-extrabold text-navy">
                         {formatPrice(item.price * item.quantity)}
                       </span>
                       <button
                         onClick={() => removeItem(item.variantId)}
                         className="w-10 h-10 flex items-center justify-center text-muted hover:text-sale transition-colors"
-                        aria-label="Odebrat"
+                        aria-label="Odebrat položku"
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
                           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -171,7 +222,7 @@ export default function CartPage() {
 
         {/* Summary sidebar */}
         <div>
-          <div className="bg-wash rounded-[10px] p-6 sticky top-[80px]">
+          <div className="bg-wash rounded-[10px] p-6 sticky top-[100px]">
             <h2 className="text-[18px] font-bold text-navy mb-4">Souhrn objednávky</h2>
 
             <div className="space-y-2 text-[14px]">
@@ -179,6 +230,12 @@ export default function CartPage() {
                 <span className="text-muted">Mezisoučet</span>
                 <span className="font-medium text-ink">{formatPrice(subtotal)}</span>
               </div>
+              {totalSavings > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-muted">Ušetříš</span>
+                  <span className="font-bold text-sale">&minus;{formatPrice(totalSavings)}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-muted">Doprava</span>
                 <span className="font-medium text-ink">

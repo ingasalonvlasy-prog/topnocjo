@@ -49,6 +49,13 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
             {total} {total === 1 ? "zákazník" : total < 5 ? "zákazníci" : "zákazníků"}
           </p>
         </div>
+        <a
+          href="/api/admin/customers/export"
+          download
+          className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          Export CSV
+        </a>
       </div>
 
       {/* Search */}

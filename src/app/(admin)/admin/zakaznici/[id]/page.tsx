@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/products";
@@ -12,6 +13,14 @@ import type { OrderStatus, PaymentStatus } from "@/lib/order-constants";
 
 interface Props {
   params: Promise<{ id: string }>;
+}
+
+async function updateNote(formData: FormData) {
+  "use server";
+  const userId = formData.get("userId") as string;
+  const adminNote = (formData.get("adminNote") as string) || null;
+  await prisma.user.update({ where: { id: userId }, data: { adminNote } });
+  revalidatePath(`/admin/zakaznici/${userId}`);
 }
 
 export default async function AdminCustomerDetailPage({ params }: Props) {
@@ -224,6 +233,27 @@ export default async function AdminCustomerDetailPage({ params }: Props) {
                 <span className="text-gray-900">{user.newsletter ? "Ano" : "Ne"}</span>
               </div>
             </div>
+          </div>
+
+          {/* Admin note */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+            <h3 className="text-sm font-bold text-gray-900 mb-3">Poznámka</h3>
+            <form action={updateNote}>
+              <input type="hidden" name="userId" value={user.id} />
+              <textarea
+                name="adminNote"
+                rows={3}
+                defaultValue={user.adminNote || ""}
+                placeholder="Interní poznámka..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:border-gray-500 focus:outline-none resize-none"
+              />
+              <button
+                type="submit"
+                className="mt-2 px-3 py-1.5 text-xs font-medium rounded-md bg-gray-900 text-white hover:bg-gray-800"
+              >
+                Uložit
+              </button>
+            </form>
           </div>
         </div>
       </div>

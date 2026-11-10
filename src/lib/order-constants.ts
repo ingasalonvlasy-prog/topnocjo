@@ -81,4 +81,5 @@ export const PAYMENT_STATUS_COLORS: Record<PaymentStatus, { bg: string; text: st
 export const PAYMENT_METHOD_LABELS: Record<string, string> = {
   card: "Kartou online",
   transfer: "Bankovním převodem",
+  cod: "Dobírkou",
 };

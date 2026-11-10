@@ -1,7 +1,12 @@
 "use client";
 
 import { useTransition, useState } from "react";
-import { saveStoreSettings, saveEmailSettings } from "./actions";
+import {
+  saveStoreSettings,
+  saveEmailSettings,
+  saveSocialSettings,
+  saveSeoSettings,
+} from "./actions";
 
 function SaveButton({ pending }: { pending: boolean }) {
   return (
@@ -162,6 +167,110 @@ export function EmailSettingsForm({ settings, resendConnected }: EmailFormProps)
           <p className="text-xs text-gray-400 mt-1">
             Nastavte RESEND_API_KEY v .env.local
           </p>
+        </div>
+      </div>
+    </form>
+  );
+}
+
+export function SocialSettingsForm({ settings }: StoreFormProps) {
+  const [pending, startTransition] = useTransition();
+  const [saved, setSaved] = useState(false);
+
+  function handleSubmit(formData: FormData) {
+    setSaved(false);
+    startTransition(async () => {
+      await saveSocialSettings(formData);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    });
+  }
+
+  return (
+    <form action={handleSubmit}>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-gray-900">Sociální sítě &amp; Logo</h2>
+        <div className="flex items-center gap-3">
+          <SuccessMessage show={saved} />
+          <SaveButton pending={pending} />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Instagram URL</label>
+          <input
+            name="social_instagram"
+            defaultValue={settings.social_instagram || ""}
+            placeholder="https://instagram.com/qsport.cz"
+            className="w-full h-10 px-3 border border-gray-200 rounded-md text-sm bg-white text-gray-900 focus:border-gray-400 focus:outline-none"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Facebook URL</label>
+          <input
+            name="social_facebook"
+            defaultValue={settings.social_facebook || ""}
+            placeholder="https://facebook.com/qsport.cz"
+            className="w-full h-10 px-3 border border-gray-200 rounded-md text-sm bg-white text-gray-900 focus:border-gray-400 focus:outline-none"
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Logo URL</label>
+          <input
+            name="logo_url"
+            defaultValue={settings.logo_url || ""}
+            placeholder="/logo.svg"
+            className="w-full h-10 px-3 border border-gray-200 rounded-md text-sm bg-white text-gray-900 focus:border-gray-400 focus:outline-none"
+          />
+          <p className="text-xs text-gray-400 mt-1">Relativní cesta (/logo.svg) nebo plná URL</p>
+        </div>
+      </div>
+    </form>
+  );
+}
+
+export function SeoSettingsForm({ settings }: StoreFormProps) {
+  const [pending, startTransition] = useTransition();
+  const [saved, setSaved] = useState(false);
+
+  function handleSubmit(formData: FormData) {
+    setSaved(false);
+    startTransition(async () => {
+      await saveSeoSettings(formData);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    });
+  }
+
+  return (
+    <form action={handleSubmit}>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-gray-900">SEO výchozí hodnoty</h2>
+        <div className="flex items-center gap-3">
+          <SuccessMessage show={saved} />
+          <SaveButton pending={pending} />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Title šablona</label>
+          <input
+            name="seo_title_template"
+            defaultValue={settings.seo_title_template || ""}
+            placeholder="{page} | Qsport.cz"
+            className="w-full h-10 px-3 border border-gray-200 rounded-md text-sm bg-white text-gray-900 focus:border-gray-400 focus:outline-none"
+          />
+          <p className="text-xs text-gray-400 mt-1">{"{page}"} se nahradí názvem stránky</p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Výchozí meta description</label>
+          <textarea
+            name="seo_description"
+            rows={3}
+            defaultValue={settings.seo_description || ""}
+            placeholder="Sportovní vybavení od značek On, POC, Maloja, Alpina a Mizuno. Rychlé doručení, osobní přístup."
+            className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm bg-white text-gray-900 focus:border-gray-400 focus:outline-none resize-none"
+          />
         </div>
       </div>
     </form>

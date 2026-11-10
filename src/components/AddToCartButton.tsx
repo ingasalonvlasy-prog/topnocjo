@@ -8,6 +8,7 @@ interface AddToCartButtonProps {
     id: string;
     title: string;
     price: number;
+    comparePrice: number | null;
     ownStock: number;
     supplierStock: number;
   };
@@ -31,6 +32,7 @@ export function AddToCartButton({ variant, product }: AddToCartButtonProps) {
       productName: product.name,
       variantTitle: variant.title,
       price: variant.price,
+      comparePrice: variant.comparePrice || undefined,
       photo: product.photo,
     });
     setAdded(true);

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getAllSettings } from "@/lib/settings";
 import Link from "next/link";
-import { StoreSettingsForm, EmailSettingsForm } from "./SettingsForm";
+import { StoreSettingsForm, EmailSettingsForm, SocialSettingsForm, SeoSettingsForm } from "./SettingsForm";
 
 export default async function AdminSettingsPage() {
   const [
@@ -45,6 +45,16 @@ export default async function AdminSettingsPage() {
             settings={settings}
             resendConnected={resendConnected}
           />
+        </div>
+
+        {/* Social & Logo */}
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+          <SocialSettingsForm settings={settings} />
+        </div>
+
+        {/* SEO */}
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+          <SeoSettingsForm settings={settings} />
         </div>
 
         {/* Payments */}

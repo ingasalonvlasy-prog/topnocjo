@@ -21,6 +21,16 @@ export async function createDiscountCode(formData: FormData) {
     ? new Date(formData.get("validTo") as string)
     : null;
 
+  const restrictCategoriesRaw = formData.get("restrictCategories") as string;
+  const restrictCategories = restrictCategoriesRaw?.trim()
+    ? JSON.stringify(restrictCategoriesRaw.split(",").map((s) => s.trim()).filter(Boolean))
+    : null;
+
+  const restrictBrandsRaw = formData.get("restrictBrands") as string;
+  const restrictBrands = restrictBrandsRaw?.trim()
+    ? JSON.stringify(restrictBrandsRaw.split(",").map((s) => s.trim()).filter(Boolean))
+    : null;
+
   if (!code || !type || isNaN(value) || value <= 0) {
     throw new Error("Vyplňte všechna povinná pole.");
   }
@@ -43,6 +53,8 @@ export async function createDiscountCode(formData: FormData) {
       usageLimit,
       validFrom,
       validTo,
+      restrictCategories,
+      restrictBrands,
     },
   });
 
@@ -67,6 +79,16 @@ export async function updateDiscountCode(id: string, formData: FormData) {
     ? new Date(formData.get("validTo") as string)
     : null;
   const active = formData.get("active") === "on";
+
+  const restrictCategoriesRaw = formData.get("restrictCategories") as string;
+  const restrictCategories = restrictCategoriesRaw?.trim()
+    ? JSON.stringify(restrictCategoriesRaw.split(",").map((s) => s.trim()).filter(Boolean))
+    : null;
+
+  const restrictBrandsRaw = formData.get("restrictBrands") as string;
+  const restrictBrands = restrictBrandsRaw?.trim()
+    ? JSON.stringify(restrictBrandsRaw.split(",").map((s) => s.trim()).filter(Boolean))
+    : null;
 
   if (!code || !type || isNaN(value) || value <= 0) {
     throw new Error("Vyplňte všechna povinná pole.");
@@ -93,6 +115,8 @@ export async function updateDiscountCode(id: string, formData: FormData) {
       validFrom,
       validTo,
       active,
+      restrictCategories,
+      restrictBrands,
     },
   });
 

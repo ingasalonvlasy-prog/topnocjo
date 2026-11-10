@@ -97,6 +97,78 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
         </span>
       </div>
 
+      {/* Order progress stepper */}
+      {order.status !== "CANCELLED" && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between max-w-[500px] mx-auto">
+            {[
+              { key: "NEW", label: "Přijato" },
+              { key: "CONFIRMED", label: "Potvrzeno" },
+              { key: "SHIPPED", label: "Odesláno" },
+              { key: "DELIVERED", label: "Doručeno" },
+            ].map((step, idx, arr) => {
+              const stepOrder = ["NEW", "CONFIRMED", "PROCESSING", "AWAITING_SUPPLIER", "SHIPPED", "DELIVERED"];
+              const currentIdx = stepOrder.indexOf(order.status);
+              const stepIdx = stepOrder.indexOf(step.key);
+              const isActive = currentIdx >= stepIdx;
+
+              return (
+                <div key={step.key} className="flex items-center flex-1 last:flex-none">
+                  <div className="flex flex-col items-center">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold ${
+                      isActive
+                        ? "bg-navy text-white"
+                        : "bg-wash text-muted border border-line"
+                    }`}>
+                      {isActive ? (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                      ) : (
+                        idx + 1
+                      )}
+                    </div>
+                    <span className={`text-[11px] mt-1.5 font-medium ${isActive ? "text-navy" : "text-muted"}`}>
+                      {step.label}
+                    </span>
+                  </div>
+                  {idx < arr.length - 1 && (
+                    <div className={`flex-1 h-0.5 mx-2 mt-[-16px] ${isActive ? "bg-navy" : "bg-line"}`} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Tracking info */}
+      {order.trackingNumber && (
+        <div className="bg-wash rounded-[10px] p-5 mb-6">
+          <h3 className="text-[14px] font-bold text-navy mb-2">Sledování zásilky</h3>
+          <div className="flex items-center gap-3">
+            <span className="text-[14px] text-ink">
+              Tracking: <span className="font-bold font-mono">{order.trackingNumber}</span>
+            </span>
+            {order.trackingUrl && (
+              <a
+                href={order.trackingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[13px] font-bold text-blue hover:underline"
+              >
+                Sledovat zásilku
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                  <polyline points="15 3 21 3 21 9"/>
+                  <line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Order items */}
       <div className="bg-white border border-line rounded-[10px] p-6 mb-6">
         <h2 className="text-[16px] font-bold text-navy mb-4">Položky objednávky</h2>

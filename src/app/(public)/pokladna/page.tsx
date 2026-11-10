@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/products";
 import { createOrder } from "./actions";
@@ -22,18 +21,41 @@ interface ShippingOption {
 
 const inputCls =
   "w-full py-2.5 px-4 text-[14px] font-medium border border-line rounded-[var(--radius-field)] bg-white focus:border-navy focus:shadow-[0_0_0_3px_rgba(11,23,39,0.06)] outline-none transition-all";
+const inputErrorCls =
+  "w-full py-2.5 px-4 text-[14px] font-medium border border-sale rounded-[var(--radius-field)] bg-white focus:border-navy focus:shadow-[0_0_0_3px_rgba(11,23,39,0.06)] outline-none transition-all";
 const labelCls = "block text-[13px] font-bold text-ink mb-1.5";
 
+type PaymentMethod = "card" | "transfer" | "cod";
+
+function CheckoutSkeleton() {
+  return (
+    <div className="max-w-[var(--container)] mx-auto px-6 py-8">
+      <div className="h-4 w-48 bg-wash rounded mb-6" />
+      <div className="h-10 w-40 bg-wash rounded mb-8" />
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
+        <div className="space-y-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-48 bg-wash rounded-[10px]" />
+          ))}
+        </div>
+        <div>
+          <div className="h-80 bg-wash rounded-[10px]" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CheckoutPage() {
-  const router = useRouter();
-  const { items, subtotal, clearCart } = useCart();
+  const { items, subtotal, loaded, clearCart } = useCart();
   const [shipping, setShipping] = useState<ShippingOption[]>([]);
   const [selectedShipping, setSelectedShipping] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "transfer">("card");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
   const [selectedPoint, setSelectedPoint] = useState<PacketaPoint | null>(null);
   const [differentShipping, setDifferentShipping] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [discountInput, setDiscountInput] = useState("");
   const [discountApplied, setDiscountApplied] = useState<{
     code: string;
@@ -55,12 +77,17 @@ export default function CheckoutPage() {
   }, []);
 
   const selectedMethod = shipping.find((s) => s.id === selectedShipping);
+  const isPersonalPickup = selectedMethod?.type === "personal";
   const shippingPrice =
     selectedMethod && selectedMethod.freeFrom && subtotal >= selectedMethod.freeFrom
       ? 0
       : selectedMethod?.price || 0;
   const discountAmount = discountApplied?.discountAmount || 0;
   const total = subtotal - discountAmount + shippingPrice;
+
+  if (!loaded) {
+    return <CheckoutSkeleton />;
+  }
 
   if (items.length === 0) {
     return (
@@ -77,20 +104,57 @@ export default function CheckoutPage() {
     );
   }
 
+  function validateForm(fd: FormData): Record<string, string> {
+    const errors: Record<string, string> = {};
+    const email = (fd.get("email") as string)?.trim();
+    const phone = (fd.get("phone") as string)?.trim();
+    const firstName = (fd.get("firstName") as string)?.trim();
+    const lastName = (fd.get("lastName") as string)?.trim();
+    const street = (fd.get("street") as string)?.trim();
+    const city = (fd.get("city") as string)?.trim();
+    const zip = (fd.get("zip") as string)?.trim();
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = "Zadej platný e-mail.";
+    }
+    if (!phone) {
+      errors.phone = "Telefon je povinný pro dopravu.";
+    }
+    if (!firstName) errors.firstName = "Vyplň jméno.";
+    if (!lastName) errors.lastName = "Vyplň příjmení.";
+    if (!street) errors.street = "Vyplň ulici a číslo.";
+    if (!city) errors.city = "Vyplň město.";
+    if (!zip || !/^\d{3}\s?\d{2}$/.test(zip)) {
+      errors.zip = "Zadej platné PSČ (např. 110 00).";
+    }
+
+    return errors;
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
+    setFieldErrors({});
 
-    // Validace: Zásilkovna vyžaduje vybraný bod
+    const form = e.currentTarget;
+    const fd = new FormData(form);
+
+    // Client-side validation
+    const errors = validateForm(fd);
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      const firstErrorField = form.querySelector(`[name="${Object.keys(errors)[0]}"]`);
+      firstErrorField?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+
+    // Zasilkovna requires selected point
     if (selectedMethod?.type === "pickup_point" && !selectedPoint) {
-      setError("Vyberte výdejní místo pro Zásilkovnu.");
+      setError("Vyber výdejní místo pro Zásilkovnu.");
       return;
     }
 
     setSubmitting(true);
-
-    const form = e.currentTarget;
-    const fd = new FormData(form);
 
     try {
       await createOrder({
@@ -127,6 +191,13 @@ export default function CheckoutPage() {
     }
   }
 
+  const submitLabel =
+    paymentMethod === "card"
+      ? "Objednat a zaplatit"
+      : paymentMethod === "cod"
+        ? "Objednat na dobírku"
+        : "Objednat";
+
   return (
     <div className="max-w-[var(--container)] mx-auto px-6 py-8">
       {/* Breadcrumbs */}
@@ -146,7 +217,7 @@ export default function CheckoutPage() {
         <p className="text-[13px] text-sale p-3 bg-red-50 rounded-lg mb-6">{error}</p>
       )}
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} noValidate>
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
           {/* Left — form sections */}
           <div className="space-y-6">
@@ -156,11 +227,25 @@ export default function CheckoutPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={labelCls}>E-mail *</label>
-                  <input name="email" type="email" required className={inputCls} />
+                  <input
+                    name="email"
+                    type="email"
+                    required
+                    className={fieldErrors.email ? inputErrorCls : inputCls}
+                    onChange={() => setFieldErrors((p) => ({ ...p, email: "" }))}
+                  />
+                  {fieldErrors.email && <p className="text-[12px] text-sale mt-1">{fieldErrors.email}</p>}
                 </div>
                 <div>
-                  <label className={labelCls}>Telefon</label>
-                  <input name="phone" type="tel" className={inputCls} />
+                  <label className={labelCls}>Telefon *</label>
+                  <input
+                    name="phone"
+                    type="tel"
+                    required
+                    className={fieldErrors.phone ? inputErrorCls : inputCls}
+                    onChange={() => setFieldErrors((p) => ({ ...p, phone: "" }))}
+                  />
+                  {fieldErrors.phone && <p className="text-[12px] text-sale mt-1">{fieldErrors.phone}</p>}
                 </div>
               </div>
             </div>
@@ -171,39 +256,71 @@ export default function CheckoutPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className={labelCls}>Jméno *</label>
-                  <input name="firstName" required className={inputCls} />
+                  <input
+                    name="firstName"
+                    required
+                    className={fieldErrors.firstName ? inputErrorCls : inputCls}
+                    onChange={() => setFieldErrors((p) => ({ ...p, firstName: "" }))}
+                  />
+                  {fieldErrors.firstName && <p className="text-[12px] text-sale mt-1">{fieldErrors.firstName}</p>}
                 </div>
                 <div>
                   <label className={labelCls}>Příjmení *</label>
-                  <input name="lastName" required className={inputCls} />
+                  <input
+                    name="lastName"
+                    required
+                    className={fieldErrors.lastName ? inputErrorCls : inputCls}
+                    onChange={() => setFieldErrors((p) => ({ ...p, lastName: "" }))}
+                  />
+                  {fieldErrors.lastName && <p className="text-[12px] text-sale mt-1">{fieldErrors.lastName}</p>}
                 </div>
               </div>
               <div className="mb-4">
                 <label className={labelCls}>Ulice a číslo *</label>
-                <input name="street" required className={inputCls} />
+                <input
+                  name="street"
+                  required
+                  className={fieldErrors.street ? inputErrorCls : inputCls}
+                  onChange={() => setFieldErrors((p) => ({ ...p, street: "" }))}
+                />
+                {fieldErrors.street && <p className="text-[12px] text-sale mt-1">{fieldErrors.street}</p>}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className={labelCls}>Město *</label>
-                  <input name="city" required className={inputCls} />
+                  <input
+                    name="city"
+                    required
+                    className={fieldErrors.city ? inputErrorCls : inputCls}
+                    onChange={() => setFieldErrors((p) => ({ ...p, city: "" }))}
+                  />
+                  {fieldErrors.city && <p className="text-[12px] text-sale mt-1">{fieldErrors.city}</p>}
                 </div>
                 <div>
                   <label className={labelCls}>PSČ *</label>
-                  <input name="zip" required className={inputCls} />
+                  <input
+                    name="zip"
+                    required
+                    className={fieldErrors.zip ? inputErrorCls : inputCls}
+                    onChange={() => setFieldErrors((p) => ({ ...p, zip: "" }))}
+                  />
+                  {fieldErrors.zip && <p className="text-[12px] text-sale mt-1">{fieldErrors.zip}</p>}
                 </div>
               </div>
 
-              <label className="flex items-center gap-2.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={differentShipping}
-                  onChange={(e) => setDifferentShipping(e.target.checked)}
-                  className="w-4 h-4 rounded border-line text-navy focus:ring-navy"
-                />
-                <span className="text-[13px] text-ink">Doručovací adresa je jiná</span>
-              </label>
+              {!isPersonalPickup && (
+                <label className="flex items-center gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={differentShipping}
+                    onChange={(e) => setDifferentShipping(e.target.checked)}
+                    className="w-4 h-4 rounded border-line text-navy focus:ring-navy"
+                  />
+                  <span className="text-[13px] text-ink">Doručovací adresa je jiná</span>
+                </label>
+              )}
 
-              {differentShipping && (
+              {differentShipping && !isPersonalPickup && (
                 <div className="mt-4 pt-4 border-t border-line">
                   <h3 className="text-[14px] font-bold text-ink mb-3">Doručovací adresa</h3>
                   <div className="mb-4">
@@ -254,6 +371,9 @@ export default function CheckoutPage() {
                           if (method.type !== "pickup_point") {
                             setSelectedPoint(null);
                           }
+                          if (method.type === "personal") {
+                            setDifferentShipping(false);
+                          }
                         }}
                         className="w-4 h-4 text-navy focus:ring-navy"
                       />
@@ -271,7 +391,7 @@ export default function CheckoutPage() {
                 })}
               </div>
 
-              {/* Zásilkovna widget */}
+              {/* Zasilkovna widget */}
               {selectedMethod?.type === "pickup_point" && selectedMethod.packetaApiKey && (
                 <div className="mt-4 pl-0 sm:pl-8">
                   <ZasilkovnaWidget
@@ -279,6 +399,15 @@ export default function CheckoutPage() {
                     onSelect={(point) => setSelectedPoint(point)}
                     selectedPoint={selectedPoint}
                   />
+                </div>
+              )}
+
+              {/* Personal pickup info */}
+              {isPersonalPickup && (
+                <div className="mt-4 p-3 bg-wash rounded-lg">
+                  <p className="text-[13px] text-ink">
+                    {selectedMethod?.description || "Osobní odběr na pobočce."}
+                  </p>
                 </div>
               )}
             </div>
@@ -321,6 +450,24 @@ export default function CheckoutPage() {
                   <div className="flex-1">
                     <span className="text-[14px] font-bold text-ink">Bankovní převod</span>
                     <p className="text-[12px] text-muted mt-0.5">Platba na účet — pokyny obdržíte po objednání</p>
+                  </div>
+                </label>
+                <label
+                  className={`flex items-center gap-4 p-4 rounded-[8px] border cursor-pointer transition-all ${
+                    paymentMethod === "cod" ? "border-navy bg-wash" : "border-line hover:border-muted"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="cod"
+                    checked={paymentMethod === "cod"}
+                    onChange={() => setPaymentMethod("cod")}
+                    className="w-4 h-4 text-navy focus:ring-navy"
+                  />
+                  <div className="flex-1">
+                    <span className="text-[14px] font-bold text-ink">Dobírka</span>
+                    <p className="text-[12px] text-muted mt-0.5">Zaplatíte při převzetí zásilky</p>
                   </div>
                 </label>
               </div>
@@ -418,7 +565,7 @@ export default function CheckoutPage() {
 
           {/* Right — summary */}
           <div>
-            <div className="bg-wash rounded-[10px] p-6 sticky top-[80px]">
+            <div className="bg-wash rounded-[10px] p-6 sticky top-[100px]">
               <h2 className="text-[18px] font-bold text-navy mb-4">Rekapitulace</h2>
 
               <div className="space-y-3 mb-4">
@@ -489,9 +636,19 @@ export default function CheckoutPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="mt-6 w-full h-[48px] bg-lime text-navy text-[13px] font-extrabold uppercase tracking-[0.12em] rounded-[var(--radius-pill)] flex items-center justify-center hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                className="mt-6 w-full h-[48px] bg-lime text-navy text-[13px] font-extrabold uppercase tracking-[0.12em] rounded-[var(--radius-pill)] flex items-center justify-center gap-2 hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
               >
-                {submitting ? "Zpracovávám..." : "Objednat a zaplatit"}
+                {submitting ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Zpracovávám...
+                  </>
+                ) : (
+                  submitLabel
+                )}
               </button>
 
               <p className="text-[11px] text-muted mt-3 text-center">

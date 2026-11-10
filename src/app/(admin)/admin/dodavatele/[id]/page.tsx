@@ -13,6 +13,11 @@ async function updateSupplier(formData: FormData) {
   const feedFormat = (formData.get("feedFormat") as string) || "xml";
   const feedConfig = (formData.get("feedConfig") as string)?.trim() || "{}";
   const active = formData.get("active") === "on";
+  const contactName = (formData.get("contactName") as string)?.trim() || null;
+  const contactEmail = (formData.get("contactEmail") as string)?.trim() || null;
+  const contactPhone = (formData.get("contactPhone") as string)?.trim() || null;
+  const website = (formData.get("website") as string)?.trim() || null;
+  const note = (formData.get("note") as string)?.trim() || null;
 
   // Validate JSON
   try {
@@ -23,7 +28,7 @@ async function updateSupplier(formData: FormData) {
 
   await prisma.supplier.update({
     where: { id },
-    data: { name, code, feedUrl, feedFormat, feedConfig, active },
+    data: { name, code, feedUrl, feedFormat, feedConfig, active, contactName, contactEmail, contactPhone, website, note },
   });
 
   revalidatePath(`/admin/dodavatele/${id}`);
@@ -206,6 +211,56 @@ export default async function SupplierDetailPage({
                 </div>
               </div>
 
+              {/* Kontaktní údaje */}
+              <div className="border-t border-gray-200 pt-4 mt-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">Kontaktní údaje</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Kontaktní osoba</label>
+                    <input
+                      name="contactName"
+                      defaultValue={supplier.contactName || ""}
+                      className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md focus:border-green-500 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Email</label>
+                    <input
+                      name="contactEmail"
+                      type="email"
+                      defaultValue={supplier.contactEmail || ""}
+                      className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md focus:border-green-500 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Telefon</label>
+                    <input
+                      name="contactPhone"
+                      defaultValue={supplier.contactPhone || ""}
+                      className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md focus:border-green-500 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Web</label>
+                    <input
+                      name="website"
+                      defaultValue={supplier.website || ""}
+                      className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md font-mono focus:border-green-500 outline-none"
+                    />
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Poznámka</label>
+                  <textarea
+                    name="note"
+                    defaultValue={supplier.note || ""}
+                    rows={3}
+                    placeholder="Interní poznámka k dodavateli..."
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:border-green-500 outline-none resize-y"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">
                   Feed Config (JSON) — mapování polí
@@ -226,6 +281,20 @@ export default async function SupplierDetailPage({
                 <p className="text-xs text-gray-400 mt-1">
                   Pole: sku, name, size, color, price, comparePrice, stock, csvDelimiter, csvEncoding, xmlItemPath, jsonItemPath, priceMultiplier, priceInCents, stockMapping
                 </p>
+                <details className="mt-2">
+                  <summary className="text-xs text-gray-400 cursor-pointer hover:text-gray-600">Ukázka konfigurace</summary>
+                  <pre className="mt-1 p-3 bg-gray-50 rounded-md text-xs font-mono text-gray-500 overflow-x-auto">{`{
+  "xmlItemPath": "products.product",
+  "sku": "code",
+  "name": "name",
+  "size": "size",
+  "color": "color",
+  "price": "price_vat",
+  "stock": "stock_quantity",
+  "priceInCents": false,
+  "priceMultiplier": 1
+}`}</pre>
+                </details>
               </div>
 
               <div className="flex items-center gap-3">

@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { hostname: "cdn.shopify.com" },
       { hostname: "placehold.co" },
+      { hostname: "**.cdninstagram.com" },
+      { hostname: "**.fbcdn.net" },
     ],
   },
   async headers() {

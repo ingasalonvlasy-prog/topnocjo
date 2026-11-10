@@ -1,21 +1,43 @@
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/products";
-import {
-  ORDER_STATUS_LABELS,
-  ORDER_STATUS_COLORS,
-  PAYMENT_STATUS_LABELS,
-  PAYMENT_STATUS_COLORS,
-} from "@/lib/order-constants";
-import type { OrderStatus, PaymentStatus } from "@/lib/order-constants";
+import { StatCard } from "@/components/admin/StatCard";
 import { OrderFilters } from "@/components/admin/OrderFilters";
 import { ExportOrdersButton } from "@/components/admin/ExportOrdersButton";
+import { OrderTableClient } from "@/components/admin/OrderTableClient";
+import type { OrderRow } from "@/components/admin/OrderTableClient";
 import Link from "next/link";
 import { Suspense } from "react";
 
-const PER_PAGE = 20;
+const PER_PAGE = 50;
 
 interface Props {
   searchParams: Promise<Record<string, string | undefined>>;
+}
+
+// Helper: aggregate daily counts from order list
+function dailyCounts(orders: { createdAt: Date }[], days: number): number[] {
+  const now = new Date();
+  const result: number[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const dayStart = new Date(now);
+    dayStart.setDate(now.getDate() - i);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(dayStart);
+    dayEnd.setHours(23, 59, 59, 999);
+    result.push(
+      orders.filter((o) => o.createdAt >= dayStart && o.createdAt <= dayEnd).length
+    );
+  }
+  return result;
+}
+
+function pctChange(today: number, yesterday: number): { text: string; type: "up" | "down" | "neutral" } {
+  if (yesterday === 0 && today === 0) return { text: "0%", type: "neutral" };
+  if (yesterday === 0) return { text: "+100%", type: "up" };
+  const pct = Math.round(((today - yesterday) / yesterday) * 100);
+  if (pct > 0) return { text: `${pct}%`, type: "up" };
+  if (pct < 0) return { text: `${pct}%`, type: "down" };
+  return { text: "0%", type: "neutral" };
 }
 
 export default async function AdminOrdersPage({ searchParams }: Props) {
@@ -27,7 +49,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
   const search = params.search || "";
   const page = Math.max(1, parseInt(params.page || "1", 10));
 
-  // Build where clause
+  // Build where clause for filtered list
   const where: Record<string, unknown> = {};
   if (status) where.status = status;
   if (paymentStatus) where.paymentStatus = paymentStatus;
@@ -46,54 +68,132 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
     ];
   }
 
-  const [orders, total, newCount, pendingPayment, awaitingSupplier, readyToShip] =
-    await Promise.all([
-      prisma.order.findMany({
-        where,
-        include: { shipping: true, items: true },
-        orderBy: { createdAt: "desc" },
-        skip: (page - 1) * PER_PAGE,
-        take: PER_PAGE,
-      }),
-      prisma.order.count({ where }),
-      prisma.order.count({ where: { status: "NEW" } }),
-      prisma.order.count({
-        where: { paymentStatus: "PENDING", status: { not: "CANCELLED" } },
-      }),
-      prisma.order.count({ where: { status: "AWAITING_SUPPLIER" } }),
-      prisma.order.count({
-        where: {
-          status: { in: ["CONFIRMED", "PROCESSING"] },
-          paymentStatus: "PAID",
-        },
-      }),
-    ]);
+  // 7 days ago for sparkline data
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+  sevenDaysAgo.setHours(0, 0, 0, 0);
+
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const yesterdayStart = new Date(todayStart);
+  yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+
+  const [orders, total, recentOrders] = await Promise.all([
+    prisma.order.findMany({
+      where,
+      include: { shipping: true, items: true },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * PER_PAGE,
+      take: PER_PAGE,
+    }),
+    prisma.order.count({ where }),
+    // Last 7 days for stats — all orders regardless of filters
+    prisma.order.findMany({
+      where: { createdAt: { gte: sevenDaysAgo } },
+      select: {
+        createdAt: true,
+        status: true,
+        total: true,
+        shippedAt: true,
+        items: { select: { quantity: true } },
+      },
+    }),
+  ]);
 
   const totalPages = Math.ceil(total / PER_PAGE);
 
-  function StatLink({
-    href,
-    color,
-    label,
-    count,
-  }: {
-    href: string;
-    color: string;
-    label: string;
-    count: number;
-  }) {
-    return (
-      <Link
-        href={href}
-        className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-colors hover:shadow-sm ${color}`}
-      >
-        {label}: <span className="font-bold">{count}</span>
-      </Link>
-    );
-  }
+  // Compute stat card data
+  const todayOrders = recentOrders.filter((o) => o.createdAt >= todayStart);
+  const yesterdayOrders = recentOrders.filter(
+    (o) => o.createdAt >= yesterdayStart && o.createdAt < todayStart
+  );
+
+  const ordersToday = todayOrders.length;
+  const ordersYesterday = yesterdayOrders.length;
+  const orderChange = pctChange(ordersToday, ordersYesterday);
+
+  const itemsToday = todayOrders.reduce(
+    (sum, o) => sum + o.items.reduce((s, i) => s + i.quantity, 0),
+    0
+  );
+  const itemsYesterday = yesterdayOrders.reduce(
+    (sum, o) => sum + o.items.reduce((s, i) => s + i.quantity, 0),
+    0
+  );
+  const itemsChange = pctChange(itemsToday, itemsYesterday);
+
+  const refundedToday = todayOrders.filter((o) => o.status === "CANCELLED").length;
+  const refundedYesterday = yesterdayOrders.filter((o) => o.status === "CANCELLED").length;
+  const refundChange = pctChange(refundedToday, refundedYesterday);
+
+  const fulfilledToday = todayOrders.filter((o) => o.status === "SHIPPED").length;
+  const fulfilledYesterday = yesterdayOrders.filter((o) => o.status === "SHIPPED").length;
+  const fulfilledChange = pctChange(fulfilledToday, fulfilledYesterday);
+
+  const deliveredToday = todayOrders.filter((o) => o.status === "DELIVERED").length;
+  const deliveredYesterday = yesterdayOrders.filter((o) => o.status === "DELIVERED").length;
+  const deliveredChange = pctChange(deliveredToday, deliveredYesterday);
+
+  // Avg fulfillment time (shipped orders in last 7 days)
+  const shippedRecent = recentOrders.filter((o) => o.shippedAt);
+  const avgFulfillmentHours =
+    shippedRecent.length > 0
+      ? Math.round(
+          shippedRecent.reduce(
+            (sum, o) =>
+              sum + (o.shippedAt!.getTime() - o.createdAt.getTime()) / (1000 * 60 * 60),
+            0
+          ) / shippedRecent.length
+        )
+      : 0;
+  const avgFulfillmentDays = (avgFulfillmentHours / 24).toFixed(1);
+
+  // Sparkline data (7 days)
+  const sparkAll = dailyCounts(recentOrders, 7);
+  const sparkFulfilled = dailyCounts(
+    recentOrders.filter((o) => o.status === "SHIPPED"),
+    7
+  );
+  const sparkDelivered = dailyCounts(
+    recentOrders.filter((o) => o.status === "DELIVERED"),
+    7
+  );
+  const sparkItems: number[] = (() => {
+    const now = new Date();
+    const result: number[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const dayStart = new Date(now);
+      dayStart.setDate(now.getDate() - i);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setHours(23, 59, 59, 999);
+      result.push(
+        recentOrders
+          .filter((o) => o.createdAt >= dayStart && o.createdAt <= dayEnd)
+          .reduce((s, o) => s + o.items.reduce((q, i) => q + i.quantity, 0), 0)
+      );
+    }
+    return result;
+  })();
+
+  // Serialize orders for client component
+  const orderRows: OrderRow[] = orders.map((o) => ({
+    id: o.id,
+    orderNumber: o.orderNumber,
+    firstName: o.firstName,
+    lastName: o.lastName,
+    email: o.email,
+    createdAt: o.createdAt.toISOString(),
+    status: o.status,
+    paymentStatus: o.paymentStatus,
+    total: o.total,
+    itemCount: o.items.reduce((s, i) => s + i.quantity, 0),
+    shippingName: o.shipping?.name || null,
+  }));
 
   return (
     <div>
+      {/* Header with buttons */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Objednávky</h1>
@@ -101,36 +201,63 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
             {total} {total === 1 ? "objednávka" : total < 5 ? "objednávky" : "objednávek"}
           </p>
         </div>
-        <Suspense fallback={null}>
-          <ExportOrdersButton />
-        </Suspense>
+        <div className="flex items-center gap-2">
+          <Suspense fallback={null}>
+            <ExportOrdersButton />
+          </Suspense>
+          <MoreActionsDropdown />
+          <Link
+            href="/admin/objednavky/nova"
+            className="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Vytvořit objednávku
+          </Link>
+        </div>
       </div>
 
-      {/* Quick stats */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        <StatLink
-          href="/admin/objednavky?status=NEW"
-          color="border-blue-200 bg-blue-50 text-blue-700"
-          label="Nové"
-          count={newCount}
+      {/* Stat cards — 6 in grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+        <StatCard
+          label="Objednávky dnes"
+          value={String(ordersToday)}
+          change={orderChange.text}
+          changeType={orderChange.type}
+          sparkline={sparkAll}
         />
-        <StatLink
-          href="/admin/objednavky?paymentStatus=PENDING"
-          color="border-yellow-200 bg-yellow-50 text-yellow-700"
-          label="Čeká platba"
-          count={pendingPayment}
+        <StatCard
+          label="Objednané položky"
+          value={String(itemsToday)}
+          change={itemsChange.text}
+          changeType={itemsChange.type}
+          sparkline={sparkItems}
         />
-        <StatLink
-          href="/admin/objednavky?status=AWAITING_SUPPLIER"
-          color="border-orange-200 bg-orange-50 text-orange-700"
-          label="Čeká dodavatel"
-          count={awaitingSupplier}
+        <StatCard
+          label="Vrácení"
+          value={String(refundedToday)}
+          change={refundChange.text}
+          changeType={refundChange.type}
         />
-        <StatLink
-          href="/admin/objednavky?status=CONFIRMED&paymentStatus=PAID"
-          color="border-purple-200 bg-purple-50 text-purple-700"
-          label="K odeslání"
-          count={readyToShip}
+        <StatCard
+          label="Splněné"
+          value={String(fulfilledToday)}
+          change={fulfilledChange.text}
+          changeType={fulfilledChange.type}
+          sparkline={sparkFulfilled}
+        />
+        <StatCard
+          label="Doručené"
+          value={String(deliveredToday)}
+          change={deliveredChange.text}
+          changeType={deliveredChange.type}
+          sparkline={sparkDelivered}
+        />
+        <StatCard
+          label="Doba plnění"
+          value={avgFulfillmentHours < 48 ? `${avgFulfillmentHours}h` : `${avgFulfillmentDays}d`}
+          changeType="neutral"
         />
       </div>
 
@@ -148,100 +275,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
             <p className="text-gray-500">Žádné objednávky nenalezeny.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">
-                    Číslo
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">
-                    Zákazník
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">
-                    Datum
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">
-                    Doprava
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">
-                    Stav
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">
-                    Platba
-                  </th>
-                  <th className="px-4 py-3 text-right font-medium text-gray-600">
-                    Celkem
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {orders.map((order) => {
-                  const statusKey = order.status as OrderStatus;
-                  const paymentKey = order.paymentStatus as PaymentStatus;
-                  const statusColor = ORDER_STATUS_COLORS[statusKey] || {
-                    bg: "bg-gray-100",
-                    text: "text-gray-700",
-                  };
-                  const paymentColor = PAYMENT_STATUS_COLORS[paymentKey] || {
-                    bg: "bg-gray-100",
-                    text: "text-gray-700",
-                  };
-
-                  return (
-                    <tr
-                      key={order.id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-4 py-3">
-                        <Link
-                          href={`/admin/objednavky/${order.id}`}
-                          className="font-mono text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
-                        >
-                          {order.orderNumber}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-gray-900">
-                          {order.firstName} {order.lastName}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {order.email}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
-                        {order.createdAt.toLocaleDateString("cs-CZ", {
-                          day: "numeric",
-                          month: "short",
-                        })}
-                      </td>
-                      <td className="px-4 py-3 text-gray-600 text-xs">
-                        {order.shipping?.name || "-"}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${statusColor.bg} ${statusColor.text}`}
-                        >
-                          {ORDER_STATUS_LABELS[statusKey] || order.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${paymentColor.bg} ${paymentColor.text}`}
-                        >
-                          {PAYMENT_STATUS_LABELS[paymentKey] ||
-                            order.paymentStatus}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right font-bold text-gray-900 whitespace-nowrap">
-                        {formatPrice(order.total)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <OrderTableClient orders={orderRows} />
         )}
 
         {/* Pagination */}
@@ -281,6 +315,29 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function MoreActionsDropdown() {
+  return (
+    <div className="relative group">
+      <button className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
+        Další akce
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+      <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-gray-200 bg-white shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+        <div className="py-1">
+          <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer">
+            Import objednávek
+          </button>
+          <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer">
+            Hromadná editace
+          </button>
+        </div>
       </div>
     </div>
   );

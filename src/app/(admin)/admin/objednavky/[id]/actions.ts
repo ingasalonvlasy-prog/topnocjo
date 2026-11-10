@@ -7,7 +7,10 @@ import type { OrderStatus } from "@/lib/order-constants";
 import { sendEmail } from "@/lib/email";
 import { OrderShipped } from "@/lib/emails/order-shipped";
 import { OrderCancelled } from "@/lib/emails/order-cancelled";
+import { OrderDelivered } from "@/lib/emails/order-delivered";
+import { ReviewInvitation } from "@/lib/emails/review-invitation";
 import { logAdminAction } from "@/lib/admin-log";
+import { createZasilkovnaPacket } from "@/lib/zasilkovna";
 
 export async function updateOrderStatus(formData: FormData) {
   const orderId = formData.get("orderId") as string;
@@ -47,6 +50,74 @@ export async function updateOrderStatus(formData: FormData) {
         trackingUrl: updatedOrder.trackingUrl || undefined,
       }),
     });
+
+    // Auto-create Zásilkovna packet if applicable
+    if (updatedOrder.shipping.code === "zasilkovna" && updatedOrder.packetaPointId) {
+      const shippingConfig = JSON.parse(updatedOrder.shipping.config || "{}");
+      if (shippingConfig.apiKey) {
+        createZasilkovnaPacket({
+          apiKey: shippingConfig.apiKey,
+          orderNumber: updatedOrder.orderNumber,
+          firstName: updatedOrder.firstName,
+          lastName: updatedOrder.lastName,
+          email: updatedOrder.email,
+          phone: updatedOrder.phone || "",
+          addressId: parseInt(updatedOrder.packetaPointId, 10),
+          value: updatedOrder.paymentMethod === "cod" ? Math.round(updatedOrder.total / 100) : 0,
+          weight: 1,
+          senderLabel: shippingConfig.senderLabel,
+        }).then((result) => {
+          if (result.success && result.packetId) {
+            prisma.order.update({
+              where: { id: orderId },
+              data: {
+                trackingNumber: result.packetId,
+                trackingUrl: `https://tracking.packeta.com/cs/?id=${result.packetId}`,
+              },
+            }).catch(() => {});
+          }
+        }).catch(() => {});
+      }
+    }
+  }
+
+  if (newStatus === "DELIVERED") {
+    sendEmail({
+      to: order.email,
+      subject: `Objednávka ${order.orderNumber} byla doručena`,
+      react: OrderDelivered({
+        orderNumber: order.orderNumber,
+        firstName: order.firstName,
+      }),
+    });
+
+    // Review invitation email (fire-and-forget)
+    prisma.orderItem.findMany({
+      where: { orderId },
+      select: { productName: true, productId: true },
+    }).then(async (orderItems) => {
+      const productIds = orderItems.filter((i) => i.productId).map((i) => i.productId!);
+      if (productIds.length === 0) return;
+      const products = await prisma.product.findMany({
+        where: { id: { in: productIds } },
+        select: { id: true, slug: true },
+      });
+      const slugMap = new Map(products.map((p) => [p.id, p.slug]));
+      const items = orderItems
+        .filter((i) => i.productId && slugMap.has(i.productId))
+        .map((i) => ({ name: i.productName, slug: slugMap.get(i.productId!)! }));
+      if (items.length > 0) {
+        sendEmail({
+          to: order.email,
+          subject: `Jak jste spokojeni s objednávkou #${order.orderNumber}?`,
+          react: ReviewInvitation({
+            orderNumber: order.orderNumber,
+            firstName: order.firstName,
+            items,
+          }),
+        });
+      }
+    }).catch(() => {});
   }
 
   if (newStatus === "CANCELLED") {

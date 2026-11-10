@@ -29,6 +29,8 @@ interface ProductCardProps {
     brand: { name: string };
     categories: { category: { slug: string; name: string } }[];
     variants: { id: string; price: number; comparePrice: number | null; ownStock: number; supplierStock: number; size?: string | null; title: string }[];
+    avgRating?: number;
+    reviewCount?: number;
   };
   badge?: "BESTSELLER" | "NOVINKA" | null;
 }
@@ -81,6 +83,7 @@ export function ProductCard({ product, badge }: ProductCardProps) {
       productName: product.name,
       variantTitle: variant.title,
       price: variant.price,
+      comparePrice: variant.comparePrice || undefined,
       photo,
     });
     setShowSizes(false);
@@ -228,6 +231,12 @@ export function ProductCard({ product, badge }: ProductCardProps) {
             <span className="text-[16px] font-extrabold text-ink">{formatPrice(price)}</span>
           )}
         </div>
+        {(product.reviewCount ?? 0) > 0 && (
+          <div className="flex items-center gap-1 mt-0.5">
+            <span className="text-amber-500 text-[12px]">{"★".repeat(Math.round(product.avgRating ?? 0))}</span>
+            <span className="text-[11px] text-muted">({product.reviewCount})</span>
+          </div>
+        )}
         {hasOwnStock && (
           <span className="text-[11px] font-bold text-green-600">Skladem</span>
         )}

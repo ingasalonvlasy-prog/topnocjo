@@ -89,6 +89,28 @@ export default function NewDiscountPage() {
             </div>
           </div>
 
+          <div>
+            <label className={labelCls}>Omezení na kategorie (slugy, oddělené čárkou)</label>
+            <input
+              name="restrictCategories"
+              type="text"
+              placeholder="beh, hory-a-outdoor, zima"
+              className={inputCls}
+            />
+            <p className="text-xs text-gray-400 mt-1">Prázdné = platí pro všechny kategorie</p>
+          </div>
+
+          <div>
+            <label className={labelCls}>Omezení na značky (názvy, oddělené čárkou)</label>
+            <input
+              name="restrictBrands"
+              type="text"
+              placeholder="On, POC, Maloja"
+              className={inputCls}
+            />
+            <p className="text-xs text-gray-400 mt-1">Prázdné = platí pro všechny značky</p>
+          </div>
+
           <div className="flex gap-3 pt-2">
             <button
               type="submit"
