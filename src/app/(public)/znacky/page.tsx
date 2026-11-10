@@ -2,10 +2,17 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
+import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
+
+const pastelBgs = ["bg-mint", "bg-sky", "bg-peach", "bg-lilac"];
 
 export const metadata: Metadata = {
-  title: "Značky | Qsport.cz",
-  description: "Přehled všech sportovních značek na Qsport.cz",
+  title: "Prémiové značky | Qsport.cz",
+  description: "Spolupracujeme s nejlepšími sportovními značkami. ON, POC, Maloja, Alpina, Mizuno, LEKI a další na Qsport.cz.",
+  openGraph: {
+    title: "Prémiové značky | Qsport.cz",
+    description: "Spolupracujeme s nejlepšími sportovními značkami. ON, POC, Maloja, Alpina, Mizuno, LEKI a další na Qsport.cz.",
+  },
 };
 
 export default async function BrandsPage() {
@@ -21,47 +28,77 @@ export default async function BrandsPage() {
   });
 
   return (
-    <div className="max-w-[var(--container)] mx-auto px-6 py-8">
-      <nav className="text-[13px] text-muted mb-4">
-        <Link href="/" className="hover:text-navy transition-colors">Domů</Link>
-        <span className="text-line mx-1.5">/</span>
-        <span className="text-ink">Značky</span>
-      </nav>
+    <div>
+      {/* Navy hero banner */}
+      <section className="bg-navy text-white py-10 lg:py-14">
+        <div className="max-w-[var(--container)] mx-auto px-6">
+          {/* Breadcrumbs */}
+          <nav className="text-[13px] text-white/50 mb-4">
+            <Link href="/" className="hover:text-white transition-colors">Domů</Link>
+            <span className="mx-1.5">/</span>
+            <span className="text-white/70">Značky</span>
+          </nav>
 
-      <h1 className="text-[26px] lg:text-[36px] font-extrabold tracking-[-0.04em] text-navy mb-1">
-        Značky
-      </h1>
-      <p className="text-[13px] text-muted font-medium mb-8">{brands.length} značek</p>
+          <h1 className="text-[32px] lg:text-[48px] font-extrabold tracking-[-0.04em] leading-tight">
+            Prémiové{" "}
+            <span className="relative inline-block">
+              značky.
+              <span className="absolute bottom-0 left-0 w-full h-[4px] bg-blue" style={{ bottom: "2px" }} />
+            </span>
+          </h1>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {brands.map((brand) => (
-          <Link
-            key={brand.slug}
-            href={`/znacky/${brand.slug}`}
-            className="flex flex-col items-center gap-3 p-6 bg-white border border-line rounded-[var(--radius-card)] hover:border-navy hover:shadow-sm transition-all text-center"
-          >
-            {brand.logo ? (
-              <div className="w-[80px] h-[40px] flex items-center justify-center">
-                <Image
-                  src={brand.logo}
-                  alt={brand.name}
-                  width={80}
-                  height={40}
-                  className="object-contain max-h-[40px] w-auto"
-                />
-              </div>
-            ) : (
-              <div className="w-[60px] h-[60px] rounded-full bg-wash flex items-center justify-center">
-                <span className="text-[22px] font-extrabold text-navy">{brand.name[0]}</span>
-              </div>
-            )}
-            <div>
-              <div className="text-[16px] font-bold text-navy">{brand.name}</div>
-              <div className="text-[13px] text-muted">{brand._count.products} produktů</div>
-            </div>
-          </Link>
-        ))}
+          <p className="text-[15px] text-white/50 font-medium max-w-[440px] mt-3">
+            Spolupracujeme s nejlepšími značkami pro tvůj sportovní výkon. {brands.length} značek v nabídce.
+          </p>
+        </div>
+      </section>
+
+      {/* Brand grid */}
+      <div className="max-w-[var(--container)] mx-auto px-6 py-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {brands.map((brand, i) => {
+            const pastel = pastelBgs[i % pastelBgs.length];
+
+            return (
+              <Link
+                key={brand.slug}
+                href={`/znacky/${brand.slug}`}
+                className="group flex flex-col items-center gap-4 p-6 bg-white rounded-[var(--radius-card)] border border-line hover:border-navy hover:shadow-[0_8px_24px_rgba(11,23,39,0.08)] hover:-translate-y-1 transition-all text-center"
+              >
+                {/* Logo area with pastel bg */}
+                <div className={`w-full aspect-[3/2] ${pastel} rounded-[8px] flex items-center justify-center`}>
+                  {brand.logo ? (
+                    <Image
+                      src={brand.logo}
+                      alt={brand.name}
+                      width={120}
+                      height={60}
+                      className="object-contain max-h-[60px] w-auto"
+                      style={{ mixBlendMode: "multiply" }}
+                    />
+                  ) : (
+                    <span className="text-[36px] font-extrabold text-navy/60">{brand.name[0]}</span>
+                  )}
+                </div>
+
+                {/* Brand info */}
+                <div>
+                  <div className="text-[16px] font-bold text-navy group-hover:text-blue transition-colors">{brand.name}</div>
+                  <div className="text-[13px] text-muted mt-0.5">{brand._count.products} produktů</div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
       </div>
+
+      {/* JSON-LD: BreadcrumbList */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildBreadcrumbJsonLd([
+          { name: "Značky" },
+        ])) }}
+      />
     </div>
   );
 }

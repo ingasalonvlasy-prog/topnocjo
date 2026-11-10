@@ -1,11 +1,16 @@
 {
-  "name": "Qsport.cz",
+  "name": "Qsport.cz — výkon bez kompromisů",
   "short_name": "Qsport",
+  "description": "Sportovní vybavení od značek On, POC, Maloja, Alpina, Mizuno a Leki.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#0B1727",
+  "background_color": "#FFFFFF",
   "icons": [
     { "src": "/favicon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/favicon-512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/favicon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/favicon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
-  "theme_color": "#0B1727",
-  "background_color": "#0B1727",
-  "display": "standalone"
+  "categories": ["shopping", "sports"]
 }

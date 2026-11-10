@@ -5,6 +5,30 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+const RECENT_KEY = "qsport_recent_searches";
+const MAX_RECENT = 5;
+
+function getRecentSearches(): string[] {
+  try {
+    const raw = localStorage.getItem(RECENT_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecentSearch(query: string) {
+  try {
+    const recent = getRecentSearches().filter((s) => s !== query);
+    recent.unshift(query);
+    localStorage.setItem(RECENT_KEY, JSON.stringify(recent.slice(0, MAX_RECENT)));
+  } catch { /* ignore */ }
+}
+
+function clearRecentSearches() {
+  try { localStorage.removeItem(RECENT_KEY); } catch { /* ignore */ }
+}
+
 interface SearchResult {
   products: { id: string; name: string; slug: string; brand: string; photo: string | null; price: number; comparePrice: number | null }[];
   brands: { id: string; name: string; slug: string }[];
@@ -43,13 +67,15 @@ const popularSuggestions = [
   { label: "Doplňky", href: "/kategorie/doplnky" },
 ];
 
-export function SearchInput({ placeholder = "Hledat produkty..." }: { placeholder?: string }) {
+export function SearchAutocomplete({ placeholder = "Hledat produkty..." }: { placeholder?: string }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [showRecent, setShowRecent] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -81,6 +107,13 @@ export function SearchInput({ placeholder = "Hledat produkty..." }: { placeholde
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const val = e.target.value;
     setQuery(val);
+    if (val.trim()) {
+      setShowRecent(false);
+    } else {
+      const recent = getRecentSearches();
+      setRecentSearches(recent);
+      if (recent.length > 0) setShowRecent(true);
+    }
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => fetchResults(val.trim()), 300);
@@ -90,7 +123,9 @@ export function SearchInput({ placeholder = "Hledat produkty..." }: { placeholde
     e.preventDefault();
     const q = query.trim();
     if (q) {
+      saveRecentSearch(q);
       setIsOpen(false);
+      setShowRecent(false);
       router.push(`/hledat?q=${encodeURIComponent(q)}`);
     }
   }
@@ -113,12 +148,15 @@ export function SearchInput({ placeholder = "Hledat produkty..." }: { placeholde
     } else if (e.key === "Enter" && activeIndex >= 0 && activeIndex < items.length) {
       e.preventDefault();
       const item = items[activeIndex];
+      if (query.trim()) saveRecentSearch(query.trim());
       setIsOpen(false);
+      setShowRecent(false);
       if (item.type === "product") router.push(`/produkt/${item.slug}`);
       else if (item.type === "brand") router.push(`/znacky/${item.slug}`);
       else router.push(`/kategorie/${item.slug}`);
     } else if (e.key === "Escape") {
       setIsOpen(false);
+      setShowRecent(false);
     }
   }
 
@@ -127,6 +165,7 @@ export function SearchInput({ placeholder = "Hledat produkty..." }: { placeholde
     function handleClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false);
+        setShowRecent(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -150,7 +189,15 @@ export function SearchInput({ placeholder = "Hledat produkty..." }: { placeholde
           value={query}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          onFocus={() => { if (results && totalResults > 0) setIsOpen(true); }}
+          onFocus={() => {
+            if (results && totalResults > 0) {
+              setIsOpen(true);
+            } else if (!query.trim()) {
+              const recent = getRecentSearches();
+              setRecentSearches(recent);
+              if (recent.length > 0) setShowRecent(true);
+            }
+          }}
           placeholder={placeholder}
           className="w-full py-2.5 pl-10 pr-4 text-[14px] font-medium border border-line rounded-[var(--radius-field)] bg-wash focus:bg-white focus:border-navy focus:shadow-[0_0_0_3px_rgba(11,23,39,0.06)] outline-none transition-all"
           autoComplete="off"
@@ -336,6 +383,46 @@ export function SearchInput({ placeholder = "Hledat produkty..." }: { placeholde
               ))}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Recent searches — shown when input is focused and empty */}
+      {showRecent && !isOpen && recentSearches.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-line rounded-[var(--radius-card)] shadow-lg z-[60] overflow-hidden">
+          <div className="flex items-center justify-between px-4 pt-3 pb-1.5">
+            <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
+              Poslední hledání
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                clearRecentSearches();
+                setRecentSearches([]);
+                setShowRecent(false);
+              }}
+              className="text-[11px] font-medium text-muted hover:text-ink transition-colors"
+            >
+              Smazat
+            </button>
+          </div>
+          {recentSearches.map((term) => (
+            <button
+              key={term}
+              type="button"
+              onClick={() => {
+                setQuery(term);
+                setShowRecent(false);
+                fetchResults(term);
+              }}
+              className="flex items-center gap-3 w-full text-left px-4 py-2.5 hover:bg-wash transition-colors"
+            >
+              <svg className="text-muted shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              <span className="text-[13px] font-medium text-ink">{term}</span>
+            </button>
+          ))}
         </div>
       )}
     </div>

@@ -1,7 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
 import { prisma } from "@/lib/db";
-import { formatPrice } from "@/lib/products";
+import { ProductTable } from "./ProductTable";
 
 export default async function AdminProductsPage({
   searchParams,
@@ -109,103 +108,45 @@ export default async function AdminProductsPage({
         </form>
       </div>
 
-      {/* Products table */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Produkt</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500 hidden sm:table-cell">Značka</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500 hidden md:table-cell">Typ</th>
-                <th className="text-right px-4 py-3 font-medium text-gray-500">Cena</th>
-                <th className="text-center px-4 py-3 font-medium text-gray-500 hidden lg:table-cell">Sklad</th>
-                <th className="text-center px-4 py-3 font-medium text-gray-500">Stav</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {products.map((product) => {
-                const photos: string[] = JSON.parse(product.photos || "[]");
-                const photo = photos[0] || "https://placehold.co/40x40/e2e8f0/475569?text=?";
-                const minPrice = product.variants.length > 0
-                  ? Math.min(...product.variants.map((v) => v.price))
-                  : 0;
-                const totalStock = product.variants.reduce((sum, v) => sum + v.ownStock + v.supplierStock, 0);
+      {/* Products table with bulk actions */}
+      <ProductTable
+        products={products.map((p) => ({
+          id: p.id,
+          name: p.name,
+          status: p.status,
+          photos: p.photos,
+          productType: p.productType,
+          brand: { name: p.brand.name },
+          variants: p.variants.map((v) => ({ price: v.price, ownStock: v.ownStock, supplierStock: v.supplierStock })),
+        }))}
+      />
 
-                return (
-                  <tr key={product.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      <Link href={`/admin/produkty/${product.id}`} className="flex items-center gap-3 group">
-                        <Image
-                          src={photo}
-                          alt=""
-                          width={40}
-                          height={40}
-                          className="w-10 h-10 rounded object-cover bg-gray-100"
-                        />
-                        <div>
-                          <p className="font-medium text-gray-900 group-hover:text-green-600 transition-colors">
-                            {product.name}
-                          </p>
-                          <p className="text-xs text-gray-400">{product.variants.length} variant</p>
-                        </div>
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600 hidden sm:table-cell">{product.brand.name}</td>
-                    <td className="px-4 py-3 text-gray-600 hidden md:table-cell">{product.productType || "-"}</td>
-                    <td className="px-4 py-3 text-right font-medium text-gray-900">
-                      {minPrice > 0 ? formatPrice(minPrice) : "-"}
-                    </td>
-                    <td className="px-4 py-3 text-center hidden lg:table-cell">
-                      <span className={`text-sm ${totalStock <= 2 ? "text-red-500 font-medium" : "text-gray-600"}`}>
-                        {totalStock}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${
-                        product.status === "ACTIVE"
-                          ? "bg-green-100 text-green-700"
-                          : product.status === "DRAFT"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-gray-100 text-gray-600"
-                      }`}>
-                        {product.status === "ACTIVE" ? "Aktivní" : product.status === "DRAFT" ? "Koncept" : "Archiv"}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50">
-            <p className="text-sm text-gray-500">
-              Strana {page} z {totalPages}
-            </p>
-            <div className="flex gap-2">
-              {page > 1 && (
-                <Link
-                  href={`/admin/produkty?page=${page - 1}${search ? `&q=${search}` : ""}${status ? `&status=${status}` : ""}${brandFilter ? `&brand=${brandFilter}` : ""}`}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-white transition-colors"
-                >
-                  Předchozí
-                </Link>
-              )}
-              {page < totalPages && (
-                <Link
-                  href={`/admin/produkty?page=${page + 1}${search ? `&q=${search}` : ""}${status ? `&status=${status}` : ""}${brandFilter ? `&brand=${brandFilter}` : ""}`}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-white transition-colors"
-                >
-                  Další
-                </Link>
-              )}
-            </div>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-4 py-3 mt-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+          <p className="text-sm text-gray-500">
+            Strana {page} z {totalPages}
+          </p>
+          <div className="flex gap-2">
+            {page > 1 && (
+              <Link
+                href={`/admin/produkty?page=${page - 1}${search ? `&q=${search}` : ""}${status ? `&status=${status}` : ""}${brandFilter ? `&brand=${brandFilter}` : ""}`}
+                className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-white transition-colors"
+              >
+                Předchozí
+              </Link>
+            )}
+            {page < totalPages && (
+              <Link
+                href={`/admin/produkty?page=${page + 1}${search ? `&q=${search}` : ""}${status ? `&status=${status}` : ""}${brandFilter ? `&brand=${brandFilter}` : ""}`}
+                className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-white transition-colors"
+              >
+                Další
+              </Link>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

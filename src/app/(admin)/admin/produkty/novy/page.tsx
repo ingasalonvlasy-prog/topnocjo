@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { logAdminAction } from "@/lib/admin-log";
 
 function slugify(text: string): string {
   return text
@@ -60,6 +61,8 @@ async function createProduct(formData: FormData) {
       },
     },
   });
+
+  logAdminAction("create", "product", product.id, name);
 
   redirect(`/admin/produkty/${product.id}`);
 }

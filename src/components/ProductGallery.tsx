@@ -8,9 +8,10 @@ interface ProductGalleryProps {
   productName: string;
   pastelBg: string;
   discount: number | null;
+  badge?: string | null;
 }
 
-export function ProductGallery({ photos, productName, pastelBg, discount }: ProductGalleryProps) {
+export function ProductGallery({ photos, productName, pastelBg, discount, badge }: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const mainPhoto = photos[activeIndex] || "https://placehold.co/800x1000/f3f5f6/667085?text=Qsport";
 
@@ -20,9 +21,11 @@ export function ProductGallery({ photos, productName, pastelBg, discount }: Prod
       <div className={`${pastelBg} rounded-[10px] aspect-[4/5] relative overflow-hidden mb-3`}>
         {/* Badges */}
         <div className="absolute top-4 left-4 flex flex-col gap-1.5 z-10">
-          <span className="bg-lime text-navy text-[10px] font-extrabold uppercase tracking-[0.08em] px-2.5 py-1 rounded-[var(--radius-pill)]">
-            Bestseller
-          </span>
+          {badge && (
+            <span className="bg-lime text-navy text-[10px] font-extrabold uppercase tracking-[0.08em] px-2.5 py-1 rounded-[var(--radius-pill)]">
+              {badge}
+            </span>
+          )}
           {discount && (
             <span className="bg-sale text-white text-[10px] font-extrabold uppercase tracking-[0.08em] px-2.5 py-1 rounded-[var(--radius-pill)]">
               −{discount}&nbsp;%

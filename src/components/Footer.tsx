@@ -13,7 +13,7 @@ export function Footer() {
               alt="QSPORT.cz"
               width={140}
               height={38}
-              className="h-[28px] w-auto mb-2"
+              className="h-[28px] w-auto mb-3"
             />
             <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/40 mb-0">
               výkon bez kompromisů

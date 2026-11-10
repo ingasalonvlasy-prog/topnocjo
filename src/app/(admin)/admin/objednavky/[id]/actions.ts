@@ -7,6 +7,7 @@ import type { OrderStatus } from "@/lib/order-constants";
 import { sendEmail } from "@/lib/email";
 import { OrderShipped } from "@/lib/emails/order-shipped";
 import { OrderCancelled } from "@/lib/emails/order-cancelled";
+import { logAdminAction } from "@/lib/admin-log";
 
 export async function updateOrderStatus(formData: FormData) {
   const orderId = formData.get("orderId") as string;
@@ -26,6 +27,8 @@ export async function updateOrderStatus(formData: FormData) {
   if (newStatus === "CANCELLED") data.cancelledAt = new Date();
 
   await prisma.order.update({ where: { id: orderId }, data });
+
+  logAdminAction("status_change", "order", orderId, `${order.orderNumber}: ${currentStatus} → ${newStatus}`);
 
   // Send email notifications (fire-and-forget)
   if (newStatus === "SHIPPED") {
@@ -113,6 +116,8 @@ export async function markSupplierOrdered(formData: FormData) {
     },
   });
 
+  logAdminAction("status_change", "order", orderId, "Objednáno u dodavatele");
+
   revalidatePath(`/admin/objednavky/${orderId}`);
   revalidatePath("/admin/objednavky");
 }
@@ -127,6 +132,8 @@ export async function markSupplierReceived(formData: FormData) {
       status: "PROCESSING",
     },
   });
+
+  logAdminAction("status_change", "order", orderId, "Přijato od dodavatele");
 
   revalidatePath(`/admin/objednavky/${orderId}`);
   revalidatePath("/admin/objednavky");

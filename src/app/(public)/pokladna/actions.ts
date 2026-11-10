@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { totalStock, allocateStock, orderNeedsSupplier } from "@/lib/stock";
 import { sendEmail } from "@/lib/email";
 import { OrderConfirmation } from "@/lib/emails/order-confirmation";
+import { AdminNewOrder } from "@/lib/emails/admin-new-order";
 
 interface CheckoutItem {
   variantId: string;
@@ -185,6 +186,27 @@ export async function createOrder(data: CheckoutData) {
       city: data.city,
       zip: data.zip,
       packetaPointName: data.packetaPointName || undefined,
+    }),
+  });
+
+  // 8b. Send admin notification email (fire-and-forget)
+  const adminEmail = process.env.ADMIN_EMAIL || "obchod@qsport.cz";
+  sendEmail({
+    to: adminEmail,
+    subject: `Nová objednávka ${orderNumber}`,
+    react: AdminNewOrder({
+      orderNumber,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      phone: data.phone || undefined,
+      items: orderItems,
+      subtotal,
+      shippingPrice,
+      shippingName: shippingMethod.name,
+      total,
+      paymentMethod: data.paymentMethod,
+      needsSupplier,
     }),
   });
 

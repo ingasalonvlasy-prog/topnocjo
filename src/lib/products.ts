@@ -16,6 +16,7 @@ export interface GetProductsParams {
   page?: number;
   perPage?: number;
   inStock?: boolean;
+  saleOnly?: boolean;
 }
 
 export async function getFilteredProducts(params: GetProductsParams): Promise<{
@@ -35,6 +36,7 @@ export async function getFilteredProducts(params: GetProductsParams): Promise<{
     page = 1,
     perPage = 48,
     inStock,
+    saleOnly,
   } = params;
 
   const where: Prisma.ProductWhereInput = {
@@ -61,7 +63,7 @@ export async function getFilteredProducts(params: GetProductsParams): Promise<{
     where.variants = { some: { size, active: true } };
   }
 
-  if (priceMin !== undefined || priceMax !== undefined || inStock) {
+  if (priceMin !== undefined || priceMax !== undefined || inStock || saleOnly) {
     const variantWhere: Prisma.VariantWhereInput = { active: true };
     if (priceMin !== undefined) variantWhere.price = { ...variantWhere.price as object, gte: priceMin };
     if (priceMax !== undefined) variantWhere.price = { ...variantWhere.price as object, lte: priceMax };
@@ -70,6 +72,9 @@ export async function getFilteredProducts(params: GetProductsParams): Promise<{
         { ownStock: { gt: 0 } },
         { supplierStock: { gt: 0 } },
       ];
+    }
+    if (saleOnly) {
+      variantWhere.comparePrice = { not: null, gt: 0 };
     }
     where.variants = { some: variantWhere };
   }

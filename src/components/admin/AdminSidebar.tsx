@@ -142,6 +142,16 @@ const navGroups = [
   },
 ];
 
+const logItem = {
+  href: "/admin/log",
+  label: "Log aktivit",
+  icon: (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+    </svg>
+  ),
+};
+
 const settingsItem = {
   href: "/admin/nastaveni",
   label: "Nastavení",
@@ -153,7 +163,11 @@ const settingsItem = {
   ),
 };
 
-export function AdminSidebar() {
+interface AdminSidebarProps {
+  newOrderCount?: number;
+}
+
+export function AdminSidebar({ newOrderCount = 0 }: AdminSidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -194,6 +208,11 @@ export function AdminSidebar() {
                 >
                   <span className={isActive(item.href) ? "text-green-400" : ""}>{item.icon}</span>
                   {item.label}
+                  {item.href === "/admin/objednavky" && newOrderCount > 0 && (
+                    <span className="ml-auto w-5 h-5 bg-red-500 text-white text-[11px] font-bold rounded-full flex items-center justify-center">
+                      {newOrderCount > 9 ? "9+" : newOrderCount}
+                    </span>
+                  )}
                 </Link>
               ))}
             </div>
@@ -203,6 +222,18 @@ export function AdminSidebar() {
 
       {/* Settings at bottom */}
       <div className="px-3 py-4 border-t border-gray-700">
+        <Link
+          href={logItem.href}
+          onClick={() => setMobileOpen(false)}
+          className={`flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors ${
+            isActive(logItem.href)
+              ? "bg-gray-800 text-white"
+              : "text-gray-400 hover:text-white hover:bg-gray-800/50"
+          }`}
+        >
+          <span className={isActive(logItem.href) ? "text-green-400" : ""}>{logItem.icon}</span>
+          {logItem.label}
+        </Link>
         <Link
           href={settingsItem.href}
           onClick={() => setMobileOpen(false)}

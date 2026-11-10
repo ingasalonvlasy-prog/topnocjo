@@ -67,36 +67,86 @@ export default async function HomePage() {
 
   return (
     <div>
-      {/* 1. Hero — compact navy strip */}
-      <section className="bg-navy text-white">
-        <div className="max-w-[var(--container)] mx-auto px-6 py-10 lg:py-12 flex flex-col lg:flex-row items-center lg:items-start justify-between gap-6">
-          <div className="text-center lg:text-left">
-            <h1 className="text-[32px] lg:text-[36px] font-extrabold leading-[1.1] tracking-[-0.04em] mb-2">
-              Venku je tvoje{" "}
-              <span
-                className="underline decoration-lime decoration-[3px]"
-                style={{ textUnderlineOffset: "5px" }}
-              >
-                hřiště.
-              </span>
-            </h1>
-            <p className="text-[14px] text-white/60 font-medium max-w-[380px] mx-auto lg:mx-0">
-              Sportovní výbava, co drží tempo. On, Mizuno, POC a další.
-            </p>
-          </div>
-          <Link
-            href="/hledat"
-            className="inline-flex items-center h-11 bg-lime text-navy text-[12px] font-extrabold uppercase tracking-[0.12em] px-8 rounded-[var(--radius-pill)] hover:brightness-110 transition-all shrink-0 w-full lg:w-auto justify-center"
-          >
-            Nakupovat
-          </Link>
-        </div>
-      </section>
+      {/* 1. Hero — navy bg, 2-col: text left + featured product right */}
+      {(() => {
+        const hero = bestsellers[0];
+        const heroPhotos: string[] = hero ? JSON.parse(hero.photos || "[]") : [];
+        const heroPhoto = heroPhotos[0] || "";
+        const heroPrice = hero ? getMinPrice(hero.variants) : 0;
+        const heroCatSlug = hero?.categories[0]?.category?.slug || "";
+        const heroPastel = categoryPastels[heroCatSlug] || "bg-mint";
+
+        return (
+          <section className="bg-navy text-white">
+            <div className="max-w-[var(--container)] mx-auto px-6 py-10 lg:py-16 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+              {/* Left — text + CTAs */}
+              <div>
+                <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-lime mb-4">
+                  Nová sezóna · On Waterproof
+                </div>
+                <h1 className="text-[36px] lg:text-[52px] font-extrabold leading-[1.05] tracking-[-0.04em] mb-4">
+                  On do<br />
+                  každého{" "}
+                  <span
+                    className="relative inline-block"
+                  >
+                    počasí.
+                    <span className="absolute bottom-[2px] left-0 w-full h-[5px] bg-lime rounded-full" />
+                  </span>
+                </h1>
+                <p className="text-[15px] text-white/50 font-medium max-w-[380px] mb-8 leading-relaxed">
+                  Nepromokavé boty na trail i do města. Déšť? Bláto? Pohoda.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Link
+                    href="/hledat"
+                    className="inline-flex items-center justify-center h-12 bg-lime text-navy text-[12px] font-extrabold uppercase tracking-[0.12em] px-8 rounded-[var(--radius-pill)] hover:brightness-110 transition-all"
+                  >
+                    Nakupovat
+                  </Link>
+                  <Link
+                    href="/znacky/on"
+                    className="inline-flex items-center justify-center h-12 border border-white/30 text-white text-[12px] font-extrabold uppercase tracking-[0.12em] px-8 rounded-[var(--radius-pill)] hover:bg-white/10 transition-all"
+                  >
+                    Všechny On
+                  </Link>
+                </div>
+              </div>
+
+              {/* Right — featured product card */}
+              {hero && heroPhoto && (
+                <Link href={`/produkt/${hero.slug}`} className="relative block">
+                  <div className={`relative ${heroPastel} rounded-[16px] aspect-square overflow-hidden`}>
+                    {/* BESTSELLER badge */}
+                    <span className="absolute top-4 left-4 z-10 bg-lime text-navy text-[10px] font-extrabold uppercase tracking-[0.08em] px-3 py-1.5 rounded-[var(--radius-pill)]">
+                      Bestseller
+                    </span>
+                    {/* Product image */}
+                    <Image
+                      src={heroPhoto}
+                      alt={hero.name}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 50vw"
+                      className="object-contain p-10 lg:p-14"
+                      style={{ mixBlendMode: "multiply" }}
+                      priority
+                    />
+                    {/* Lime price circle */}
+                    <div className="absolute bottom-4 right-4 w-[72px] h-[72px] lg:w-[88px] lg:h-[88px] bg-lime rounded-full flex flex-col items-center justify-center z-10">
+                      <span className="text-[16px] lg:text-[20px] font-extrabold text-navy leading-tight">{formatPrice(heroPrice)}</span>
+                    </div>
+                  </div>
+                </Link>
+              )}
+            </div>
+          </section>
+        );
+      })()}
 
       {/* 2. Prémiové značky — logo strip */}
       <section className="border-b border-line">
-        <div className="max-w-[var(--container)] mx-auto px-6 py-8">
-          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted text-center mb-5">Prémiové značky</div>
+        <div className="max-w-[var(--container)] mx-auto px-6 py-10">
+          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted text-center mb-6">Prémiové značky</div>
           <div className="flex justify-between items-center gap-6 lg:gap-0 flex-wrap">
             {[
               { name: "On", slug: "on", file: "/brands/on.svg", w: 60, h: 24 },
@@ -116,7 +166,7 @@ export default async function HomePage() {
                   alt={brand.name}
                   width={brand.w}
                   height={brand.h}
-                  className="h-[20px] lg:h-[30px] w-auto"
+                  className="h-[24px] lg:h-[36px] w-auto"
                 />
               </Link>
             ))}
@@ -126,7 +176,7 @@ export default async function HomePage() {
 
       {/* 3. Bestsellery — "Co teď frčí." */}
       <section className="max-w-[var(--container)] mx-auto px-6 pt-14 pb-12">
-        <div className="flex justify-between items-end mb-1">
+        <div className="flex justify-between items-center mb-1">
           <div>
             <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted mb-1">Bestsellery měsíce</div>
             <h2 className="text-[32px] lg:text-[40px] font-extrabold tracking-[-0.04em]">Co teď frčí.</h2>
@@ -164,7 +214,7 @@ export default async function HomePage() {
             .filter((c): c is NonNullable<typeof c> => c != null);
 
           return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr] gap-3 mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr] gap-4 mt-6">
               {orderedCategories.map((cat, i) => {
                 const bg = categoryPastels[cat.slug] || "bg-wash";
                 const icon = categoryIcons[cat.slug] || "/icons/beh.svg";
@@ -214,6 +264,9 @@ export default async function HomePage() {
 
       {/* 5. Série / Akce — navy left panel + product cards */}
       <section className="max-w-[var(--container)] mx-auto px-6 pb-14">
+        <div className="mb-6">
+          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted mb-1">Série · POC na zimu</div>
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4">
           {/* Navy info panel */}
           <div className="bg-navy rounded-[10px] p-8 flex flex-col justify-between min-h-[300px]">
@@ -254,7 +307,7 @@ export default async function HomePage() {
             { num: "02", title: "Cena a dostupnost u každého produktu" },
             { num: "03", title: "Doprava a platba předem jasně" },
           ].map((box) => (
-            <div key={box.num} className="bg-wash rounded-[10px] p-6 min-h-[140px] flex flex-col justify-between">
+            <div key={box.num} className="bg-wash rounded-[10px] p-6 min-h-[160px] flex flex-col justify-between">
               <span className="text-[28px] font-extrabold text-line">{box.num}</span>
               <h3 className="text-[15px] font-bold text-ink mt-4">{box.title}</h3>
             </div>
@@ -311,8 +364,12 @@ export default async function HomePage() {
         </div>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="aspect-square bg-wash rounded-[10px] flex items-center justify-center text-line text-[12px] font-bold">
-              IG
+            <div key={i} className="aspect-square bg-wash rounded-[10px] flex items-center justify-center text-muted/30">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <rect x="2" y="2" width="20" height="20" rx="5" />
+                <circle cx="12" cy="12" r="5" />
+                <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none" />
+              </svg>
             </div>
           ))}
         </div>

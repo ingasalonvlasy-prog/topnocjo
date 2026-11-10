@@ -338,3 +338,16 @@ model ProductReview {
   @@index([approved])
   @@map("product_reviews")
 }
+
+model AdminLog {
+  id        String   @id @default(cuid())
+  action    String   // "create" | "update" | "delete" | "status_change" | "bulk_update" | "bulk_delete"
+  entity    String   // "product" | "order" | "discount" | "review"
+  entityId  String?
+  detail    String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([entity])
+  @@map("admin_logs")
+}

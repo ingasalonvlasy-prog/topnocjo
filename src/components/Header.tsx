@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { SearchInput } from "./SearchInput";
+import { SearchAutocomplete } from "./SearchAutocomplete";
 import { useCart } from "@/lib/cart";
 
 const navLinks = [
@@ -55,7 +55,7 @@ export function Header() {
             </Link>
 
             {/* Desktop nav */}
-            <nav className="flex items-center gap-0.5 flex-1">
+            <nav className="flex items-center gap-1 flex-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
@@ -88,7 +88,7 @@ export function Header() {
                   </svg>
                 )}
               </button>
-              <Link href="/ucet" className="w-10 h-10 flex items-center justify-center text-ink hover:text-navy transition-colors" aria-label="Můj účet">
+              <Link href="/ucet" className="hidden lg:flex w-10 h-10 items-center justify-center text-ink hover:text-navy transition-colors" aria-label="Můj účet">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
                 </svg>
@@ -134,11 +134,6 @@ export function Header() {
             </Link>
 
             <div className="flex items-center gap-1">
-              <Link href="/ucet" className="w-10 h-10 flex items-center justify-center text-ink" aria-label="Můj účet">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                </svg>
-              </Link>
               <Link href="/kosik" className="relative w-10 h-10 flex items-center justify-center text-ink" aria-label="Košík">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
                   <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
@@ -155,13 +150,13 @@ export function Header() {
           {/* Desktop search — toggled */}
           {searchOpen && (
             <div className="hidden lg:block pb-3">
-              <SearchInput placeholder="Hledej značku nebo produkt..." />
+              <SearchAutocomplete placeholder="Hledej značku nebo produkt..." />
             </div>
           )}
 
           {/* Mobile search — always visible */}
           <div className="lg:hidden pb-3">
-            <SearchInput placeholder="Hledej značku nebo produkt..." />
+            <SearchAutocomplete placeholder="Hledej značku nebo produkt..." />
           </div>
         </div>
 

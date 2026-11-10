@@ -19,6 +19,9 @@ export const metadata: Metadata = {
     locale: "cs_CZ",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "48x48" },

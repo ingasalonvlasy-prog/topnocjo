@@ -10,6 +10,7 @@ import { TrackProductView } from "@/components/TrackProductView";
 import { getAvailability } from "@/lib/stock";
 import { buildProductJsonLd, buildBreadcrumbJsonLd } from "@/lib/structured-data";
 import { ReviewSummary } from "@/components/ReviewSection";
+import { ShareButtons } from "@/components/ShareButtons";
 import { prisma } from "@/lib/db";
 
 const categoryPastels: Record<string, string> = {
@@ -139,6 +140,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           productName={product.name}
           pastelBg={pastelBg}
           discount={discount}
+          badge={null}
         />
 
         {/* Right: Product info */}
@@ -215,6 +217,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <span className="text-[14px] font-medium text-ink">Vrácení zboží do 14 dní</span>
             </div>
           </div>
+
+          {/* Social sharing */}
+          <ShareButtons
+            url={`https://qsport.cz/produkt/${product.slug}`}
+            name={product.name}
+          />
 
           {/* Metafield boxes — only show when we have real metafield data */}
         </div>

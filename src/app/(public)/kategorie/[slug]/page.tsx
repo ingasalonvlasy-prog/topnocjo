@@ -37,7 +37,17 @@ export default async function CategoryPage({
   const { slug } = await params;
   const sp = await searchParams;
 
-  const category = await prisma.category.findUnique({ where: { slug } });
+  const category = await prisma.category.findUnique({
+    where: { slug },
+    include: {
+      children: { orderBy: { position: "asc" } },
+      parent: {
+        include: {
+          children: { orderBy: { position: "asc" } },
+        },
+      },
+    },
+  });
   if (!category) notFound();
 
   const page = Number(sp.strana) || 1;
@@ -103,9 +113,48 @@ export default async function CategoryPage({
             )}
           </h1>
 
-          {category.seoDesc && (
-            <p className="text-[15px] text-white/50 font-medium mt-3 max-w-[400px]">{category.seoDesc}</p>
-          )}
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mt-3">
+            {category.seoDesc && (
+              <p className="text-[15px] text-white/50 font-medium max-w-[400px]">{category.seoDesc}</p>
+            )}
+            {(() => {
+              const isParent = category.children.length > 0;
+              const isChild = !!category.parent;
+
+              if (!isParent && !isChild) return null;
+
+              const parentCat = isChild ? category.parent! : category;
+              const siblings = isChild ? category.parent!.children : category.children;
+
+              return (
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    href={`/kategorie/${parentCat.slug}`}
+                    className={`px-5 py-2 rounded-full text-[14px] font-bold transition-colors ${
+                      !isChild
+                        ? "bg-white text-navy"
+                        : "border border-white/30 text-white hover:bg-white/10"
+                    }`}
+                  >
+                    Vše
+                  </Link>
+                  {siblings.map((sub) => (
+                    <Link
+                      key={sub.id}
+                      href={`/kategorie/${sub.slug}`}
+                      className={`px-5 py-2 rounded-full text-[14px] font-bold transition-colors ${
+                        sub.slug === slug
+                          ? "bg-white text-navy"
+                          : "border border-white/30 text-white hover:bg-white/10"
+                      }`}
+                    >
+                      {sub.name}
+                    </Link>
+                  ))}
+                </div>
+              );
+            })()}
+          </div>
         </div>
       </section>
 

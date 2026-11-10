@@ -35,9 +35,9 @@ export function ProductActions({ variants, product }: ProductActionsProps) {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[14px] font-bold text-ink">Vyber si velikost (EU)</span>
-            <button className="text-[13px] text-blue font-medium hover:underline">
+            <a href="/velikosti" target="_blank" className="text-[13px] text-blue font-medium hover:underline">
               Tabulka velikostí
-            </button>
+            </a>
           </div>
           <div className="flex flex-wrap gap-2">
             {variants.map((v) => (
@@ -49,7 +49,7 @@ export function ProductActions({ variants, product }: ProductActionsProps) {
                     ? "border-navy bg-navy text-white"
                     : (v.ownStock + v.supplierStock) > 0
                       ? "border-line bg-white text-ink hover:border-navy"
-                      : "border-line text-line bg-white cursor-not-allowed line-through"
+                      : "border-line text-muted/40 bg-white cursor-not-allowed"
                 }`}
               >
                 {v.title}

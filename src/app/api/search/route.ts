@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
         variants: { where: { active: true }, orderBy: { position: "asc" }, take: 1 },
         brand: true,
       },
-      take: 8,
+      take: 5,
     }),
     prisma.brand.findMany({
       where: { name: { contains: q } },

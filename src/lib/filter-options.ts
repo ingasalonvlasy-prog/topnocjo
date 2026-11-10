@@ -6,26 +6,33 @@ export interface FilterOptions {
   priceRange: { min: number; max: number };
 }
 
-export async function getFilterOptions(categoryId?: string): Promise<FilterOptions> {
-  const categoryFilter = categoryId
-    ? { product: { categories: { some: { categoryId } }, status: "ACTIVE" } }
-    : { product: { status: "ACTIVE" } };
+export async function getFilterOptions(categoryId?: string, opts?: { saleOnly?: boolean }): Promise<FilterOptions> {
+  const saleOnly = opts?.saleOnly;
+  const saleVariantFilter = saleOnly ? { comparePrice: { not: null, gt: 0 } } : {};
+
+  const productFilter = {
+    status: "ACTIVE" as const,
+    ...(categoryId ? { categories: { some: { categoryId } } } : {}),
+    ...(saleOnly ? { variants: { some: { active: true, comparePrice: { not: null, gt: 0 } } } } : {}),
+  };
+
+  const categoryFilter = {
+    product: productFilter,
+  };
 
   const [variants, brandData] = await Promise.all([
     prisma.variant.findMany({
-      where: { active: true, ...categoryFilter },
+      where: { active: true, ...categoryFilter, ...saleVariantFilter },
       select: { size: true, price: true },
     }),
     prisma.brand.findMany({
       where: {
-        products: categoryId
-          ? { some: { status: "ACTIVE", categories: { some: { categoryId } } } }
-          : { some: { status: "ACTIVE" } },
+        products: { some: productFilter },
       },
       select: {
         slug: true,
         name: true,
-        _count: { select: { products: { where: { status: "ACTIVE" } } } },
+        _count: { select: { products: { where: productFilter } } },
       },
       orderBy: { name: "asc" },
     }),

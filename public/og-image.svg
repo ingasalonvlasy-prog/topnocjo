@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <rect width="1200" height="630" fill="#0B1727"/>
+  <!-- Logo Q mark -->
+  <g transform="translate(440, 120) scale(0.55)">
+    <path d="M311.25504 316.928 238.14144 244.163 267.38688 214.917 340.15232 287.683Z" fill="#FFFFFF"/>
+    <path d="M222.8224 316.928Q185.221 316.928 157.978 300.564Q130.734 284.201 116.024 254.781Q101.315 225.362 101.315 186.368Q101.315 147.374 116.024 117.955Q130.734 88.535 157.978 72.172Q185.221 55.808 222.822 55.808Q260.424 55.808 287.667 72.172Q314.911 88.535 329.62 117.955Q344.33 147.374 344.33 186.368Q344.33 225.362 329.62 254.781Q314.911 284.201 287.667 300.564Q260.424 316.928 222.822 316.928ZM222.822 272.364Q246.671 272.712 262.513 262.093Q278.354 251.474 286.275 231.977Q294.195 212.48 294.195 186.368Q294.195 160.256 286.275 141.107Q278.354 121.958 262.513 111.34Q246.671 100.721 222.822 100.372Q198.973 100.024 183.132 110.643Q167.291 121.262 159.37 140.759Q151.45 160.256 151.45 186.368Q151.45 212.48 159.37 231.629Q167.291 250.778 183.132 261.396Q198.973 272.015 222.822 272.364Z" fill="#FFFFFF"/>
+    <path d="M257.99 339.56Q275.39 450.97 348.51 450.97H431.37" fill="none" stroke="#CEFF2F" stroke-width="29.59" stroke-linecap="round"/>
+  </g>
+  <!-- SPORT text -->
+  <text x="600" y="400" text-anchor="middle" font-family="system-ui, sans-serif" font-size="64" font-weight="800" letter-spacing="16" fill="#FFFFFF">SPORT</text>
+  <!-- Tagline -->
+  <text x="600" y="470" text-anchor="middle" font-family="system-ui, sans-serif" font-size="22" font-weight="500" fill="rgba(255,255,255,0.5)">Sportovní vybavení od značek On, POC, Maloja, Alpina, Mizuno a Leki</text>
+  <!-- Domain -->
+  <text x="600" y="560" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="700" letter-spacing="3" fill="#CEFF2F">QSPORT.CZ</text>
+</svg>

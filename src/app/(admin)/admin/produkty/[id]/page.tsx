@@ -4,6 +4,7 @@ import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/products";
+import { logAdminAction } from "@/lib/admin-log";
 
 async function updateProduct(formData: FormData) {
   "use server";
@@ -61,6 +62,8 @@ async function updateProduct(formData: FormData) {
       });
     }
   });
+
+  logAdminAction("update", "product", id, name);
 
   revalidatePath(`/admin/produkty/${id}`);
   redirect(`/admin/produkty/${id}?saved=1`);
