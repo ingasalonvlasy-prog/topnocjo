@@ -1,0 +1,133 @@
+"use server";
+
+import { prisma } from "@/lib/db";
+import { revalidatePath } from "next/cache";
+import { ORDER_STATUS_TRANSITIONS } from "@/lib/order-constants";
+import type { OrderStatus } from "@/lib/order-constants";
+import { sendEmail } from "@/lib/email";
+import { OrderShipped } from "@/lib/emails/order-shipped";
+import { OrderCancelled } from "@/lib/emails/order-cancelled";
+
+export async function updateOrderStatus(formData: FormData) {
+  const orderId = formData.get("orderId") as string;
+  const newStatus = formData.get("newStatus") as OrderStatus;
+
+  const order = await prisma.order.findUniqueOrThrow({ where: { id: orderId } });
+  const currentStatus = order.status as OrderStatus;
+
+  const allowed = ORDER_STATUS_TRANSITIONS[currentStatus];
+  if (!allowed || !allowed.includes(newStatus)) {
+    throw new Error(`Nelze změnit stav z ${currentStatus} na ${newStatus}`);
+  }
+
+  const data: Record<string, unknown> = { status: newStatus };
+  if (newStatus === "SHIPPED") data.shippedAt = new Date();
+  if (newStatus === "DELIVERED") data.deliveredAt = new Date();
+  if (newStatus === "CANCELLED") data.cancelledAt = new Date();
+
+  await prisma.order.update({ where: { id: orderId }, data });
+
+  // Send email notifications (fire-and-forget)
+  if (newStatus === "SHIPPED") {
+    const updatedOrder = await prisma.order.findUniqueOrThrow({
+      where: { id: orderId },
+      include: { shipping: true },
+    });
+    sendEmail({
+      to: updatedOrder.email,
+      subject: `Objednávka ${updatedOrder.orderNumber} byla odeslána`,
+      react: OrderShipped({
+        orderNumber: updatedOrder.orderNumber,
+        firstName: updatedOrder.firstName,
+        shippingName: updatedOrder.shipping.name,
+        trackingNumber: updatedOrder.trackingNumber || undefined,
+        trackingUrl: updatedOrder.trackingUrl || undefined,
+      }),
+    });
+  }
+
+  if (newStatus === "CANCELLED") {
+    sendEmail({
+      to: order.email,
+      subject: `Objednávka ${order.orderNumber} byla zrušena`,
+      react: OrderCancelled({
+        orderNumber: order.orderNumber,
+        firstName: order.firstName,
+        total: order.total,
+        wasPaid: order.paymentStatus === "PAID",
+      }),
+    });
+  }
+
+  revalidatePath(`/admin/objednavky/${orderId}`);
+  revalidatePath("/admin/objednavky");
+}
+
+export async function updateTracking(formData: FormData) {
+  const orderId = formData.get("orderId") as string;
+  const trackingNumber = (formData.get("trackingNumber") as string)?.trim() || null;
+  let trackingUrl = (formData.get("trackingUrl") as string)?.trim() || null;
+
+  // Auto-generate URL if not provided
+  if (trackingNumber && !trackingUrl) {
+    const order = await prisma.order.findUniqueOrThrow({
+      where: { id: orderId },
+      include: { shipping: true },
+    });
+
+    if (order.shipping?.code === "zasilkovna") {
+      trackingUrl = `https://tracking.packeta.com/cs/?id=${trackingNumber}`;
+    } else if (order.shipping?.code === "gls") {
+      trackingUrl = `https://gls-group.com/CZ/cs/sledovani-zasilek?match=${trackingNumber}`;
+    }
+  }
+
+  await prisma.order.update({
+    where: { id: orderId },
+    data: { trackingNumber, trackingUrl },
+  });
+
+  revalidatePath(`/admin/objednavky/${orderId}`);
+}
+
+export async function updateAdminNote(formData: FormData) {
+  const orderId = formData.get("orderId") as string;
+  const adminNote = (formData.get("adminNote") as string)?.trim() || null;
+
+  await prisma.order.update({
+    where: { id: orderId },
+    data: { adminNote },
+  });
+
+  revalidatePath(`/admin/objednavky/${orderId}`);
+}
+
+export async function markSupplierOrdered(formData: FormData) {
+  const orderId = formData.get("orderId") as string;
+
+  await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      supplierOrderedAt: new Date(),
+      status: "AWAITING_SUPPLIER",
+    },
+  });
+
+  revalidatePath(`/admin/objednavky/${orderId}`);
+  revalidatePath("/admin/objednavky");
+}
+
+export async function markSupplierReceived(formData: FormData) {
+  const orderId = formData.get("orderId") as string;
+
+  await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      supplierReceivedAt: new Date(),
+      status: "PROCESSING",
+    },
+  });
+
+  revalidatePath(`/admin/objednavky/${orderId}`);
+  revalidatePath("/admin/objednavky");
+}

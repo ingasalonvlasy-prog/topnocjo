@@ -19,6 +19,30 @@ function formatPrice(amount: number): string {
   return `${formatted}\u00A0Kč`;
 }
 
+function Highlight({ text, query }: { text: string; query: string }) {
+  if (!query || query.length < 2) return <>{text}</>;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const parts = text.split(new RegExp(`(${escaped})`, "gi"));
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === query.toLowerCase() ? (
+          <mark key={i} className="bg-lime/40 text-inherit rounded-[2px] px-[1px]">{part}</mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
+
+const popularSuggestions = [
+  { label: "Běžecké boty", href: "/kategorie/bezecke-boty" },
+  { label: "Kopačky", href: "/kategorie/kopacky" },
+  { label: "Oblečení", href: "/kategorie/obleceni" },
+  { label: "Doplňky", href: "/kategorie/doplnky" },
+];
+
 export function SearchInput({ placeholder = "Hledat produkty..." }: { placeholder?: string }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -189,8 +213,12 @@ export function SearchInput({ placeholder = "Hledat produkty..." }: { placeholde
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[13px] font-bold text-ink truncate">{product.name}</div>
-                      <div className="text-[11px] text-muted font-medium">{product.brand}</div>
+                      <div className="text-[13px] font-bold text-ink truncate">
+                        <Highlight text={product.name} query={query.trim()} />
+                      </div>
+                      <div className="text-[11px] text-muted font-medium">
+                        <Highlight text={product.brand} query={query.trim()} />
+                      </div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-[13px] font-extrabold text-navy">{formatPrice(product.price)}</div>
@@ -224,7 +252,9 @@ export function SearchInput({ placeholder = "Hledat produkty..." }: { placeholde
                     <div className="w-[44px] h-[44px] rounded-[6px] bg-wash shrink-0 flex items-center justify-center">
                       <span className="text-[16px] font-extrabold text-navy">{brand.name[0]}</span>
                     </div>
-                    <span className="text-[13px] font-bold text-ink">{brand.name}</span>
+                    <span className="text-[13px] font-bold text-ink">
+                      <Highlight text={brand.name} query={query.trim()} />
+                    </span>
                   </Link>
                 );
               })}
@@ -254,7 +284,9 @@ export function SearchInput({ placeholder = "Hledat produkty..." }: { placeholde
                         <polyline points="9 22 9 12 15 12 15 22" />
                       </svg>
                     </div>
-                    <span className="text-[13px] font-bold text-ink">{cat.name}</span>
+                    <span className="text-[13px] font-bold text-ink">
+                      <Highlight text={cat.name} query={query.trim()} />
+                    </span>
                   </Link>
                 );
               })}
@@ -278,9 +310,31 @@ export function SearchInput({ placeholder = "Hledat produkty..." }: { placeholde
       {/* No results */}
       {isOpen && results && totalResults === 0 && query.trim().length >= 2 && !loading && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-line rounded-[var(--radius-card)] shadow-lg z-[60] overflow-hidden">
-          <div className="px-4 py-6 text-center">
-            <p className="text-[13px] font-bold text-ink mb-1">Nic jsme nenašli</p>
+          <div className="px-4 pt-5 pb-3 text-center">
+            <svg className="mx-auto mb-2 text-line" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              <line x1="8" y1="11" x2="14" y2="11"/>
+            </svg>
+            <p className="text-[13px] font-bold text-ink mb-1">
+              Nic jsme nenašli pro &bdquo;{query.trim()}&ldquo;
+            </p>
             <p className="text-[12px] text-muted">Zkus jiný výraz nebo zkontroluj pravopis.</p>
+          </div>
+          <div className="border-t border-wash px-4 py-3">
+            <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted mb-2">Oblíbené kategorie</p>
+            <div className="flex flex-wrap gap-1.5">
+              {popularSuggestions.map((s) => (
+                <Link
+                  key={s.href}
+                  href={s.href}
+                  onClick={() => setIsOpen(false)}
+                  className="inline-flex items-center h-[28px] px-3 bg-wash text-[12px] font-bold text-ink rounded-full hover:bg-line transition-colors"
+                >
+                  {s.label}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       )}

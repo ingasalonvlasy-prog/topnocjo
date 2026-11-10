@@ -36,8 +36,8 @@ export function Footer() {
           <div>
             <h4 className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/40 mb-4">Zákaznický servis</h4>
             <ul className="space-y-2.5">
-              <li><Link href="/doprava" className="text-[13px] text-white/70 hover:text-white transition-colors">Doprava a platba</Link></li>
-              <li><Link href="/reklamace" className="text-[13px] text-white/70 hover:text-white transition-colors">Vrácení zboží</Link></li>
+              <li><Link href="/doprava-a-platba" className="text-[13px] text-white/70 hover:text-white transition-colors">Doprava a platba</Link></li>
+              <li><Link href="/vraceni-zbozi" className="text-[13px] text-white/70 hover:text-white transition-colors">Vrácení zboží</Link></li>
               <li><Link href="/reklamace" className="text-[13px] text-white/70 hover:text-white transition-colors">Reklamace</Link></li>
               <li><Link href="/velikosti" className="text-[13px] text-white/70 hover:text-white transition-colors">Velikosti</Link></li>
             </ul>
@@ -49,6 +49,7 @@ export function Footer() {
             <ul className="space-y-2.5">
               <li><Link href="/o-nas" className="text-[13px] text-white/70 hover:text-white transition-colors">Kdo jsme</Link></li>
               <li><Link href="/znacky" className="text-[13px] text-white/70 hover:text-white transition-colors">Značky</Link></li>
+              <li><Link href="/blog" className="text-[13px] text-white/70 hover:text-white transition-colors">Blog</Link></li>
               <li><Link href="/obchodni-podminky" className="text-[13px] text-white/70 hover:text-white transition-colors">Obchodní podmínky</Link></li>
             </ul>
           </div>

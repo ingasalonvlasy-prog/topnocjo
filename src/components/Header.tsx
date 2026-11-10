@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { SearchInput } from "./SearchInput";
+import { useCart } from "@/lib/cart";
 
 const navLinks = [
   { href: "/kategorie/beh", label: "Běh" },
@@ -19,6 +20,7 @@ const navLinks = [
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const { itemCount } = useCart();
 
   return (
     <>
@@ -86,15 +88,20 @@ export function Header() {
                   </svg>
                 )}
               </button>
-              <button className="w-10 h-10 flex items-center justify-center text-ink hover:text-navy transition-colors" aria-label="Účet">
+              <Link href="/ucet" className="w-10 h-10 flex items-center justify-center text-ink hover:text-navy transition-colors" aria-label="Můj účet">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
                 </svg>
-              </button>
-              <Link href="/kosik" className="w-10 h-10 flex items-center justify-center text-ink hover:text-navy transition-colors" aria-label="Košík">
+              </Link>
+              <Link href="/kosik" className="relative w-10 h-10 flex items-center justify-center text-ink hover:text-navy transition-colors" aria-label="Košík">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
                 </svg>
+                {itemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-lime text-navy text-[11px] font-extrabold rounded-full flex items-center justify-center">
+                    {itemCount > 9 ? "9+" : itemCount}
+                  </span>
+                )}
               </Link>
             </div>
           </div>
@@ -126,11 +133,23 @@ export function Header() {
               />
             </Link>
 
-            <Link href="/kosik" className="w-10 h-10 flex items-center justify-center text-ink" aria-label="Košík">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
-              </svg>
-            </Link>
+            <div className="flex items-center gap-1">
+              <Link href="/ucet" className="w-10 h-10 flex items-center justify-center text-ink" aria-label="Můj účet">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+              </Link>
+              <Link href="/kosik" className="relative w-10 h-10 flex items-center justify-center text-ink" aria-label="Košík">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
+                {itemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-lime text-navy text-[11px] font-extrabold rounded-full flex items-center justify-center">
+                    {itemCount > 9 ? "9+" : itemCount}
+                  </span>
+                )}
+              </Link>
+            </div>
           </div>
 
           {/* Desktop search — toggled */}

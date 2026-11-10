@@ -1,0 +1,27 @@
+QSPORT.CZ – LOGO A FAVICON NA WEB
+
+SOUBORY
+qsport-logo-web.svg / .png       logo do hlavičky (navy + modrá linka), BEZ .CZ – v hlavičce by .CZ nebylo čitelné
+qsport-logo-web-bila.svg / .png  logo do patičky a na tmavé pozadí (bílá + limetková linka)
+qsport-logo-web-s-cz.svg / .png  logo s .CZ – jen na velké plochy (min. 300 px šířky)
+favicon.ico                      16/32/48 px v jednom souboru
+favicon.svg                      vektorový favicon pro moderní prohlížeče
+favicon-16/32/48/192/512.png     PNG ve všech velikostech
+apple-touch-icon.png             ikona na plochu iPhonu (180 px)
+site.webmanifest                 pro Android / přidání na plochu
+
+VELIKOST LOGA V HLAVIČCE
+Výška loga 36–44 px na počítači, 28–32 px na mobilu. Kolem nechat volné místo aspoň ve výšce písmene Q.
+
+SHOPIFY (web běží na Shopify)
+1. Logo: Online obchod → Témata → Přizpůsobit → Hlavička (Header) → Logo → nahrát qsport-logo-web.png, šířku nastavit cca 160–190 px.
+   Pokud je hlavička tmavá, nahrát qsport-logo-web-bila.png.
+2. Favicon: Přizpůsobit → Nastavení motivu (Theme settings) → Logo / Favicon → nahrát favicon-512.png (Shopify si ho zmenší).
+3. Uložit a zkontrolovat v anonymním okně (favicon se v běžném okně může chvíli držet z mezipaměti).
+
+JINÝ WEB (HTML) – vložit do <head> a soubory nahrát do kořene webu:
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0B1727">

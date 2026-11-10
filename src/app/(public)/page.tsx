@@ -3,6 +3,10 @@ import Image from "next/image";
 import { prisma } from "@/lib/db";
 import { ProductCard } from "@/components/ProductCard";
 import { formatPrice, getMinPrice } from "@/lib/products";
+import { getLatestBlogPosts } from "@/lib/blog";
+import { BlogCard } from "@/components/BlogCard";
+import { NewsletterForm } from "@/components/NewsletterForm";
+import { buildOrganizationJsonLd, buildWebSiteJsonLd } from "@/lib/structured-data";
 
 const categoryPastels: Record<string, string> = {
   "bezecke-boty": "bg-mint",
@@ -35,7 +39,7 @@ const categoryIcons: Record<string, string> = {
 // Row 2: (Běh continues), Batohy (1 row), Bazar (1 row)
 
 export default async function HomePage() {
-  const [categories, brands, newest, bestsellers] = await Promise.all([
+  const [categories, brands, newest, bestsellers, blogPosts] = await Promise.all([
     prisma.category.findMany({ orderBy: { position: "asc" } }),
     prisma.brand.findMany({ orderBy: { name: "asc" } }),
     prisma.product.findMany({
@@ -58,6 +62,7 @@ export default async function HomePage() {
       orderBy: { createdAt: "asc" },
       take: 4,
     }),
+    getLatestBlogPosts(3),
   ]);
 
   return (
@@ -68,9 +73,11 @@ export default async function HomePage() {
           <div className="text-center lg:text-left">
             <h1 className="text-[32px] lg:text-[36px] font-extrabold leading-[1.1] tracking-[-0.04em] mb-2">
               Venku je tvoje{" "}
-              <span className="relative inline-block">
+              <span
+                className="underline decoration-lime decoration-[3px]"
+                style={{ textUnderlineOffset: "5px" }}
+              >
                 hřiště.
-                <span className="absolute bottom-0 left-0 w-full h-[5px] bg-lime" style={{ bottom: "3px" }} />
               </span>
             </h1>
             <p className="text-[14px] text-white/60 font-medium max-w-[380px] mx-auto lg:mx-0">
@@ -91,10 +98,27 @@ export default async function HomePage() {
         <div className="max-w-[var(--container)] mx-auto px-6 py-8">
           <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted text-center mb-5">Prémiové značky</div>
           <div className="flex justify-between items-center gap-6 lg:gap-0 flex-wrap">
-            {["On", "POC", "MALOJA", "alpina", "Mizuno", "LEKI"].map((name) => (
-              <span key={name} className="text-[18px] lg:text-[22px] font-extrabold text-[#c8cdd4] tracking-[0.06em] hover:text-muted transition-colors cursor-default" style={{ fontVariantCaps: name === name.toUpperCase() ? "normal" : undefined }}>
-                {name}
-              </span>
+            {[
+              { name: "On", slug: "on", file: "/brands/on.svg", w: 60, h: 24 },
+              { name: "POC", slug: "poc", file: "/brands/poc.svg", w: 72, h: 24 },
+              { name: "Maloja", slug: "maloja", file: "/brands/maloja.svg", w: 80, h: 24 },
+              { name: "Alpina", slug: "alpina", file: "/brands/alpina.svg", w: 84, h: 24 },
+              { name: "Mizuno", slug: "mizuno", file: "/brands/mizuno.svg", w: 70, h: 30 },
+              { name: "LEKI", slug: "leki", file: "/brands/leki.svg", w: 80, h: 24 },
+            ].map((brand) => (
+              <Link
+                key={brand.slug}
+                href={`/znacky/${brand.slug}`}
+                className="grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
+              >
+                <Image
+                  src={brand.file}
+                  alt={brand.name}
+                  width={brand.w}
+                  height={brand.h}
+                  className="h-[20px] lg:h-[30px] w-auto"
+                />
+              </Link>
             ))}
           </div>
         </div>
@@ -132,9 +156,9 @@ export default async function HomePage() {
           <h2 className="text-[32px] lg:text-[40px] font-extrabold tracking-[-0.04em]">Venku je tvoje hřiště.</h2>
         </div>
 
-        {/* Asymmetric grid: Běh (tall left), Zima+Oblečení (right top), Doplňky+Bazar (right bottom) */}
+        {/* Asymmetric grid: Běh (tall left, row-span-2), Hory+Zima (right top), Oblečení+Doplňky (right bottom), Bazar (full width) */}
         {(() => {
-          const categoryOrder = ["beh", "zima", "obleceni", "doplnky", "bazar"];
+          const categoryOrder = ["beh", "hory-a-outdoor", "zima", "obleceni", "doplnky", "bazar"];
           const orderedCategories = categoryOrder
             .map(slug => categories.find(c => c.slug === slug))
             .filter((c): c is NonNullable<typeof c> => c != null);
@@ -145,6 +169,7 @@ export default async function HomePage() {
                 const bg = categoryPastels[cat.slug] || "bg-wash";
                 const icon = categoryIcons[cat.slug] || "/icons/beh.svg";
                 const isLarge = i === 0;
+                const isFullWidth = cat.slug === "bazar";
 
                 return (
                   <Link
@@ -152,9 +177,9 @@ export default async function HomePage() {
                     href={`/kategorie/${cat.slug}`}
                     className={`group relative overflow-hidden rounded-[10px] ${bg} ${
                       isLarge ? "sm:col-span-2 lg:col-span-1 lg:row-span-2" : ""
-                    }`}
+                    } ${isFullWidth ? "sm:col-span-2 lg:col-span-3" : ""}`}
                   >
-                    <div className={`${isLarge ? "aspect-square lg:aspect-auto lg:h-full min-h-[280px]" : "aspect-[3/2] min-h-[160px]"} p-5 flex flex-col justify-between relative`}>
+                    <div className={`${isLarge ? "aspect-square lg:aspect-auto lg:h-full min-h-[280px]" : isFullWidth ? "min-h-[120px]" : "aspect-[3/2] min-h-[160px]"} p-5 flex flex-col justify-between relative`}>
                       <div>
                         <h3 className="text-[22px] lg:text-[28px] font-extrabold text-navy tracking-[-0.02em]">{cat.name}</h3>
                         <div className="flex items-center gap-1 mt-1">
@@ -237,7 +262,38 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 7. Instagram — "Sleduj nás na Instagramu." */}
+      {/* 7. Blog — "Ze světa sportu." */}
+      {blogPosts.length > 0 && (
+        <section className="max-w-[var(--container)] mx-auto px-6 pb-14">
+          <div className="flex justify-between items-end mb-6">
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted mb-1">Blog</div>
+              <h2 className="text-[32px] lg:text-[40px] font-extrabold tracking-[-0.04em]">Ze světa sportu.</h2>
+            </div>
+            <Link
+              href="/blog"
+              className="hidden sm:inline-flex items-center h-10 border border-ink text-ink text-[11px] font-extrabold uppercase tracking-[0.12em] px-5 rounded-[var(--radius-pill)] hover:bg-ink hover:text-white transition-all"
+            >
+              Zobrazit vše
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {blogPosts.map((post) => (
+              <BlogCard key={post.id} post={post} />
+            ))}
+          </div>
+          <div className="sm:hidden mt-4 text-center">
+            <Link
+              href="/blog"
+              className="inline-flex items-center h-10 border border-ink text-ink text-[11px] font-extrabold uppercase tracking-[0.12em] px-5 rounded-[var(--radius-pill)] hover:bg-ink hover:text-white transition-all"
+            >
+              Zobrazit vše
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* 8. Instagram — "Sleduj nás na Instagramu." */}
       <section className="max-w-[var(--container)] mx-auto px-6 pb-14">
         <div className="flex justify-between items-end mb-6">
           <div>
@@ -269,18 +325,19 @@ export default async function HomePage() {
             <h3 className="text-[24px] lg:text-[28px] font-extrabold text-white tracking-[-0.04em]">Novinky a akce jako první.</h3>
             <p className="text-[13px] text-white/50 font-medium mt-1">Žádný spam. Jen to, co stojí za to.</p>
           </div>
-          <div className="flex w-full sm:w-auto gap-2">
-            <input
-              type="email"
-              placeholder="tvuj@email.cz"
-              className="flex-1 sm:w-[260px] py-3 px-4 rounded-[var(--radius-field)] border border-white/15 bg-white/5 text-white text-[14px] font-medium outline-none placeholder:text-white/30 focus:border-lime/40"
-            />
-            <button className="bg-lime text-navy px-6 py-3 rounded-[var(--radius-pill)] text-[12px] font-extrabold uppercase tracking-[0.12em] hover:brightness-110 transition-all shrink-0">
-              Přihlásit
-            </button>
-          </div>
+          <NewsletterForm />
         </div>
       </section>
+
+      {/* JSON-LD: Organization + WebSite */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildOrganizationJsonLd()) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildWebSiteJsonLd()) }}
+      />
     </div>
   );
 }

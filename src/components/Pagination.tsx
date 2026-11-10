@@ -35,19 +35,19 @@ export function Pagination({ currentPage, totalPages, baseUrl, searchParams = {}
       {currentPage > 1 && (
         <Link
           href={buildUrl(currentPage - 1)}
-          className="px-3 py-2 text-[13px] font-medium border border-line rounded-[var(--radius-field)] hover:bg-wash transition-colors"
+          className="min-w-[44px] h-[44px] flex items-center justify-center text-[13px] font-medium border border-line rounded-[var(--radius-field)] hover:bg-wash transition-colors"
         >
           &laquo;
         </Link>
       )}
       {pages.map((p, i) =>
         p === "..." ? (
-          <span key={`dots-${i}`} className="px-2 py-2 text-muted">...</span>
+          <span key={`dots-${i}`} className="px-2 h-[44px] flex items-center text-muted">...</span>
         ) : (
           <Link
             key={p}
             href={buildUrl(p)}
-            className={`px-3.5 py-2 text-[13px] font-medium rounded-[var(--radius-field)] transition-colors ${
+            className={`min-w-[44px] h-[44px] flex items-center justify-center text-[13px] font-medium rounded-[var(--radius-field)] transition-colors ${
               p === currentPage
                 ? "bg-navy text-white"
                 : "border border-line hover:bg-wash"
@@ -60,7 +60,7 @@ export function Pagination({ currentPage, totalPages, baseUrl, searchParams = {}
       {currentPage < totalPages && (
         <Link
           href={buildUrl(currentPage + 1)}
-          className="px-3 py-2 text-[13px] font-medium border border-line rounded-[var(--radius-field)] hover:bg-wash transition-colors"
+          className="min-w-[44px] h-[44px] flex items-center justify-center text-[13px] font-medium border border-line rounded-[var(--radius-field)] hover:bg-wash transition-colors"
         >
           &raquo;
         </Link>

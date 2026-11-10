@@ -16,13 +16,14 @@ export async function GET(req: NextRequest) {
           { name: { contains: q } },
           { brand: { name: { contains: q } } },
           { productType: { contains: q } },
+          { variants: { some: { sku: { contains: q } } } },
         ],
       },
       include: {
         variants: { where: { active: true }, orderBy: { position: "asc" }, take: 1 },
         brand: true,
       },
-      take: 6,
+      take: 8,
     }),
     prisma.brand.findMany({
       where: { name: { contains: q } },
@@ -31,9 +32,8 @@ export async function GET(req: NextRequest) {
     prisma.category.findMany({
       where: {
         name: { contains: q },
-        parentId: null,
       },
-      take: 3,
+      take: 4,
     }),
   ]);
 

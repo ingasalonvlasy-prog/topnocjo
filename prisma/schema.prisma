@@ -58,6 +58,8 @@ model Product {
   updatedAt      DateTime          @updatedAt
   variants       Variant[]
   categories     ProductCategory[]
+  wishlists      Wishlist[]
+  reviews        ProductReview[]
 
   @@index([brandId])
   @@index([status])
@@ -75,7 +77,8 @@ model Variant {
   price        Int
   comparePrice Int?
   costPrice    Int?
-  stock        Int      @default(0)
+  ownStock      Int      @default(0)
+  supplierStock Int      @default(0)
   weight       Int?
   barcode      String?
   position     Int      @default(0)
@@ -96,4 +99,242 @@ model ProductCategory {
 
   @@id([productId, categoryId])
   @@map("product_categories")
+}
+
+model ShippingMethod {
+  id          String   @id @default(cuid())
+  name        String
+  code        String   @unique
+  type        String   @default("address") // "address" | "pickup_point" | "personal"
+  description String?
+  price       Int      @default(0)
+  freeFrom    Int?
+  active      Boolean  @default(true)
+  position    Int      @default(0)
+  config      String   @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orders      Order[]
+
+  @@map("shipping_methods")
+}
+
+model BlogPost {
+  id              String    @id @default(cuid())
+  title           String
+  slug            String    @unique
+  excerpt         String?
+  content         String    // HTML content
+  coverImage      String?
+  author          String    @default("Qsport.cz")
+  tags            String    @default("[]") // JSON array of strings
+  published       Boolean   @default(false)
+  publishedAt     DateTime?
+  section         String    @default("NOVINKY")
+  sportTags       String    @default("[]")
+  metaDescription String?
+  sources         String    @default("[]")
+  relatedProducts String    @default("[]")
+  eventDate       DateTime?
+  eventLocation   String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([published, publishedAt])
+  @@index([section])
+  @@map("blog_posts")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  firstName     String?
+  lastName      String?
+  phone         String?
+  street        String?
+  city          String?
+  zip           String?
+  newsletter    Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastLoginAt   DateTime?
+  orders        Order[]
+  wishlists     Wishlist[]
+  reviews       ProductReview[]
+
+  @@map("users")
+}
+
+model Order {
+  id               String         @id @default(cuid())
+  orderNumber      String         @unique
+  status           String         @default("NEW")
+  email            String
+  phone            String?
+  firstName        String
+  lastName         String
+  street           String
+  city             String
+  zip              String
+  shippingName     String?
+  shippingStreet   String?
+  shippingCity     String?
+  shippingZip      String?
+  shippingId       String
+  shipping         ShippingMethod @relation(fields: [shippingId], references: [id])
+  shippingPrice    Int            @default(0)
+  packetaPointId   String?
+  packetaPointName String?
+  paymentMethod    String         @default("card")
+  paymentStatus    String         @default("PENDING")
+  comgateTransId   String?
+  subtotal         Int            @default(0)
+  discountCode     String?
+  discountAmount   Int            @default(0)
+  total            Int            @default(0)
+  note             String?
+  adminNote        String?
+  trackingNumber   String?
+  trackingUrl      String?
+  userId           String?
+  user             User?          @relation(fields: [userId], references: [id])
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  paidAt           DateTime?
+  shippedAt        DateTime?
+  deliveredAt      DateTime?
+  cancelledAt      DateTime?
+  needsSupplierOrder  Boolean  @default(false)
+  supplierOrderedAt   DateTime?
+  supplierReceivedAt  DateTime?
+  items            OrderItem[]
+
+  @@index([status])
+  @@index([email])
+  @@index([createdAt])
+  @@index([comgateTransId])
+  @@index([userId])
+  @@map("orders")
+}
+
+model OrderItem {
+  id           String @id @default(cuid())
+  orderId      String
+  order        Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId    String?
+  variantId    String?
+  productName  String
+  variantTitle String
+  sku          String?
+  quantity     Int    @default(1)
+  unitPrice    Int
+  totalPrice   Int
+  fromOwnStock      Int  @default(0)
+  fromSupplierStock Int  @default(0)
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model Supplier {
+  id                String    @id @default(cuid())
+  name              String
+  code              String    @unique
+  feedUrl           String
+  feedFormat        String    // "xml" | "csv" | "json"
+  feedConfig        String    @default("{}")
+  active            Boolean   @default(true)
+  lastImportAt      DateTime?
+  lastImportStatus  String?
+  lastImportCount   Int?
+  lastImportError   String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@map("suppliers")
+}
+
+model FeedImportLog {
+  id              String   @id @default(cuid())
+  supplierId      String
+  status          String
+  variantsUpdated Int      @default(0)
+  variantsCreated Int      @default(0)
+  variantsZeroed  Int      @default(0)
+  duration        Int      @default(0)
+  error           String?
+  createdAt       DateTime @default(now())
+
+  @@index([supplierId])
+  @@index([createdAt])
+  @@map("feed_import_logs")
+}
+
+model DiscountCode {
+  id             String    @id @default(cuid())
+  code           String    @unique
+  type           String    @default("percentage") // "percentage" | "fixed"
+  value          Int       // procento (1-100) nebo částka v haléřích
+  minOrderAmount Int?
+  usageLimit     Int?
+  usageCount     Int       @default(0)
+  validFrom      DateTime?
+  validTo        DateTime?
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("discount_codes")
+}
+
+model NewsletterSubscriber {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  active       Boolean  @default(true)
+  subscribedAt DateTime @default(now())
+
+  @@map("newsletter_subscribers")
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
+  @@map("wishlists")
+}
+
+model ProductReview {
+  id         String   @id @default(cuid())
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  authorName String
+  rating     Int      // 1-5
+  title      String?
+  content    String
+  approved   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([productId])
+  @@index([approved])
+  @@map("product_reviews")
 }

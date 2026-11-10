@@ -1,0 +1,72 @@
+{
+  "brand": "Qsport.cz",
+  "claim": "Venku je vaše hřiště.",
+  "colors": {
+    "navy": "#0B1727",
+    "lime": "#CEFF2F",
+    "blue": "#3157FF",
+    "white": "#FFFFFF",
+    "grey_light": "#F3F5F6",
+    "grey_text": "#667085",
+    "mint": "#DCECE4",
+    "sky": "#DBE5FF",
+    "peach": "#FFD9C8",
+    "lilac": "#E8E0FF",
+    "sale_red": "#C1121F"
+  },
+  "fonts": {
+    "headline": "Manrope 800",
+    "eyebrow": "Manrope 700 uppercase +14% tracking",
+    "body": "Inter 600"
+  },
+  "pastel_by_category": {
+    "boty": "mint",
+    "obleceni": "peach",
+    "batohy": "lilac",
+    "bryle_doplnky": "sky",
+    "helmy_lyze_bezky": "sky",
+    "ponozky_cepice_rukavice": "mint"
+  },
+  "sizes": {
+    "ig_post": [
+      1080,
+      1350
+    ],
+    "story": [
+      1080,
+      1920
+    ],
+    "fb_cover": [
+      1640,
+      624
+    ],
+    "fb_event": [
+      1920,
+      1005
+    ],
+    "google_post": [
+      1200,
+      900
+    ],
+    "google_cover": [
+      1024,
+      576
+    ],
+    "profile": [
+      1080,
+      1080
+    ],
+    "whatsapp_profile": [
+      640,
+      640
+    ]
+  },
+  "logo_files": {
+    "light_bg": "logo/qsport-logo-primarni.png",
+    "dark_bg": "logo/qsport-logo-bila-na-tmave.png",
+    "lime_or_kraft": "logo/qsport-logo-navy-jednobarevne.png",
+    "small": "logo/qsport-logo-primarni-bez-cz.png",
+    "icon": "ikona/qsport-ikona-navy.png"
+  },
+  "rules": "Viz AI-INSTRUKCE.md"
+}

@@ -5,6 +5,9 @@ import { getFilterOptions } from "@/lib/filter-options";
 import { ProductCard } from "@/components/ProductCard";
 import { Pagination } from "@/components/Pagination";
 import { FilterBar } from "@/components/FilterBar";
+import { SortDropdown } from "@/components/SortDropdown";
+import { ActiveFilterChips } from "@/components/ActiveFilterChips";
+import { MobileFilterDrawer } from "@/components/MobileFilterDrawer";
 
 type SortOption = "price_asc" | "price_desc" | "name" | "newest";
 
@@ -50,6 +53,13 @@ export default async function SearchPage({
     if (k !== "strana" && typeof v === "string") paginationParams[k] = v;
   }
 
+  // Count active filters for mobile drawer badge
+  let activeFilterCount = 0;
+  if (brandSlug) activeFilterCount++;
+  if (size) activeFilterCount++;
+  if (priceMin !== undefined) activeFilterCount++;
+  if (inStock) activeFilterCount++;
+
   return (
     <div className="max-w-[var(--container)] mx-auto px-6 py-8">
       {/* Breadcrumbs */}
@@ -64,31 +74,87 @@ export default async function SearchPage({
       </h1>
       <p className="text-[13px] text-muted font-medium mb-6">{result.total} produktů</p>
 
-      <FilterBar
-        brands={filterOptions.brands}
-        sizes={filterOptions.sizes}
-        priceRange={filterOptions.priceRange}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-8">
+        {/* Sidebar filters — desktop */}
+        <aside className="hidden lg:block">
+          <FilterBar
+            brands={filterOptions.brands}
+            sizes={filterOptions.sizes}
+            priceRange={filterOptions.priceRange}
+          />
+        </aside>
 
-      {result.items.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {result.items.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-16">
-          <p className="text-[16px] font-bold text-ink mb-2">Žádné produkty nebyly nalezeny.</p>
-          <p className="text-[13px] text-muted">Zkus jiný dotaz nebo uprav filtry.</p>
-        </div>
-      )}
+        {/* Product grid */}
+        <div>
+          {/* Top bar: count + sort + mobile filter trigger */}
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <span className="text-[14px] font-bold text-ink">{result.total} produktů</span>
+              <div className="lg:hidden">
+                <MobileFilterDrawer
+                  brands={filterOptions.brands}
+                  sizes={filterOptions.sizes}
+                  priceRange={filterOptions.priceRange}
+                  activeFilterCount={activeFilterCount}
+                />
+              </div>
+            </div>
+            <div className="hidden lg:block">
+              <SortDropdown />
+            </div>
+          </div>
 
-      <Pagination
-        currentPage={result.page}
-        totalPages={result.totalPages}
-        baseUrl="/hledat"
-        searchParams={paginationParams}
-      />
+          {/* Active filter chips */}
+          <ActiveFilterChips brands={filterOptions.brands} />
+
+          {result.items.length > 0 ? (
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+              {result.items.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <svg className="mx-auto mb-4 text-line" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                <line x1="8" y1="11" x2="14" y2="11"/>
+              </svg>
+              <p className="text-[18px] font-bold text-ink mb-2">
+                {query ? `Žádné výsledky pro „${query}"` : "Žádné produkty nebyly nalezeny"}
+              </p>
+              <p className="text-[14px] text-muted mb-6">Zkus jiný výraz, zkontroluj pravopis nebo prohlédni naše kategorie.</p>
+              <div className="flex flex-wrap justify-center gap-2">
+                <Link href="/kategorie/beh" className="inline-flex items-center h-[36px] px-4 bg-wash text-[13px] font-bold text-ink rounded-full hover:bg-line transition-colors">
+                  Běh
+                </Link>
+                <Link href="/kategorie/kopacky" className="inline-flex items-center h-[36px] px-4 bg-wash text-[13px] font-bold text-ink rounded-full hover:bg-line transition-colors">
+                  Kopačky
+                </Link>
+                <Link href="/kategorie/obleceni" className="inline-flex items-center h-[36px] px-4 bg-wash text-[13px] font-bold text-ink rounded-full hover:bg-line transition-colors">
+                  Oblečení
+                </Link>
+                <Link href="/kategorie/hory-a-outdoor" className="inline-flex items-center h-[36px] px-4 bg-wash text-[13px] font-bold text-ink rounded-full hover:bg-line transition-colors">
+                  Hory a outdoor
+                </Link>
+                <Link href="/kategorie/doplnky" className="inline-flex items-center h-[36px] px-4 bg-wash text-[13px] font-bold text-ink rounded-full hover:bg-line transition-colors">
+                  Doplňky
+                </Link>
+                <Link href="/znacky" className="inline-flex items-center h-[36px] px-4 bg-navy text-[13px] font-bold text-white rounded-full hover:bg-navy/80 transition-colors">
+                  Všechny značky
+                </Link>
+              </div>
+            </div>
+          )}
+
+          <Pagination
+            currentPage={result.page}
+            totalPages={result.totalPages}
+            baseUrl="/hledat"
+            searchParams={paginationParams}
+          />
+        </div>
+      </div>
     </div>
   );
 }

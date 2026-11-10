@@ -147,7 +147,8 @@ async function main() {
           price: def.basePrice,
           comparePrice: def.comparePrice ?? null,
           costPrice: Math.round(def.basePrice * 0.5),
-          stock: Math.floor(Math.random() * 15) + 1,
+          ownStock: Math.floor(Math.random() * 8),
+          supplierStock: Math.floor(Math.random() * 10),
           weight: Math.floor(Math.random() * 500) + 200,
           position: i,
         },
@@ -163,12 +164,84 @@ async function main() {
     });
   }
 
+  // Blog posts
+  console.log("Creating blog posts...");
+  await Promise.all([
+    prisma.blogPost.create({
+      data: {
+        title: "Jak vybrat běžecké boty v roce 2026",
+        slug: "jak-vybrat-bezecke-boty-2026",
+        excerpt: "Průvodce výběrem běžeckých bot — od pronace po povrch. Na co se zaměřit, aby ti boty seděly a vydržely.",
+        tags: JSON.stringify(["běh", "boty", "průvodce"]),
+        published: true,
+        publishedAt: new Date("2026-10-15"),
+        content: `<h2>Pronace: Základ výběru</h2>
+<p>Než začneš vybírat design nebo značku, zjisti si typ pronace. Neutrální běžci mají nejširší výběr — hodí se modely jako On Cloudmonster nebo Mizuno Wave Rider. Pokud přešlapuješ dovnitř (overpronace), sáhni po stabilizačních botách typu Mizuno Wave Inspire.</p>
+
+<h2>Povrch rozhoduje</h2>
+<p>Na silnici potřebuješ jinou botu než na trail. Silniční boty mají hladší podrážku a lepší tlumení na tvrdém povrchu. Trailové boty nabízejí agresivnější vzorek a odolnější svršek. Pokud běháš oboje, pořiď si dva páry — univerzální bota je vždy kompromis.</p>
+
+<h2>Správná velikost</h2>
+<p>Běžecká bota by měla být o půl čísla až číslo větší než tvá běžná obuv. Při běhu se noha roztahuje a otéká — zejména na delších trasách. Palec by měl mít před špičkou boty prostor zhruba šířky palce ruky.</p>
+
+<h2>Značky, kterým věříme</h2>
+<p>Na Qsport.cz najdeš prověřené značky: On Running pro inovativní tlumení, Mizuno pro klasickou japonskou kvalitu. Obě značky mají v nabídce modely pro začátečníky i závodníky. Vyber si podle toho, co ti sedne na noze — ne podle toho, co nosí ostatní.</p>`,
+      },
+    }),
+    prisma.blogPost.create({
+      data: {
+        title: "5 tipů na podzimní trail running",
+        slug: "5-tipu-na-podzimni-trail-running",
+        excerpt: "Podzim je ideální pro traily. Tady je 5 rad, jak si užít běhání v přírodě i když teplota klesá a listí padá.",
+        tags: JSON.stringify(["běh", "trail", "tipy"]),
+        published: true,
+        publishedAt: new Date("2026-10-28"),
+        content: `<h2>1. Vrstvení je základ</h2>
+<p>Ráno je zima, v poledne svítí slunce. Podzimní počasí se mění rychle, takže oblékej vrstvy. Funkční tričko jako základ, lehká větrovka do batohu. Vyvaruj se bavlny — mokrá bavlna na těle v chladném větru je recept na podchlazení.</p>
+
+<h2>2. Pozor na mokré listí</h2>
+<p>Spadané listí vypadá hezky, ale na stezce je zrádné. Mokré listí na kamenech nebo kořenech je kluzké jako led. Zkrať krok, běž opatrněji a investuj do bot s dobrým vzorkem — výrazně sníží riziko uklouznutí.</p>
+
+<h2>3. Čelovka není jen na zimu</h2>
+<p>Dny se krátí rychleji, než čekáš. Pokud vyběhneš po práci, vezmi si čelovku. I lehká blikačka na čepici může zabránit nepříjemnému návratu potmě. Navíc tě uvidí ostatní na cestách.</p>
+
+<h2>4. Hydratace i v chladnu</h2>
+<p>Když je chladno, nemáš takový pocit žízně. Ale tělo potřebuje tekutiny stejně. Vezmi si malý měkký flask nebo hydratační batoh. Na trasách nad hodinu je to nutnost i na podzim.</p>
+
+<h2>5. Užij si to</h2>
+<p>Podzimní les je parádní kulisa. Barvy, klid, svěží vzduch. Trail running není jen o tempu a číslech — je to taky o tom být venku. Občas zastav, rozhlédni se a nadechni se. Proto to děláme.</p>`,
+      },
+    }),
+    prisma.blogPost.create({
+      data: {
+        title: "POC helmy: Proč na bezpečnosti nešetřit",
+        slug: "poc-helmy-proc-na-bezpecnosti-nesetrit",
+        excerpt: "Recenze cyklo helem POC — technologie, certifikace a proč má smysl investovat do kvalitní ochrany hlavy.",
+        tags: JSON.stringify(["helmy", "POC", "bezpečnost"]),
+        published: true,
+        publishedAt: new Date("2026-11-03"),
+        content: `<h2>Švédská preciznost</h2>
+<p>POC vznikl ve Švédsku s jedním cílem: chránit životy. Každá helma prochází přísnými testy a často překračuje požadavky certifikací. Technologie jako MIPS (Multi-directional Impact Protection System) chrání mozek při šikmých nárazech — což je většina reálných pádů.</p>
+
+<h2>MIPS: Víc než marketing</h2>
+<p>MIPS je vložka, která umožňuje helmě se při nárazu mírně pootočit vůči hlavě. Tím se sníží rotační síly působící na mozek. Není to jen nálepka navíc — je to technologie, která může zabránit otřesu mozku. Většina POC helem má MIPS v základu.</p>
+
+<h2>Ventral, Omne nebo Kortal?</h2>
+<p>POC Ventral Air MIPS je top volba pro silniční cyklistiku — extrémně lehká a skvěle větraná. POC Omne Air MIPS je univerzálnější, hodí se na gravel i do města. POC Kortal Race MIPS je enduro helma s rozšířenou ochranou zátylku pro technické traily.</p>
+
+<h2>Investice do hlavy se vyplatí</h2>
+<p>Kvalitní helma je jako pojistka — doufáš, že ji nevyužiješ. Ale když přijde pád, rozdíl mezi helmou za 800 a za 5 000 Kč může být zásadní. POC helmy nejsou levné, ale nabízejí jedny z nejlepších ochranných technologií na trhu. Na hlavě se nešetří.</p>`,
+      },
+    }),
+  ]);
+
   console.log("Seed completed!");
   const counts = {
     brands: await prisma.brand.count(),
     categories: await prisma.category.count(),
     products: await prisma.product.count(),
     variants: await prisma.variant.count(),
+    blogPosts: await prisma.blogPost.count(),
   };
   console.log(counts);
 }

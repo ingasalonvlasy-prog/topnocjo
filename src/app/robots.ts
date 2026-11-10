@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/api", "/pokladna", "/kosik", "/hledat"],
+        disallow: ["/admin", "/api", "/pokladna", "/kosik", "/ucet", "/hledat"],
       },
     ],
     sitemap: "https://qsport.cz/sitemap.xml",

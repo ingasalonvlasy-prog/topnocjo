@@ -6,6 +6,10 @@ import { getFilterOptions } from "@/lib/filter-options";
 import { ProductCard } from "@/components/ProductCard";
 import { Pagination } from "@/components/Pagination";
 import { FilterBar } from "@/components/FilterBar";
+import { MobileFilterDrawer } from "@/components/MobileFilterDrawer";
+import { SortDropdown } from "@/components/SortDropdown";
+import { ActiveFilterChips } from "@/components/ActiveFilterChips";
+import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
 
 type SortOption = "price_asc" | "price_desc" | "name" | "newest";
 
@@ -63,13 +67,12 @@ export default async function CategoryPage({
     if (k !== "strana" && typeof v === "string") paginationParams[k] = v;
   }
 
-  const sortLabel: Record<string, string> = {
-    "": "Nejprodávanější",
-    "price_asc": "Nejlevnější",
-    "price_desc": "Nejdražší",
-    "name": "Název A–Z",
-    "newest": "Nejnovější",
-  };
+  // Count active filters for mobile drawer badge
+  let activeFilterCount = 0;
+  if (brandSlug) activeFilterCount++;
+  if (size) activeFilterCount++;
+  if (priceMin !== undefined) activeFilterCount++;
+  if (inStock) activeFilterCount++;
 
   return (
     <div>
@@ -120,22 +123,24 @@ export default async function CategoryPage({
 
           {/* Product grid */}
           <div>
-            {/* Top bar: count + sort */}
+            {/* Top bar: count + sort + mobile filter trigger */}
             <div className="flex items-center justify-between mb-5">
-              <span className="text-[14px] font-bold text-ink">{result.total} produktů</span>
-              <span className="text-[13px] text-muted">
-                Řadit: <span className="font-bold text-ink">{sortLabel[sort || ""] || "Nejprodávanější"} &#9660;</span>
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-[14px] font-bold text-ink">{result.total} produktů</span>
+                <div className="lg:hidden">
+                  <MobileFilterDrawer
+                    brands={filterOptions.brands}
+                    sizes={filterOptions.sizes}
+                    priceRange={filterOptions.priceRange}
+                    activeFilterCount={activeFilterCount}
+                  />
+                </div>
+              </div>
+              <SortDropdown />
             </div>
 
-            {/* Mobile filters */}
-            <div className="lg:hidden mb-5">
-              <FilterBar
-                brands={filterOptions.brands}
-                sizes={filterOptions.sizes}
-                priceRange={filterOptions.priceRange}
-              />
-            </div>
+            {/* Active filter chips */}
+            <ActiveFilterChips brands={filterOptions.brands} />
 
             {result.items.length > 0 ? (
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
@@ -159,6 +164,14 @@ export default async function CategoryPage({
           </div>
         </div>
       </div>
+
+      {/* JSON-LD: BreadcrumbList */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildBreadcrumbJsonLd([
+          { name: category.name },
+        ])) }}
+      />
     </div>
   );
 }

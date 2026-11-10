@@ -1,9 +1,16 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { getProductBySlug, getRelatedProducts, formatPrice, getMinPrice, getComparePrice } from "@/lib/products";
 import { ProductTabs } from "@/components/ProductTabs";
-import { AddToCartButton } from "@/components/AddToCartButton";
+import { ProductGallery } from "@/components/ProductGallery";
+import { ProductActions } from "@/components/ProductActions";
+import { ProductCard } from "@/components/ProductCard";
+import { RecentlyViewed } from "@/components/RecentlyViewed";
+import { TrackProductView } from "@/components/TrackProductView";
+import { getAvailability } from "@/lib/stock";
+import { buildProductJsonLd, buildBreadcrumbJsonLd } from "@/lib/structured-data";
+import { ReviewSummary } from "@/components/ReviewSection";
+import { prisma } from "@/lib/db";
 
 const categoryPastels: Record<string, string> = {
   "bezecke-boty": "bg-mint",
@@ -41,10 +48,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   if (!product) notFound();
 
   const photos: string[] = JSON.parse(product.photos || "[]");
-  const mainPhoto = photos[0] || "https://placehold.co/800x1000/f3f5f6/667085?text=Qsport";
   const price = getMinPrice(product.variants);
   const comparePrice = getComparePrice(product.variants);
-  const totalStock = product.variants.reduce((sum, v) => sum + v.stock, 0);
+  const totalStock = product.variants.reduce((sum, v) => sum + v.ownStock + v.supplierStock, 0);
+  const bestAvailability = product.variants.some(v => v.ownStock > 0)
+    ? "in_stock"
+    : product.variants.some(v => v.supplierStock > 0)
+      ? "on_order"
+      : "out_of_stock";
   const category = product.categories[0]?.category;
   const discount = comparePrice && comparePrice > price
     ? Math.round(((comparePrice - price) / comparePrice) * 100)
@@ -54,24 +65,39 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const pastelBg = categoryPastels[categorySlug] || "bg-wash";
 
   const categoryIds = product.categories.map((c) => c.categoryId);
-  const relatedProducts = await getRelatedProducts(product.id, product.brandId, categoryIds, 4);
+  const [relatedProducts, reviewStats] = await Promise.all([
+    getRelatedProducts(product.id, product.brandId, categoryIds, 4),
+    prisma.productReview.aggregate({
+      where: { productId: product.id, approved: true },
+      _avg: { rating: true },
+      _count: true,
+    }),
+  ]);
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Product",
+  const reviewCount = reviewStats._count;
+  const avgRating = reviewStats._avg.rating || 0;
+
+  const jsonLd = buildProductJsonLd({
     name: product.name,
     description: product.description,
-    image: photos,
-    brand: { "@type": "Brand", name: product.brand.name },
-    offers: product.variants.map((v) => ({
-      "@type": "Offer",
-      name: v.title,
+    slug: product.slug,
+    photos,
+    brandName: product.brand.name,
+    variants: product.variants.map((v) => ({
+      title: v.title,
       price: v.price,
-      priceCurrency: "CZK",
-      availability: v.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       sku: v.sku,
+      availability: getAvailability(v),
     })),
-  };
+    reviewCount,
+    avgRating,
+  });
+
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    ...(category ? [{ name: category.name, url: `/kategorie/${category.slug}` }] : []),
+    ...(product.productType ? [{ name: product.productType }] : []),
+    { name: product.name },
+  ]);
 
   // Breadcrumb trail: "Domů / Běh / Nepromokavé boty / Product Name"
   const brandName = product.brand.name.toUpperCase();
@@ -108,55 +134,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       {/* Product detail — 2 columns */}
       <div className="max-w-[var(--container)] mx-auto px-6 pb-14 grid grid-cols-1 md:grid-cols-[1fr_1fr] gap-10">
         {/* Left: Gallery */}
-        <div>
-          {/* Main image — full width, pastel bg */}
-          <div className={`${pastelBg} rounded-[10px] aspect-[4/5] relative overflow-hidden mb-3`}>
-            {/* Badges */}
-            <div className="absolute top-4 left-4 flex flex-col gap-1.5 z-10">
-              <span className="bg-lime text-navy text-[10px] font-extrabold uppercase tracking-[0.08em] px-2.5 py-1 rounded-[var(--radius-pill)]">
-                Bestseller
-              </span>
-              {discount && (
-                <span className="bg-sale text-white text-[10px] font-extrabold uppercase tracking-[0.08em] px-2.5 py-1 rounded-[var(--radius-pill)]">
-                  −{discount}&nbsp;%
-                </span>
-              )}
-            </div>
-            <Image
-              src={mainPhoto}
-              alt={product.name}
-              fill
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-contain p-10"
-              style={{ mixBlendMode: "multiply" }}
-              priority
-            />
-          </div>
-          {/* Thumbnails row below */}
-          <div className="flex gap-2">
-            {photos.length > 0 ? (
-              photos.slice(0, 4).map((photo, i) => (
-                <div
-                  key={i}
-                  className={`w-[80px] h-[80px] rounded-[8px] overflow-hidden border-2 transition-all cursor-pointer ${
-                    i === 0 ? "border-navy" : "border-line hover:border-muted"
-                  }`}
-                >
-                  <Image
-                    src={photo}
-                    alt={`${product.name} – ${i + 1}`}
-                    width={80}
-                    height={80}
-                    className="w-full h-full object-contain p-1"
-                    style={{ mixBlendMode: "multiply", backgroundColor: "var(--wash)" }}
-                  />
-                </div>
-              ))
-            ) : (
-              <div className="w-[80px] h-[80px] rounded-[8px] bg-wash border-2 border-navy" />
-            )}
-          </div>
-        </div>
+        <ProductGallery
+          photos={photos}
+          productName={product.name}
+          pastelBg={pastelBg}
+          discount={discount}
+        />
 
         {/* Right: Product info */}
         <div className="md:pt-2">
@@ -169,6 +152,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
           {/* Product name */}
           <h1 className="text-[28px] md:text-[40px] font-extrabold tracking-[-0.04em] text-navy leading-tight mb-3">{product.name}</h1>
+
+          {/* Review summary */}
+          <ReviewSummary avgRating={avgRating} count={reviewCount} />
 
           {/* Price */}
           <div className="flex items-baseline gap-2 mb-5">
@@ -189,49 +175,35 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </p>
           )}
 
-          {/* Sizes — chips with "Tabulka velikostí" link */}
-          {product.variants.length > 0 && (
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-[14px] font-bold text-ink">Vyber si velikost (EU)</span>
-                <button className="text-[13px] text-blue font-medium hover:underline">Tabulka velikostí</button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {product.variants.map((v) => (
-                  <span
-                    key={v.id}
-                    className={`min-w-[52px] h-[44px] flex items-center justify-center text-[14px] font-bold rounded-[8px] border transition-all px-3 ${
-                      v.stock > 0
-                        ? "border-line bg-white text-ink hover:border-navy hover:bg-navy hover:text-white cursor-pointer"
-                        : "border-line text-line bg-white cursor-not-allowed"
-                    }`}
-                  >
-                    {v.title}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* CTA row: navy pill button + heart icon */}
-          <div className="flex gap-2 mb-6">
-            <AddToCartButton />
-            <button
-              className="w-[52px] h-[52px] border border-line rounded-[var(--radius-pill)] flex items-center justify-center text-muted hover:border-navy hover:text-navy transition-all cursor-pointer"
-              aria-label="Oblíbené"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
-            </button>
-          </div>
+          {/* Variant selection + Add to cart */}
+          <ProductActions
+            variants={product.variants.map((v) => ({
+              id: v.id,
+              title: v.title,
+              size: v.size,
+              price: v.price,
+              comparePrice: v.comparePrice,
+              ownStock: v.ownStock,
+              supplierStock: v.supplierStock,
+            }))}
+            product={{
+              id: product.id,
+              slug: product.slug,
+              name: product.name,
+              photo: photos[0] || "",
+            }}
+          />
 
           {/* Trust lines with colored dots + separators */}
           <div className="space-y-0 border-t border-line">
             <div className="flex items-center gap-3 py-3.5 border-b border-line">
-              <span className="w-[10px] h-[10px] rounded-full bg-[#34D399] shrink-0" />
+              <span className={`w-[10px] h-[10px] rounded-full shrink-0 ${bestAvailability === "in_stock" ? "bg-[#34D399]" : bestAvailability === "on_order" ? "bg-amber-400" : "bg-red-400"}`} />
               <span className="text-[14px] font-medium text-ink">
-                {totalStock > 0 ? "Skladem – odešleme do 2–5 dnů" : "Vyprodáno"}
+                {bestAvailability === "in_stock"
+                  ? "Skladem – expedice 1–3 pracovní dny"
+                  : bestAvailability === "on_order"
+                    ? "Na objednávku – expedice 3–7 pracovních dnů"
+                    : "Vyprodáno"}
               </span>
             </div>
             <div className="flex items-center gap-3 py-3.5 border-b border-line">
@@ -255,13 +227,40 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         brand={product.brand.name}
         productType={product.productType}
         sku={product.variants[0]?.sku || null}
-        relatedProducts={relatedProducts}
+        variants={product.variants.map(v => ({ size: v.size, color: v.color, weight: v.weight, title: v.title }))}
+        tags={product.tags}
+        productId={product.id}
+        reviewCount={reviewCount}
       />
+
+      {/* Related products */}
+      {relatedProducts.length > 0 && (
+        <section className="max-w-[var(--container)] mx-auto px-6 pb-14">
+          <h2 className="text-[20px] font-extrabold text-navy tracking-[-0.02em] mb-5">
+            Mohlo by se vám líbit
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {relatedProducts.map((rp) => (
+              <ProductCard key={rp.id} product={rp} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Recently viewed */}
+      <RecentlyViewed currentProductId={product.id} />
+
+      {/* Track this view */}
+      <TrackProductView productId={product.id} />
 
       {/* JSON-LD */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
     </>
   );

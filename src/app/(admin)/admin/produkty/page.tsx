@@ -50,6 +50,15 @@ export default async function AdminProductsPage({
           <h1 className="text-2xl font-bold text-gray-900">Produkty</h1>
           <p className="text-sm text-gray-500 mt-1">{total} produktů celkem</p>
         </div>
+        <Link
+          href="/admin/produkty/novy"
+          className="h-9 px-4 flex items-center gap-1.5 text-sm font-medium bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          Nový produkt
+        </Link>
       </div>
 
       {/* Filters */}
@@ -121,7 +130,7 @@ export default async function AdminProductsPage({
                 const minPrice = product.variants.length > 0
                   ? Math.min(...product.variants.map((v) => v.price))
                   : 0;
-                const totalStock = product.variants.reduce((sum, v) => sum + v.stock, 0);
+                const totalStock = product.variants.reduce((sum, v) => sum + v.ownStock + v.supplierStock, 0);
 
                 return (
                   <tr key={product.id} className="hover:bg-gray-50">

@@ -65,7 +65,12 @@ export async function getFilteredProducts(params: GetProductsParams): Promise<{
     const variantWhere: Prisma.VariantWhereInput = { active: true };
     if (priceMin !== undefined) variantWhere.price = { ...variantWhere.price as object, gte: priceMin };
     if (priceMax !== undefined) variantWhere.price = { ...variantWhere.price as object, lte: priceMax };
-    if (inStock) variantWhere.stock = { gt: 0 };
+    if (inStock) {
+      variantWhere.OR = [
+        { ownStock: { gt: 0 } },
+        { supplierStock: { gt: 0 } },
+      ];
+    }
     where.variants = { some: variantWhere };
   }
 

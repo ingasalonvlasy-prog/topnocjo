@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qsport.cz — Návrh designu</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1a1a1a; background: #fff; }
+
+  /* TOP BAR */
+  .topbar { background: #111; color: #aaa; font-size: 12px; padding: 8px 0; text-align: center; letter-spacing: 0.5px; }
+  .topbar span { color: #22c55e; font-weight: 600; }
+  .topbar-inner { max-width: 1280px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
+  .topbar-links { display: flex; gap: 20px; }
+  .topbar-links a { color: #aaa; text-decoration: none; }
+  .topbar-links a:hover { color: #fff; }
+
+  /* HEADER */
+  .header { background: #fff; border-bottom: 1px solid #e5e5e5; padding: 16px 0; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .header-inner { max-width: 1280px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 32px; }
+  .logo { font-size: 28px; font-weight: 800; color: #1a1a1a; text-decoration: none; letter-spacing: -1px; }
+  .logo em { font-style: normal; color: #22c55e; }
+  .nav { display: flex; gap: 4px; flex: 1; }
+  .nav a { color: #444; text-decoration: none; font-size: 14px; font-weight: 500; padding: 8px 14px; border-radius: 8px; transition: all 0.2s; }
+  .nav a:hover { background: #f5f5f5; color: #1a1a1a; }
+  .search-bar { flex: 1; max-width: 400px; position: relative; }
+  .search-bar input { width: 100%; padding: 10px 16px 10px 40px; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 14px; background: #f8f8f8; outline: none; transition: all 0.2s; }
+  .search-bar input:focus { border-color: #22c55e; background: #fff; box-shadow: 0 0 0 3px rgba(34,197,94,0.1); }
+  .search-bar svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #999; }
+  .header-icons { display: flex; gap: 8px; align-items: center; }
+  .icon-btn { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #555; cursor: pointer; transition: all 0.2s; position: relative; border: none; background: none; }
+  .icon-btn:hover { background: #f5f5f5; color: #1a1a1a; }
+  .cart-count { position: absolute; top: 2px; right: 2px; background: #22c55e; color: #fff; font-size: 10px; font-weight: 700; width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+
+  /* HERO */
+  .hero { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #fff; padding: 80px 0; position: relative; overflow: hidden; }
+  .hero-inner { max-width: 1280px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
+  .hero-text { max-width: 500px; }
+  .hero-badge { display: inline-block; background: rgba(34,197,94,0.15); color: #22c55e; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 20px; margin-bottom: 20px; letter-spacing: 1px; text-transform: uppercase; }
+  .hero h1 { font-size: 48px; font-weight: 800; line-height: 1.1; margin-bottom: 16px; letter-spacing: -1px; }
+  .hero p { font-size: 18px; color: #94a3b8; line-height: 1.6; margin-bottom: 32px; }
+  .hero-btn { display: inline-flex; align-items: center; gap: 8px; background: #22c55e; color: #fff; font-size: 16px; font-weight: 600; padding: 14px 32px; border-radius: 12px; text-decoration: none; transition: all 0.2s; }
+  .hero-btn:hover { background: #16a34a; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(34,197,94,0.4); }
+  .hero-image { width: 500px; height: 350px; background: rgba(255,255,255,0.05); border-radius: 20px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); }
+  .hero-image span { color: rgba(255,255,255,0.3); font-size: 14px; }
+
+  /* CATEGORIES */
+  .section { max-width: 1280px; margin: 0 auto; padding: 60px 24px; }
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+  .section-header h2 { font-size: 24px; font-weight: 700; }
+  .section-header a { color: #22c55e; text-decoration: none; font-size: 14px; font-weight: 500; }
+
+  .categories-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+  .cat-card { text-align: center; cursor: pointer; transition: all 0.2s; text-decoration: none; color: #1a1a1a; }
+  .cat-card:hover { transform: translateY(-4px); }
+  .cat-img { width: 100%; aspect-ratio: 1; background: #f3f4f6; border-radius: 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; font-size: 40px; transition: all 0.2s; overflow: hidden; }
+  .cat-card:hover .cat-img { background: #e8faf0; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+  .cat-card span { font-size: 14px; font-weight: 600; }
+
+  /* PRODUCTS */
+  .products-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .product-card { background: #fff; border-radius: 16px; overflow: hidden; transition: all 0.3s; cursor: pointer; border: 1px solid #f0f0f0; }
+  .product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); border-color: transparent; }
+  .product-img { width: 100%; aspect-ratio: 1; background: #f8f8f8; position: relative; display: flex; align-items: center; justify-content: center; }
+  .product-img img { width: 70%; height: 70%; object-fit: contain; }
+  .product-badge { position: absolute; top: 12px; left: 12px; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge-new { background: #22c55e; color: #fff; }
+  .badge-sale { background: #ef4444; color: #fff; }
+  .product-heart { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); color: #ccc; transition: all 0.2s; border: none; cursor: pointer; }
+  .product-heart:hover { color: #ef4444; transform: scale(1.1); }
+  .product-info { padding: 16px; }
+  .product-brand { font-size: 11px; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .product-name { font-size: 14px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; line-height: 1.3; }
+  .product-price { display: flex; align-items: center; gap: 8px; }
+  .price-current { font-size: 18px; font-weight: 700; color: #1a1a1a; }
+  .price-old { font-size: 14px; color: #aaa; text-decoration: line-through; }
+  .price-discount { font-size: 12px; color: #ef4444; font-weight: 600; }
+
+  /* PROMO BANNER */
+  .promo { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); padding: 48px 0; margin: 0; }
+  .promo-inner { max-width: 1280px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
+  .promo h3 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+  .promo p { color: #555; font-size: 16px; }
+  .promo-btn { background: #1a1a1a; color: #fff; padding: 12px 28px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 14px; transition: all 0.2s; }
+  .promo-btn:hover { background: #333; }
+
+  /* BRANDS */
+  .brands-strip { display: flex; justify-content: center; gap: 48px; align-items: center; flex-wrap: wrap; }
+  .brand-logo { font-size: 22px; font-weight: 700; color: #ccc; letter-spacing: 2px; text-transform: uppercase; transition: all 0.2s; cursor: pointer; }
+  .brand-logo:hover { color: #555; }
+
+  /* NEWSLETTER */
+  .newsletter { background: #111; color: #fff; padding: 60px 0; text-align: center; }
+  .newsletter h3 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+  .newsletter p { color: #888; margin-bottom: 24px; }
+  .newsletter-form { display: flex; max-width: 450px; margin: 0 auto; gap: 8px; }
+  .newsletter-form input { flex: 1; padding: 12px 16px; border-radius: 10px; border: 1px solid #333; background: #222; color: #fff; font-size: 14px; outline: none; }
+  .newsletter-form input::placeholder { color: #666; }
+  .newsletter-form button { background: #22c55e; color: #fff; padding: 12px 24px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .newsletter-form button:hover { background: #16a34a; }
+
+  /* FOOTER */
+  .footer { background: #fafafa; border-top: 1px solid #e5e5e5; padding: 48px 0 24px; }
+  .footer-inner { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 40px; }
+  .footer-brand { font-size: 24px; font-weight: 800; margin-bottom: 12px; letter-spacing: -1px; }
+  .footer-brand em { font-style: normal; color: #22c55e; }
+  .footer-desc { color: #888; font-size: 13px; line-height: 1.7; }
+  .footer h4 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #999; margin-bottom: 16px; }
+  .footer ul { list-style: none; }
+  .footer li { margin-bottom: 10px; }
+  .footer a { color: #555; text-decoration: none; font-size: 14px; transition: color 0.2s; }
+  .footer a:hover { color: #22c55e; }
+  .footer-bottom { border-top: 1px solid #e5e5e5; padding-top: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #999; }
+  .payment-icons { display: flex; gap: 12px; }
+  .payment-icon { background: #eee; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; color: #666; }
+
+  /* ---- PRODUCT DETAIL PAGE ---- */
+  .page-breadcrumb { max-width: 1280px; margin: 0 auto; padding: 16px 24px; font-size: 13px; color: #888; }
+  .page-breadcrumb a { color: #888; text-decoration: none; }
+  .page-breadcrumb a:hover { color: #22c55e; }
+
+  .product-detail { max-width: 1280px; margin: 0 auto; padding: 0 24px 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+  .gallery { display: grid; grid-template-columns: 80px 1fr; gap: 12px; }
+  .gallery-thumbs { display: flex; flex-direction: column; gap: 8px; }
+  .gallery-thumb { width: 80px; height: 80px; background: #f3f4f6; border-radius: 10px; border: 2px solid transparent; cursor: pointer; transition: all 0.2s; }
+  .gallery-thumb.active { border-color: #22c55e; }
+  .gallery-thumb:hover { border-color: #ccc; }
+  .gallery-main { aspect-ratio: 1; background: #f8f8f8; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
+  .gallery-main span { color: #ccc; font-size: 14px; }
+
+  .detail-info h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+  .detail-brand { color: #888; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+  .detail-price { font-size: 32px; font-weight: 800; margin-bottom: 24px; }
+  .detail-price .old { font-size: 18px; color: #aaa; text-decoration: line-through; margin-left: 12px; font-weight: 400; }
+
+  .size-label { font-size: 13px; font-weight: 600; margin-bottom: 10px; display: flex; justify-content: space-between; }
+  .size-label a { color: #22c55e; font-weight: 500; text-decoration: none; font-size: 12px; }
+  .sizes { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+  .size-btn { width: 48px; height: 44px; border: 1px solid #ddd; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; background: #fff; }
+  .size-btn:hover { border-color: #22c55e; }
+  .size-btn.active { background: #22c55e; color: #fff; border-color: #22c55e; }
+  .size-btn.disabled { color: #ddd; cursor: not-allowed; background: #fafafa; }
+
+  .add-to-cart { width: 100%; padding: 16px; background: #22c55e; color: #fff; font-size: 16px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px; }
+  .add-to-cart:hover { background: #16a34a; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(34,197,94,0.4); }
+
+  .detail-features { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
+  .feature { display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f8f8; border-radius: 10px; font-size: 13px; color: #555; }
+  .feature svg { color: #22c55e; flex-shrink: 0; }
+
+  .detail-tabs { max-width: 1280px; margin: 0 auto; padding: 0 24px 60px; }
+  .tabs-nav { display: flex; gap: 0; border-bottom: 2px solid #eee; margin-bottom: 24px; }
+  .tab { padding: 12px 24px; font-size: 14px; font-weight: 600; color: #888; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+  .tab.active { color: #1a1a1a; border-bottom-color: #22c55e; }
+  .tab:hover { color: #1a1a1a; }
+  .tab-content { font-size: 14px; line-height: 1.8; color: #555; max-width: 700px; }
+
+  /* page divider */
+  .page-divider { max-width: 1280px; margin: 80px auto; padding: 0 24px; text-align: center; position: relative; }
+  .page-divider::before { content: ''; position: absolute; left: 24px; right: 24px; top: 50%; height: 2px; background: #e5e5e5; }
+  .page-divider span { background: #fff; padding: 0 24px; position: relative; font-size: 18px; font-weight: 700; color: #22c55e; text-transform: uppercase; letter-spacing: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ========== HOMEPAGE ========== -->
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div>🚚 Doprava zdarma nad <span>2 000 Kč</span> &nbsp;|&nbsp; Doručení do 2–3 dnů</div>
+    <div class="topbar-links">
+      <a href="#">+420 123 456 789</a>
+      <a href="#">info@qsport.cz</a>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <a href="#" class="logo">Q<em>sport</em>.cz</a>
+    <nav class="nav">
+      <a href="#">Běh</a>
+      <a href="#">Lyžování</a>
+      <a href="#">Cyklistika</a>
+      <a href="#">Outdoor</a>
+      <a href="#">Fitness</a>
+      <a href="#">Kopačky</a>
+      <a href="#">Výprodej</a>
+    </nav>
+    <div class="search-bar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Hledat produkty...">
+    </div>
+    <div class="header-icons">
+      <button class="icon-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </button>
+      <button class="icon-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
+      <button class="icon-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <div class="cart-count">2</div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <div class="hero-badge">⚡ Zimní kolekce 2026</div>
+      <h1>Sportovní vybavení pro každý terén</h1>
+      <p>Prémiové značky On Running, Mizuno, Husky a POC. Vše skladem s expresním doručením po celé ČR.</p>
+      <a href="#" class="hero-btn">
+        Prohlédnout kolekci
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+    <div class="hero-image">
+      <span>[ Hero fotka — běžec / lyžař ]</span>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORIES -->
+<div class="section">
+  <div class="section-header">
+    <h2>Kategorie</h2>
+    <a href="#">Zobrazit vše →</a>
+  </div>
+  <div class="categories-grid">
+    <a href="#" class="cat-card">
+      <div class="cat-img">🏃</div>
+      <span>Běh</span>
+    </a>
+    <a href="#" class="cat-card">
+      <div class="cat-img">⛷️</div>
+      <span>Lyžování</span>
+    </a>
+    <a href="#" class="cat-card">
+      <div class="cat-img">🚴</div>
+      <span>Cyklistika</span>
+    </a>
+    <a href="#" class="cat-card">
+      <div class="cat-img">🏔️</div>
+      <span>Outdoor</span>
+    </a>
+    <a href="#" class="cat-card">
+      <div class="cat-img">💪</div>
+      <span>Fitness</span>
+    </a>
+    <a href="#" class="cat-card">
+      <div class="cat-img">⚽</div>
+      <span>Kopačky</span>
+    </a>
+  </div>
+</div>
+
+<!-- PRODUCTS -->
+<div class="section" style="padding-top: 0;">
+  <div class="section-header">
+    <h2>Novinky</h2>
+    <a href="#">Zobrazit vše →</a>
+  </div>
+  <div class="products-grid">
+
+    <div class="product-card">
+      <div class="product-img" style="background: #f0fdf4;">
+        <div class="product-badge badge-new">Novinka</div>
+        <button class="product-heart">♡</button>
+        <img src="https://placehold.co/280x280/f0fdf4/22c55e?text=ON+Cloud+6" alt="">
+      </div>
+      <div class="product-info">
+        <div class="product-brand">On Running</div>
+        <div class="product-name">Cloud 6 — běžecká obuv</div>
+        <div class="product-price">
+          <span class="price-current">4 290 Kč</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-img" style="background: #fef2f2;">
+        <div class="product-badge badge-sale">-25%</div>
+        <button class="product-heart">♡</button>
+        <img src="https://placehold.co/280x280/fef2f2/ef4444?text=Mizuno+Wave" alt="">
+      </div>
+      <div class="product-info">
+        <div class="product-brand">Mizuno</div>
+        <div class="product-name">Wave Rider 28 — pánské</div>
+        <div class="product-price">
+          <span class="price-current">3 490 Kč</span>
+          <span class="price-old">4 590 Kč</span>
+          <span class="price-discount">-25%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-img" style="background: #f8fafc;">
+        <button class="product-heart">♡</button>
+        <img src="https://placehold.co/280x280/f8fafc/334155?text=POC+Obex" alt="">
+      </div>
+      <div class="product-info">
+        <div class="product-brand">POC</div>
+        <div class="product-name">Obex MIPS — lyžařská helma</div>
+        <div class="product-price">
+          <span class="price-current">5 890 Kč</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-img" style="background: #fffbeb;">
+        <div class="product-badge badge-new">Novinka</div>
+        <button class="product-heart">♡</button>
+        <img src="https://placehold.co/280x280/fffbeb/b45309?text=Husky+Bask" alt="">
+      </div>
+      <div class="product-info">
+        <div class="product-brand">Husky</div>
+        <div class="product-name">Bask -22°C — zimní spací pytel</div>
+        <div class="product-price">
+          <span class="price-current">3 190 Kč</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PROMO BANNER -->
+<div class="promo">
+  <div class="promo-inner">
+    <div>
+      <h3>Zimní výprodej — slevy až 40%</h3>
+      <p>Lyžařské bundy, kalhoty a doplňky za nejlepší ceny sezóny.</p>
+    </div>
+    <a href="#" class="promo-btn">Zobrazit akce →</a>
+  </div>
+</div>
+
+<!-- MORE PRODUCTS -->
+<div class="section">
+  <div class="section-header">
+    <h2>Nejprodávanější</h2>
+    <a href="#">Zobrazit vše →</a>
+  </div>
+  <div class="products-grid">
+
+    <div class="product-card">
+      <div class="product-img" style="background: #f5f3ff;">
+        <button class="product-heart">♡</button>
+        <img src="https://placehold.co/280x280/f5f3ff/7c3aed?text=Leki+Detect" alt="">
+      </div>
+      <div class="product-info">
+        <div class="product-brand">Leki</div>
+        <div class="product-name">Detect S — lyžařské hole</div>
+        <div class="product-price">
+          <span class="price-current">2 490 Kč</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-img" style="background: #ecfdf5;">
+        <div class="product-badge badge-sale">-30%</div>
+        <button class="product-heart">♡</button>
+        <img src="https://placehold.co/280x280/ecfdf5/059669?text=ON+Cloudh." alt="">
+      </div>
+      <div class="product-info">
+        <div class="product-brand">On Running</div>
+        <div class="product-name">Cloudhorizon 2 — trailová obuv</div>
+        <div class="product-price">
+          <span class="price-current">3 290 Kč</span>
+          <span class="price-old">4 690 Kč</span>
+          <span class="price-discount">-30%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-img" style="background: #fff7ed;">
+        <button class="product-heart">♡</button>
+        <img src="https://placehold.co/280x280/fff7ed/c2410c?text=Mizuno+Rider" alt="">
+      </div>
+      <div class="product-info">
+        <div class="product-brand">Mizuno</div>
+        <div class="product-name">Wave Inspire 20 — dámské</div>
+        <div class="product-price">
+          <span class="price-current">3 890 Kč</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-img" style="background: #f0f9ff;">
+        <div class="product-badge badge-new">Novinka</div>
+        <button class="product-heart">♡</button>
+        <img src="https://placehold.co/280x280/f0f9ff/0284c7?text=SWANS+LZ1" alt="">
+      </div>
+      <div class="product-info">
+        <div class="product-brand">SWANS</div>
+        <div class="product-name">LZ-1 — lyžařské brýle</div>
+        <div class="product-price">
+          <span class="price-current">4 190 Kč</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BRANDS -->
+<div class="section" style="padding-top: 20px;">
+  <div class="section-header">
+    <h2>Značky</h2>
+  </div>
+  <div class="brands-strip">
+    <span class="brand-logo">Mizuno</span>
+    <span class="brand-logo">On Running</span>
+    <span class="brand-logo">Husky</span>
+    <span class="brand-logo">POC</span>
+    <span class="brand-logo">Leki</span>
+    <span class="brand-logo">SWANS</span>
+    <span class="brand-logo">Stance</span>
+    <span class="brand-logo">Sporten</span>
+  </div>
+</div>
+
+<!-- NEWSLETTER -->
+<div class="newsletter">
+  <h3>Buď vždy o krok napřed</h3>
+  <p>Přihlaš se k odběru novinek a získej slevu 10% na první objednávku.</p>
+  <div class="newsletter-form">
+    <input type="email" placeholder="Tvůj e-mail...">
+    <button>Odebírat</button>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">Q<em>sport</em>.cz</div>
+        <p class="footer-desc">Sportovní vybavení od předních světových značek. Kopačky, volejbal, lyže, běh, cyklistika a outdoor. Rychlé doručení po celé ČR.</p>
+      </div>
+      <div>
+        <h4>Kategorie</h4>
+        <ul>
+          <li><a href="#">Běžecké boty</a></li>
+          <li><a href="#">Lyžařské vybavení</a></li>
+          <li><a href="#">Cyklo helmy</a></li>
+          <li><a href="#">Outdoor oblečení</a></li>
+          <li><a href="#">Kopačky</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Informace</h4>
+        <ul>
+          <li><a href="#">Obchodní podmínky</a></li>
+          <li><a href="#">Ochrana údajů</a></li>
+          <li><a href="#">Reklamace</a></li>
+          <li><a href="#">Doprava a platba</a></li>
+          <li><a href="#">Kontakt</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Kontakt</h4>
+        <ul>
+          <li><a href="#">info@qsport.cz</a></li>
+          <li><a href="#">+420 123 456 789</a></li>
+          <li style="color: #888; font-size: 14px;">Po–Pá: 9:00 – 17:00</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Qsport.cz. Všechna práva vyhrazena.</span>
+      <div class="payment-icons">
+        <span class="payment-icon">Comgate</span>
+        <span class="payment-icon">Visa</span>
+        <span class="payment-icon">Mastercard</span>
+        <span class="payment-icon">GLS</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PAGE DIVIDER ========== -->
+<div class="page-divider">
+  <span>Produktový detail</span>
+</div>
+
+<!-- ========== PRODUCT DETAIL PAGE ========== -->
+
+<!-- HEADER (same as above, not repeated) -->
+
+<!-- BREADCRUMB -->
+<div class="page-breadcrumb">
+  <a href="#">Qsport.cz</a> &nbsp;/&nbsp; <a href="#">Běžecké boty</a> &nbsp;/&nbsp; On Cloud 6
+</div>
+
+<!-- PRODUCT DETAIL -->
+<div class="product-detail">
+  <div class="gallery">
+    <div class="gallery-thumbs">
+      <div class="gallery-thumb active"></div>
+      <div class="gallery-thumb"></div>
+      <div class="gallery-thumb"></div>
+      <div class="gallery-thumb"></div>
+    </div>
+    <div class="gallery-main">
+      <span>[ Produktová fotka ]</span>
+    </div>
+  </div>
+
+  <div class="detail-info">
+    <div class="detail-brand">On Running</div>
+    <h1>Cloud 6 — běžecká obuv</h1>
+    <div style="color: #888; font-size: 13px; margin-bottom: 20px;">SKU: QS-1001 &nbsp;|&nbsp; ⭐ 4.8 (24 recenzí)</div>
+    <div class="detail-price">
+      4 290 Kč
+    </div>
+
+    <div class="size-label">
+      <span>Velikost</span>
+      <a href="#">Průvodce velikostmi</a>
+    </div>
+    <div class="sizes">
+      <div class="size-btn">38</div>
+      <div class="size-btn">39</div>
+      <div class="size-btn active">40</div>
+      <div class="size-btn">41</div>
+      <div class="size-btn">42</div>
+      <div class="size-btn">43</div>
+      <div class="size-btn disabled">44</div>
+      <div class="size-btn">45</div>
+    </div>
+
+    <button class="add-to-cart">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      Přidat do košíku
+    </button>
+
+    <div class="detail-features">
+      <div class="feature">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+        Doprava zdarma nad 2 000 Kč
+      </div>
+      <div class="feature">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+        Doručení do 2–3 dnů (GLS)
+      </div>
+      <div class="feature">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+        30 dní na vrácení
+      </div>
+      <div class="feature">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+        Skladem — expedice dnes
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="detail-tabs">
+  <div class="tabs-nav">
+    <div class="tab active">Popis</div>
+    <div class="tab">Parametry</div>
+    <div class="tab">Recenze (24)</div>
+    <div class="tab">Doprava</div>
+  </div>
+  <div class="tab-content">
+    <p>On Cloud 6 je nejnovější generace ikonické běžecké boty od švýcarské značky On Running. Revoluční technologie CloudTec® poskytuje měkký dopad a výbušný odraz. Bota je navržena pro každodenní trénink i závodění na silnici.</p>
+    <br>
+    <p>Svršek z prodyšného engineered mesh zajišťuje optimální ventilaci. Speedboard™ vložka dodává energii při odrazu. Hmotnost pouhých 245 g (vel. 42).</p>
+  </div>
+</div>
+
+</body>
+</html>
