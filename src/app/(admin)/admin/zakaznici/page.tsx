@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/products";
+import { StatCard } from "@/components/admin/StatCard";
 import Link from "next/link";
 
 const PER_PAGE = 20;
@@ -23,7 +24,12 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
     ];
   }
 
-  const [users, total] = await Promise.all([
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now);
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  thirtyDaysAgo.setHours(0, 0, 0, 0);
+
+  const [users, total, allCustomers] = await Promise.all([
     prisma.user.findMany({
       where,
       include: {
@@ -36,9 +42,42 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
       take: PER_PAGE,
     }),
     prisma.user.count({ where }),
+    prisma.user.findMany({
+      select: {
+        createdAt: true,
+        orders: { select: { total: true, paymentStatus: true } },
+      },
+    }),
   ]);
 
   const totalPages = Math.ceil(total / PER_PAGE);
+
+  // Stats
+  const totalCustomers = allCustomers.length;
+  const newThisMonth = allCustomers.filter((u) => u.createdAt >= thirtyDaysAgo).length;
+  const returning = allCustomers.filter(
+    (u) => u.orders.filter((o) => o.paymentStatus === "PAID").length > 1,
+  ).length;
+  const allPaidTotals = allCustomers
+    .map((u) => u.orders.filter((o) => o.paymentStatus === "PAID").reduce((s, o) => s + o.total, 0))
+    .filter((t) => t > 0);
+  const avgOrderValue =
+    allPaidTotals.length > 0
+      ? Math.round(allPaidTotals.reduce((s, t) => s + t, 0) / allPaidTotals.length)
+      : 0;
+
+  // Sparklines — new customers per day (30 days)
+  const customerSparkline: number[] = [];
+  for (let i = 0; i < 30; i++) {
+    const dayStart = new Date(thirtyDaysAgo);
+    dayStart.setDate(dayStart.getDate() + i);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(dayStart);
+    dayEnd.setHours(23, 59, 59, 999);
+    customerSparkline.push(
+      allCustomers.filter((u) => u.createdAt >= dayStart && u.createdAt <= dayEnd).length,
+    );
+  }
 
   return (
     <div>
@@ -56,6 +95,32 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
         >
           Export CSV
         </a>
+      </div>
+
+      {/* Stat cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <StatCard
+          label="Celkem zákazníků"
+          value={String(totalCustomers)}
+          sparkline={customerSparkline}
+        />
+        <StatCard
+          label="Noví (30 dní)"
+          value={String(newThisMonth)}
+          change={totalCustomers > 0 ? `${Math.round((newThisMonth / totalCustomers) * 100)}% z celku` : "0%"}
+          changeType={newThisMonth > 0 ? "up" : "neutral"}
+        />
+        <StatCard
+          label="Opakující se"
+          value={String(returning)}
+          change={totalCustomers > 0 ? `${Math.round((returning / totalCustomers) * 100)}% zákazníků` : "0%"}
+          changeType={returning > 0 ? "up" : "neutral"}
+        />
+        <StatCard
+          label="Prům. hodnota objednávky"
+          value={formatPrice(avgOrderValue)}
+          changeType="neutral"
+        />
       </div>
 
       {/* Search */}

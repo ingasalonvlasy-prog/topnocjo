@@ -87,9 +87,15 @@ export default async function AdminBrandsPage() {
                 </td>
                 <td className="px-4 py-3">
                   {brand.logo ? (
-                    <span className="text-xs text-green-600 font-medium">Nastaveno</span>
+                    <img
+                      src={brand.logo}
+                      alt={brand.name}
+                      className="w-8 h-8 object-contain rounded"
+                    />
                   ) : (
-                    <span className="text-xs text-gray-400">—</span>
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded bg-gray-100 text-xs font-bold text-gray-400">
+                      {brand.name.charAt(0).toUpperCase()}
+                    </span>
                   )}
                 </td>
                 <td className="px-4 py-3 text-center text-gray-600">{brand._count.products}</td>
