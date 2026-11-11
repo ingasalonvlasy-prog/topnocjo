@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { SECTION_LABELS, type BlogSection } from "@/lib/blog-constants";
+import { requireAdmin } from "@/lib/auth";
 
 export default async function AdminBlogPage() {
   const posts = await prisma.blogPost.findMany({
@@ -11,6 +12,7 @@ export default async function AdminBlogPage() {
 
   async function deletePost(formData: FormData) {
     "use server";
+    await requireAdmin();
     const id = formData.get("id") as string;
     await prisma.blogPost.delete({ where: { id } });
     revalidatePath("/admin/blog");
@@ -19,6 +21,7 @@ export default async function AdminBlogPage() {
 
   async function togglePublished(formData: FormData) {
     "use server";
+    await requireAdmin();
     const id = formData.get("id") as string;
     const current = formData.get("published") === "true";
     await prisma.blogPost.update({

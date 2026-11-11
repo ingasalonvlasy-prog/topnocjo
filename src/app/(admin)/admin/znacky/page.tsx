@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/auth";
 
 export default async function AdminBrandsPage() {
   const brands = await prisma.brand.findMany({
@@ -11,6 +12,7 @@ export default async function AdminBrandsPage() {
 
   async function createBrand(formData: FormData) {
     "use server";
+    await requireAdmin();
     const name = formData.get("name") as string;
     if (!name) return;
     const slug = name
@@ -25,6 +27,7 @@ export default async function AdminBrandsPage() {
 
   async function deleteBrand(formData: FormData) {
     "use server";
+    await requireAdmin();
     const id = formData.get("id") as string;
     const brand = await prisma.brand.findUnique({
       where: { id },

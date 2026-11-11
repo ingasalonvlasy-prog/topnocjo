@@ -4,10 +4,12 @@ import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { BLOG_SECTIONS, SECTION_LABELS, SPORT_TAGS, type BlogSection } from "@/lib/blog-constants";
 import { WysiwygEditor } from "@/components/admin/WysiwygEditor";
+import { requireAdmin } from "@/lib/auth";
 
 export default function NewBlogPostPage() {
   async function createPost(formData: FormData) {
     "use server";
+    await requireAdmin();
     const title = formData.get("title") as string;
     const slugInput = formData.get("slug") as string;
     const slug = slugInput || title

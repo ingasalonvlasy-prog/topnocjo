@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/auth";
 
 async function recalcProductRating(productId: string) {
   const reviews = await prisma.productReview.findMany({
@@ -17,6 +18,7 @@ async function recalcProductRating(productId: string) {
 }
 
 export async function approveReview(id: string) {
+  await requireAdmin();
   const review = await prisma.productReview.update({
     where: { id },
     data: { approved: true },
@@ -27,6 +29,7 @@ export async function approveReview(id: string) {
 }
 
 export async function rejectReview(id: string) {
+  await requireAdmin();
   const review = await prisma.productReview.update({
     where: { id },
     data: { approved: false },
@@ -37,6 +40,7 @@ export async function rejectReview(id: string) {
 }
 
 export async function deleteReview(id: string) {
+  await requireAdmin();
   const review = await prisma.productReview.delete({
     where: { id },
     select: { productId: true },

@@ -2,9 +2,11 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
+import { requireAdmin } from "@/lib/auth";
 
 async function updateSupplier(formData: FormData) {
   "use server";
+  await requireAdmin();
 
   const id = formData.get("id") as string;
   const name = (formData.get("name") as string)?.trim();
@@ -37,6 +39,7 @@ async function updateSupplier(formData: FormData) {
 
 async function deleteSupplier(formData: FormData) {
   "use server";
+  await requireAdmin();
 
   const id = formData.get("id") as string;
   await prisma.supplier.delete({ where: { id } });
@@ -47,6 +50,7 @@ async function deleteSupplier(formData: FormData) {
 
 async function triggerImport(formData: FormData) {
   "use server";
+  await requireAdmin();
 
   const id = formData.get("id") as string;
   const { runFeedImport } = await import("@/lib/feed");

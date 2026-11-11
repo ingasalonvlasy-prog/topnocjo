@@ -5,9 +5,11 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/products";
 import { logAdminAction } from "@/lib/admin-log";
+import { requireAdmin } from "@/lib/auth";
 
 async function updateProduct(formData: FormData) {
   "use server";
+  await requireAdmin();
 
   const id = formData.get("id") as string;
   const name = formData.get("name") as string;
@@ -71,6 +73,7 @@ async function updateProduct(formData: FormData) {
 
 async function updateVariant(formData: FormData) {
   "use server";
+  await requireAdmin();
 
   const variantId = formData.get("variantId") as string;
   const productId = formData.get("productId") as string;
@@ -99,6 +102,7 @@ async function updateVariant(formData: FormData) {
 
 async function addVariant(formData: FormData) {
   "use server";
+  await requireAdmin();
 
   const productId = formData.get("productId") as string;
   const title = (formData.get("title") as string)?.trim() || "Nová varianta";
@@ -128,6 +132,7 @@ async function addVariant(formData: FormData) {
 
 async function deleteVariant(formData: FormData) {
   "use server";
+  await requireAdmin();
 
   const variantId = formData.get("variantId") as string;
   const productId = formData.get("productId") as string;

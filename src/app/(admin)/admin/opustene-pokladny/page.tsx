@@ -3,6 +3,7 @@ import { StatCard } from "@/components/admin/StatCard";
 import { sendRecoveryEmail, deleteAbandonedCheckout } from "./actions";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/auth";
 
 function formatPrice(amount: number): string {
   return new Intl.NumberFormat("cs-CZ", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount) + "\u00A0Kč";
@@ -249,6 +250,7 @@ export default async function AbandonedCheckoutsPage({
                     {(c.status === "OPEN" || c.status === "EMAIL_SENT") && (
                       <form action={async () => {
                         "use server";
+                        await requireAdmin();
                         await sendRecoveryEmail(c.id);
                         revalidatePath("/admin/opustene-pokladny");
                         redirect(`/admin/opustene-pokladny?stav=${statusFilter}`);

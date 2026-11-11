@@ -3,8 +3,10 @@
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { logAdminAction } from "@/lib/admin-log";
+import { requireAdmin } from "@/lib/auth";
 
 export async function bulkUpdateProductStatus(ids: string[], status: "ACTIVE" | "DRAFT" | "ARCHIVED") {
+  await requireAdmin();
   await prisma.product.updateMany({
     where: { id: { in: ids } },
     data: { status },
@@ -14,6 +16,7 @@ export async function bulkUpdateProductStatus(ids: string[], status: "ACTIVE" | 
 }
 
 export async function bulkDeleteProducts(ids: string[]) {
+  await requireAdmin();
   await prisma.product.deleteMany({
     where: { id: { in: ids } },
   });

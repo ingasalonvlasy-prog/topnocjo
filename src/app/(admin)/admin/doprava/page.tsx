@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/auth";
 
 interface Props {
   searchParams: Promise<Record<string, string | undefined>>;
@@ -25,6 +26,7 @@ export default async function ShippingPage({ searchParams }: Props) {
 
   async function toggleActive(formData: FormData) {
     "use server";
+    await requireAdmin();
     const id = formData.get("id") as string;
     const current = formData.get("active") === "true";
     await prisma.shippingMethod.update({

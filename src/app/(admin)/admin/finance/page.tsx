@@ -358,12 +358,13 @@ export default async function FinancePage({
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
         <div className="flex items-center justify-between p-6 pb-4">
           <h2 className="text-lg font-semibold text-gray-900">Poslední transakce</h2>
-          <Link
-            href="/admin/objednavky?export=csv"
+          <a
+            href="/api/admin/orders/export"
+            download
             className="px-3 py-1.5 text-sm font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
           >
             Export CSV
-          </Link>
+          </a>
         </div>
         {recentPaidOrders.length > 0 ? (
           <div className="overflow-x-auto">

@@ -15,6 +15,7 @@ export function generateMetadata({ searchParams }: { searchParams: Promise<Recor
   return {
     title: "Vyhledávání",
     description: "Hledej sportovní vybavení na Qsport.cz",
+    openGraph: { title: "Vyhledávání", description: "Hledej sportovní vybavení na Qsport.cz" },
     robots: { index: false },
   };
 }

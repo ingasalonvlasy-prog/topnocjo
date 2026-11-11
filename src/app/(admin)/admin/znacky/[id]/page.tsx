@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
+import { requireAdmin } from "@/lib/auth";
 
 export default async function BrandEditPage({
   params,
@@ -17,6 +18,7 @@ export default async function BrandEditPage({
 
   async function updateBrand(formData: FormData) {
     "use server";
+    await requireAdmin();
     const name = formData.get("name") as string;
     const slug = formData.get("slug") as string;
     const logo = (formData.get("logo") as string) || null;

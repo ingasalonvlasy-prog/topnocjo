@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { ZasilkovnaConfig } from "@/components/admin/ZasilkovnaConfig";
+import { requireAdmin } from "@/lib/auth";
 
 export default async function ShippingEditPage({
   params,
@@ -20,6 +21,7 @@ export default async function ShippingEditPage({
 
   async function updateShippingMethod(formData: FormData) {
     "use server";
+    await requireAdmin();
 
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;

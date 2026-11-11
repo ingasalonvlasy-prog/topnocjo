@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/products";
+import { CrossSellProducts } from "@/components/CrossSellProducts";
 
 const FREE_SHIPPING_THRESHOLD = 200000; // 2000 Kč in haléře
 const CHEAPEST_SHIPPING = 4900; // 49 Kč
@@ -281,6 +282,8 @@ export default function CartPage() {
           </div>
         </div>
       </div>
+
+      <CrossSellProducts />
     </div>
   );
 }

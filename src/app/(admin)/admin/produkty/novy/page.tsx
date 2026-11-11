@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { logAdminAction } from "@/lib/admin-log";
+import { requireAdmin } from "@/lib/auth";
 
 function slugify(text: string): string {
   return text
@@ -14,6 +15,7 @@ function slugify(text: string): string {
 
 async function createProduct(formData: FormData) {
   "use server";
+  await requireAdmin();
 
   const name = (formData.get("name") as string)?.trim();
   const brandId = formData.get("brandId") as string;

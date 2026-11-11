@@ -11,8 +11,10 @@ import { OrderDelivered } from "@/lib/emails/order-delivered";
 import { ReviewInvitation } from "@/lib/emails/review-invitation";
 import { logAdminAction } from "@/lib/admin-log";
 import { createZasilkovnaPacket } from "@/lib/zasilkovna";
+import { requireAdmin } from "@/lib/auth";
 
 export async function updateOrderStatus(formData: FormData) {
+  await requireAdmin();
   const orderId = formData.get("orderId") as string;
   const newStatus = formData.get("newStatus") as OrderStatus;
 
@@ -140,6 +142,7 @@ export async function updateOrderStatus(formData: FormData) {
 }
 
 export async function updateTracking(formData: FormData) {
+  await requireAdmin();
   const orderId = formData.get("orderId") as string;
   const trackingNumber = (formData.get("trackingNumber") as string)?.trim() || null;
   let trackingUrl = (formData.get("trackingUrl") as string)?.trim() || null;
@@ -167,6 +170,7 @@ export async function updateTracking(formData: FormData) {
 }
 
 export async function updateAdminNote(formData: FormData) {
+  await requireAdmin();
   const orderId = formData.get("orderId") as string;
   const adminNote = (formData.get("adminNote") as string)?.trim() || null;
 
@@ -179,6 +183,7 @@ export async function updateAdminNote(formData: FormData) {
 }
 
 export async function markSupplierOrdered(formData: FormData) {
+  await requireAdmin();
   const orderId = formData.get("orderId") as string;
 
   await prisma.order.update({
@@ -196,6 +201,7 @@ export async function markSupplierOrdered(formData: FormData) {
 }
 
 export async function markSupplierReceived(formData: FormData) {
+  await requireAdmin();
   const orderId = formData.get("orderId") as string;
 
   await prisma.order.update({

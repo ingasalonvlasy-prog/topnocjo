@@ -7,6 +7,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Přihlášení | Qsport.cz",
   description: "Přihlas se ke svému účtu na Qsport.cz.",
+  openGraph: { title: "Přihlášení | Qsport.cz", description: "Přihlas se ke svému účtu na Qsport.cz." },
 };
 
 export default async function PrihlaseniPage({

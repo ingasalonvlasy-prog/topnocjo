@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Doprava a platba | Qsport.cz",
   description: "Informace o způsobech dopravy a platby na Qsport.cz",
+  openGraph: { title: "Doprava a platba | Qsport.cz", description: "Informace o způsobech dopravy a platby na Qsport.cz" },
 };
 
 export default function ShippingPage() {

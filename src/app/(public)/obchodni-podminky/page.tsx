@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Obchodní podmínky | Qsport.cz",
   description: "Obchodní podmínky e-shopu Qsport.cz",
+  openGraph: { title: "Obchodní podmínky | Qsport.cz", description: "Obchodní podmínky e-shopu Qsport.cz" },
 };
 
 export default function TermsPage() {

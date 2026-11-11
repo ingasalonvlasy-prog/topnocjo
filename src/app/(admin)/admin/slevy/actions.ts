@@ -3,8 +3,10 @@
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/auth";
 
 export async function createDiscountCode(formData: FormData) {
+  await requireAdmin();
   const code = (formData.get("code") as string)?.trim().toUpperCase();
   const type = formData.get("type") as string;
   const value = parseInt(formData.get("value") as string, 10);
@@ -63,6 +65,7 @@ export async function createDiscountCode(formData: FormData) {
 }
 
 export async function updateDiscountCode(id: string, formData: FormData) {
+  await requireAdmin();
   const code = (formData.get("code") as string)?.trim().toUpperCase();
   const type = formData.get("type") as string;
   const value = parseInt(formData.get("value") as string, 10);
@@ -125,6 +128,7 @@ export async function updateDiscountCode(id: string, formData: FormData) {
 }
 
 export async function deleteDiscountCode(id: string) {
+  await requireAdmin();
   await prisma.discountCode.delete({ where: { id } });
   revalidatePath("/admin/slevy");
   redirect("/admin/slevy");

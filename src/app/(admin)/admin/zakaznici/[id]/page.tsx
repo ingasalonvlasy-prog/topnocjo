@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { requireAdmin } from "@/lib/auth";
 import { formatPrice } from "@/lib/products";
 import {
   ORDER_STATUS_LABELS,
@@ -17,6 +18,7 @@ interface Props {
 
 async function updateNote(formData: FormData) {
   "use server";
+  await requireAdmin();
   const userId = formData.get("userId") as string;
   const adminNote = (formData.get("adminNote") as string) || null;
   await prisma.user.update({ where: { id: userId }, data: { adminNote } });

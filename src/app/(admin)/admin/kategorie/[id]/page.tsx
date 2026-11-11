@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
+import { requireAdmin } from "@/lib/auth";
 
 export default async function CategoryEditPage({
   params,
@@ -23,6 +24,7 @@ export default async function CategoryEditPage({
 
   async function updateCategory(formData: FormData) {
     "use server";
+    await requireAdmin();
     const name = formData.get("name") as string;
     const slug = formData.get("slug") as string;
     const parentId = (formData.get("parentId") as string) || null;

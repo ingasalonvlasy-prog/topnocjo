@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "O nás | Qsport.cz",
   description: "Kdo stojí za Qsport.cz – sportovní e-shop s vybavením, co drží tempo.",
+  openGraph: { title: "O nás | Qsport.cz", description: "Kdo stojí za Qsport.cz – sportovní e-shop s vybavením, co drží tempo." },
 };
 
 export default function AboutPage() {

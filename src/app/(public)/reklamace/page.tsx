@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Reklamace | Qsport.cz",
   description: "Reklamační řád a podmínky pro uplatnění reklamace na Qsport.cz",
+  openGraph: { title: "Reklamace | Qsport.cz", description: "Reklamační řád a podmínky pro uplatnění reklamace na Qsport.cz" },
 };
 
 export default function ComplaintsPage() {

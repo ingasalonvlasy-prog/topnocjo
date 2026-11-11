@@ -7,6 +7,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Registrace | Qsport.cz",
   description: "Vytvoř si účet na Qsport.cz — sleduj objednávky a nakupuj rychleji.",
+  openGraph: { title: "Registrace | Qsport.cz", description: "Vytvoř si účet na Qsport.cz — sleduj objednávky a nakupuj rychleji." },
 };
 
 export default async function RegistracePage({

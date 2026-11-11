@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/auth";
 
 export default async function AdminCategoriesPage() {
   const categories = await prisma.category.findMany({
@@ -14,6 +15,7 @@ export default async function AdminCategoriesPage() {
 
   async function createCategory(formData: FormData) {
     "use server";
+    await requireAdmin();
     const name = formData.get("name") as string;
     if (!name) return;
     const slug = name
@@ -31,6 +33,7 @@ export default async function AdminCategoriesPage() {
 
   async function deleteCategory(formData: FormData) {
     "use server";
+    await requireAdmin();
     const id = formData.get("id") as string;
     const cat = await prisma.category.findUnique({
       where: { id },

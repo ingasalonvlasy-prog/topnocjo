@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Tabulka velikostí | Qsport.cz",
   description: "Převodní tabulky velikostí bot a oblečení. EU, UK, US velikosti a tipy na správné měření nohy.",
+  openGraph: { title: "Tabulka velikostí | Qsport.cz", description: "Převodní tabulky velikostí bot a oblečení. EU, UK, US velikosti a tipy na správné měření nohy." },
 };
 
 const shoesSizes = [

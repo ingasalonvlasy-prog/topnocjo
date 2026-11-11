@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Vrácení zboží | Qsport.cz",
   description: "Podmínky vrácení zboží na Qsport.cz — 14 dní na vrácení bez udání důvodu.",
+  openGraph: { title: "Vrácení zboží | Qsport.cz", description: "Podmínky vrácení zboží na Qsport.cz — 14 dní na vrácení bez udání důvodu." },
 };
 
 export default function ReturnsPage() {
