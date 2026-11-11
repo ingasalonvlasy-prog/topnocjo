@@ -348,6 +348,31 @@ model ProductReview {
   @@map("product_reviews")
 }
 
+model AbandonedCheckout {
+  id                  String    @id @default(cuid())
+  email               String
+  phone               String?
+  firstName           String?
+  lastName            String?
+  items               String    @default("[]")
+  itemCount           Int       @default(0)
+  subtotal            Int       @default(0)
+  shippingMethodId    String?
+  paymentMethod       String?
+  status              String    @default("OPEN")
+  recoveredOrderId    String?
+  recoveryToken       String    @unique
+  recoveryEmailSentAt DateTime?
+  recoveredAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+  @@map("abandoned_checkouts")
+}
+
 model AdminLog {
   id        String   @id @default(cuid())
   action    String

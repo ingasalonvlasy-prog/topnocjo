@@ -210,7 +210,22 @@ export async function createOrder(data: CheckoutData) {
     }),
   });
 
-  // 9. Payment routing
+  // 9. Mark abandoned checkouts as recovered
+  if (data.email) {
+    prisma.abandonedCheckout.updateMany({
+      where: {
+        email: data.email,
+        status: { in: ["OPEN", "EMAIL_SENT"] },
+      },
+      data: {
+        status: "RECOVERED",
+        recoveredOrderId: order.id,
+        recoveredAt: new Date(),
+      },
+    }).catch(() => {}); // fire-and-forget
+  }
+
+  // 10. Payment routing
   if (data.paymentMethod === "card") {
     try {
       const payment = await createPayment({

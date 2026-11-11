@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/lib/cart";
@@ -64,6 +64,80 @@ export default function CheckoutPage() {
   } | null>(null);
   const [discountLoading, setDiscountLoading] = useState(false);
   const [discountError, setDiscountError] = useState("");
+  const [checkoutTrackId, setCheckoutTrackId] = useState<string | null>(null);
+  const [recoveryData, setRecoveryData] = useState<{
+    email: string; phone?: string; firstName?: string; lastName?: string;
+  } | null>(null);
+  const [recoveryBanner, setRecoveryBanner] = useState(false);
+  const trackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const formRef = useRef<HTMLFormElement | null>(null);
+
+  // Track abandoned checkout (fire-and-forget)
+  const trackCheckout = useCallback(() => {
+    const form = formRef.current;
+    if (!form) return;
+    const email = (form.querySelector('[name="email"]') as HTMLInputElement)?.value?.trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+
+    if (trackTimeoutRef.current) clearTimeout(trackTimeoutRef.current);
+    trackTimeoutRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/checkout/track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            checkoutId: checkoutTrackId,
+            email,
+            phone: (form.querySelector('[name="phone"]') as HTMLInputElement)?.value?.trim() || undefined,
+            firstName: (form.querySelector('[name="firstName"]') as HTMLInputElement)?.value?.trim() || undefined,
+            lastName: (form.querySelector('[name="lastName"]') as HTMLInputElement)?.value?.trim() || undefined,
+            items: items.map((i) => ({
+              variantId: i.variantId,
+              productName: i.productName,
+              variantTitle: i.variantTitle,
+              quantity: i.quantity,
+              unitPrice: i.price,
+              photo: i.photo,
+            })),
+            subtotal,
+            shippingMethodId: selectedShipping || undefined,
+            paymentMethod,
+          }),
+        });
+        const data = await res.json();
+        if (data.checkoutId) setCheckoutTrackId(data.checkoutId);
+      } catch { /* fire-and-forget */ }
+    }, 2000);
+  }, [checkoutTrackId, items, subtotal, selectedShipping, paymentMethod]);
+
+  // Recovery: load data from token in URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("recover");
+    if (!token) return;
+
+    fetch(`/api/checkout/recover?token=${token}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!data) return;
+        setRecoveryData({
+          email: data.email,
+          phone: data.phone || undefined,
+          firstName: data.firstName || undefined,
+          lastName: data.lastName || undefined,
+        });
+        setRecoveryBanner(true);
+        // Add items to cart if cart is empty
+        if (items.length === 0 && data.items?.length > 0) {
+          for (const item of data.items) {
+            // Items from recovery have the cart structure
+            window.dispatchEvent(new CustomEvent("qsport-recovery-item", { detail: item }));
+          }
+        }
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Fetch shipping methods
   useEffect(() => {
@@ -213,11 +287,20 @@ export default function CheckoutPage() {
         Pokladna
       </h1>
 
+      {recoveryBanner && (
+        <div className="text-[13px] text-green-700 p-3 bg-green-50 border border-green-200 rounded-lg mb-6 flex items-center gap-2">
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          Vítejte zpět! Vaše položky jsou připravené k dokončení objednávky.
+        </div>
+      )}
+
       {error && (
         <p className="text-[13px] text-sale p-3 bg-red-50 rounded-lg mb-6">{error}</p>
       )}
 
-      <form onSubmit={handleSubmit} noValidate>
+      <form onSubmit={handleSubmit} noValidate ref={formRef}>
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
           {/* Left — form sections */}
           <div className="space-y-6">
@@ -231,8 +314,10 @@ export default function CheckoutPage() {
                     name="email"
                     type="email"
                     required
+                    defaultValue={recoveryData?.email || ""}
                     className={fieldErrors.email ? inputErrorCls : inputCls}
                     onChange={() => setFieldErrors((p) => ({ ...p, email: "" }))}
+                    onBlur={trackCheckout}
                   />
                   {fieldErrors.email && <p className="text-[12px] text-sale mt-1">{fieldErrors.email}</p>}
                 </div>
@@ -242,6 +327,7 @@ export default function CheckoutPage() {
                     name="phone"
                     type="tel"
                     required
+                    defaultValue={recoveryData?.phone || ""}
                     className={fieldErrors.phone ? inputErrorCls : inputCls}
                     onChange={() => setFieldErrors((p) => ({ ...p, phone: "" }))}
                   />
@@ -259,6 +345,7 @@ export default function CheckoutPage() {
                   <input
                     name="firstName"
                     required
+                    defaultValue={recoveryData?.firstName || ""}
                     className={fieldErrors.firstName ? inputErrorCls : inputCls}
                     onChange={() => setFieldErrors((p) => ({ ...p, firstName: "" }))}
                   />
@@ -269,6 +356,7 @@ export default function CheckoutPage() {
                   <input
                     name="lastName"
                     required
+                    defaultValue={recoveryData?.lastName || ""}
                     className={fieldErrors.lastName ? inputErrorCls : inputCls}
                     onChange={() => setFieldErrors((p) => ({ ...p, lastName: "" }))}
                   />
