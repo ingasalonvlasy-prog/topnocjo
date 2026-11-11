@@ -37,8 +37,13 @@ export function EmailLayout({ preview, children }: LayoutProps) {
             <Text style={{ color: "#666", fontSize: "12px", margin: "0 0 4px" }}>
               Qsport.cz — Sportovní vybavení
             </Text>
-            <Text style={{ color: "#999", fontSize: "11px", margin: 0 }}>
+            <Text style={{ color: "#999", fontSize: "11px", margin: "0 0 4px" }}>
               Tento email byl odeslán automaticky, neodpovídejte na něj.
+            </Text>
+            <Text style={{ color: "#999", fontSize: "11px", margin: 0 }}>
+              <a href="https://qsport.cz/odhlasit-newsletter" style={{ color: "#999", textDecoration: "underline" }}>
+                Odhlásit z newsletteru
+              </a>
             </Text>
           </Section>
         </Container>

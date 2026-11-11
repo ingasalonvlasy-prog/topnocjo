@@ -14,6 +14,7 @@ interface Product {
   productType: string | null;
   brand: { name: string };
   variants: { price: number; ownStock: number; supplierStock: number }[];
+  categories: string[];
 }
 
 export function ProductTable({ products }: { products: Product[] }) {
@@ -126,6 +127,7 @@ export function ProductTable({ products }: { products: Product[] }) {
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Produkt</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500 hidden sm:table-cell">Značka</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500 hidden md:table-cell">Typ</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-500 hidden xl:table-cell">Kategorie</th>
                 <th className="text-right px-4 py-3 font-medium text-gray-500">Cena</th>
                 <th className="text-center px-4 py-3 font-medium text-gray-500 hidden lg:table-cell">Sklad</th>
                 <th className="text-center px-4 py-3 font-medium text-gray-500">Stav</th>
@@ -169,13 +171,25 @@ export function ProductTable({ products }: { products: Product[] }) {
                     </td>
                     <td className="px-4 py-3 text-gray-600 hidden sm:table-cell">{product.brand.name}</td>
                     <td className="px-4 py-3 text-gray-600 hidden md:table-cell">{product.productType || "-"}</td>
+                    <td className="px-4 py-3 text-gray-600 hidden xl:table-cell text-sm">
+                      {product.categories.length > 0
+                        ? product.categories.slice(0, 2).join(", ") + (product.categories.length > 2 ? ` +${product.categories.length - 2}` : "")
+                        : "—"}
+                    </td>
                     <td className="px-4 py-3 text-right font-medium text-gray-900">
                       {minPrice > 0 ? formatPrice(minPrice) : "-"}
                     </td>
                     <td className="px-4 py-3 text-center hidden lg:table-cell">
-                      <span className={`text-sm ${totalStock <= 2 ? "text-red-500 font-medium" : "text-gray-600"}`}>
-                        {totalStock}
-                      </span>
+                      <div>
+                        <span className={`text-sm font-medium ${
+                          totalStock === 0 ? "text-red-500" : totalStock <= 2 ? "text-orange-500" : "text-gray-900"
+                        }`}>
+                          {totalStock}
+                        </span>
+                        <p className="text-[11px] text-gray-400">
+                          u {product.variants.filter(v => (v.ownStock + v.supplierStock) > 0).length}/{product.variants.length} variant
+                        </p>
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${

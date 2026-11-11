@@ -12,6 +12,7 @@ interface Props {
 export default async function AdminCustomersPage({ searchParams }: Props) {
   const params = await searchParams;
   const search = params.search || "";
+  const segment = params.segment || "";
   const page = Math.max(1, parseInt(params.page || "1", 10));
 
   const where: Record<string, unknown> = {};
@@ -29,30 +30,43 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   thirtyDaysAgo.setHours(0, 0, 0, 0);
 
-  const [users, total, allCustomers] = await Promise.all([
-    prisma.user.findMany({
-      where,
-      include: {
-        orders: {
-          select: { total: true, paymentStatus: true },
-        },
+  // Single query — load all matching users for stats + segment filtering
+  const allMatchingUsers = await prisma.user.findMany({
+    where,
+    include: {
+      orders: {
+        select: { total: true, paymentStatus: true },
       },
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * PER_PAGE,
-      take: PER_PAGE,
-    }),
-    prisma.user.count({ where }),
-    prisma.user.findMany({
-      select: {
-        createdAt: true,
-        orders: { select: { total: true, paymentStatus: true } },
-      },
-    }),
-  ]);
+    },
+    orderBy: { createdAt: "desc" },
+  });
 
+  // Segment filter in JS
+  let segmentedUsers = allMatchingUsers;
+  if (segment === "new") {
+    segmentedUsers = allMatchingUsers.filter((u) => u.createdAt >= thirtyDaysAgo);
+  } else if (segment === "returning") {
+    segmentedUsers = allMatchingUsers.filter(
+      (u) => u.orders.filter((o) => o.paymentStatus === "PAID").length > 1,
+    );
+  } else if (segment === "vip") {
+    segmentedUsers = allMatchingUsers.filter((u) => {
+      const spent = u.orders
+        .filter((o) => o.paymentStatus === "PAID")
+        .reduce((s, o) => s + o.total, 0);
+      return spent >= 500000; // 5000 Kč in haléře
+    });
+  } else if (segment === "newsletter") {
+    segmentedUsers = allMatchingUsers.filter((u) => u.newsletter);
+  }
+
+  // Manual pagination
+  const total = segmentedUsers.length;
   const totalPages = Math.ceil(total / PER_PAGE);
+  const users = segmentedUsers.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
-  // Stats
+  // Stats (from all matching, not segmented)
+  const allCustomers = allMatchingUsers;
   const totalCustomers = allCustomers.length;
   const newThisMonth = allCustomers.filter((u) => u.createdAt >= thirtyDaysAgo).length;
   const returning = allCustomers.filter(
@@ -78,6 +92,22 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
       allCustomers.filter((u) => u.createdAt >= dayStart && u.createdAt <= dayEnd).length,
     );
   }
+
+  // Segment counts
+  const segmentCounts = {
+    "": allMatchingUsers.length,
+    new: allMatchingUsers.filter((u) => u.createdAt >= thirtyDaysAgo).length,
+    returning: allMatchingUsers.filter(
+      (u) => u.orders.filter((o) => o.paymentStatus === "PAID").length > 1,
+    ).length,
+    vip: allMatchingUsers.filter((u) => {
+      const spent = u.orders
+        .filter((o) => o.paymentStatus === "PAID")
+        .reduce((s, o) => s + o.total, 0);
+      return spent >= 500000;
+    }).length,
+    newsletter: allMatchingUsers.filter((u) => u.newsletter).length,
+  };
 
   return (
     <div>
@@ -123,9 +153,39 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
         />
       </div>
 
+      {/* Segment tabs */}
+      <div className="flex flex-wrap gap-1 mb-4 bg-white rounded-lg border border-gray-200 shadow-sm p-1">
+        {([
+          { value: "", label: "Všichni" },
+          { value: "new", label: "Noví (30d)" },
+          { value: "returning", label: "Opakující se" },
+          { value: "vip", label: "VIP (5000+ Kč)" },
+          { value: "newsletter", label: "Newsletter" },
+        ] as const).map((seg) => {
+          const sp = new URLSearchParams();
+          if (search) sp.set("search", search);
+          if (seg.value) sp.set("segment", seg.value);
+          return (
+            <Link
+              key={seg.value}
+              href={`/admin/zakaznici${sp.toString() ? `?${sp.toString()}` : ""}`}
+              className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                segment === seg.value
+                  ? "bg-gray-900 text-white font-medium"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              {seg.label}
+              <span className="ml-1.5 text-xs opacity-60">{segmentCounts[seg.value]}</span>
+            </Link>
+          );
+        })}
+      </div>
+
       {/* Search */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 mb-6">
         <form method="GET" action="/admin/zakaznici" className="flex gap-3">
+          {segment && <input type="hidden" name="segment" value={segment} />}
           <div className="relative flex-1 max-w-sm">
             <svg
               className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
@@ -156,7 +216,7 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
           </button>
           {search && (
             <Link
-              href="/admin/zakaznici"
+              href={`/admin/zakaznici${segment ? `?segment=${segment}` : ""}`}
               className="px-4 py-1.5 text-sm font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
             >
               Zrušit
@@ -179,6 +239,8 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
                   <th className="px-4 py-3 text-left font-medium text-gray-600">Zákazník</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-600">Telefon</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-600">Registrace</th>
+                  <th className="px-4 py-3 text-center font-medium text-gray-600 hidden md:table-cell">Newsletter</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600 hidden lg:table-cell">Lokalita</th>
                   <th className="px-4 py-3 text-center font-medium text-gray-600">Objednávky</th>
                   <th className="px-4 py-3 text-right font-medium text-gray-600">Útrata</th>
                 </tr>
@@ -211,6 +273,18 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
                           year: "numeric",
                         })}
                       </td>
+                      <td className="px-4 py-3 text-center hidden md:table-cell">
+                        <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${
+                          user.newsletter
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-100 text-gray-500"
+                        }`}>
+                          {user.newsletter ? "Ano" : "Ne"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-600 hidden lg:table-cell">
+                        {user.city || "—"}
+                      </td>
                       <td className="px-4 py-3 text-center text-gray-900">{orderCount}</td>
                       <td className="px-4 py-3 text-right font-medium text-gray-900 whitespace-nowrap">
                         {totalSpent > 0 ? formatPrice(totalSpent) : "—"}
@@ -231,7 +305,7 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
             </p>
             <div className="flex gap-1">
               {page > 1 && (
-                <PageLink page={page - 1} search={search} label="&larr;" />
+                <PageLink page={page - 1} search={search} segment={segment} label="&larr;" />
               )}
               {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
                 let p: number;
@@ -249,13 +323,14 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
                     key={p}
                     page={p}
                     search={search}
+                    segment={segment}
                     label={String(p)}
                     active={p === page}
                   />
                 );
               })}
               {page < totalPages && (
-                <PageLink page={page + 1} search={search} label="&rarr;" />
+                <PageLink page={page + 1} search={search} segment={segment} label="&rarr;" />
               )}
             </div>
           </div>
@@ -268,16 +343,19 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
 function PageLink({
   page,
   search,
+  segment,
   label,
   active = false,
 }: {
   page: number;
   search: string;
+  segment: string;
   label: string;
   active?: boolean;
 }) {
   const sp = new URLSearchParams();
   if (search) sp.set("search", search);
+  if (segment) sp.set("segment", segment);
   sp.set("page", String(page));
 
   return (

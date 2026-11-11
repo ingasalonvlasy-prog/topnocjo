@@ -1,13 +1,18 @@
 import { prisma } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
 import {
   ORDER_STATUS_LABELS,
   PAYMENT_STATUS_LABELS,
   PAYMENT_METHOD_LABELS,
 } from "@/lib/order-constants";
 import type { OrderStatus, PaymentStatus } from "@/lib/order-constants";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "admin") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const sp = request.nextUrl.searchParams;
   const status = sp.get("status") || "";
   const paymentStatus = sp.get("paymentStatus") || "";
