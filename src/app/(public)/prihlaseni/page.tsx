@@ -67,6 +67,8 @@ export default async function PrihlaseniPage({
             <p className="text-[13px] text-sale mb-4 p-3 bg-red-50 rounded-lg">
               {error === "missing"
                 ? "Vyplň e-mail a heslo."
+                : error === "noadmin"
+                ? "Nemáte oprávnění k přístupu do administrace."
                 : "Nesprávný e-mail nebo heslo."}
             </p>
           )}
@@ -84,7 +86,7 @@ export default async function PrihlaseniPage({
               />
             </div>
 
-            <div className="mb-6">
+            <div className="mb-4">
               <label className="block text-[13px] font-bold text-ink mb-1.5">Heslo</label>
               <input
                 name="password"
@@ -92,6 +94,12 @@ export default async function PrihlaseniPage({
                 required
                 className="w-full py-2.5 px-4 text-[14px] font-medium border border-line rounded-[var(--radius-field)] bg-white focus:border-navy focus:shadow-[0_0_0_3px_rgba(11,23,39,0.06)] outline-none transition-all"
               />
+            </div>
+
+            <div className="text-right mb-6 -mt-2">
+              <Link href="/zapomenute-heslo" className="text-[12px] text-blue hover:underline">
+                Zapomněli jste heslo?
+              </Link>
             </div>
 
             <button

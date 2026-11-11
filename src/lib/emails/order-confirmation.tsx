@@ -22,6 +22,7 @@ interface OrderConfirmationProps {
   city: string;
   zip: string;
   packetaPointName?: string;
+  viewToken?: string;
 }
 
 function formatPrice(amount: number): string {
@@ -41,6 +42,7 @@ export function OrderConfirmation({
   city,
   zip,
   packetaPointName,
+  viewToken,
 }: OrderConfirmationProps) {
   return (
     <EmailLayout preview={`Objednávka ${orderNumber} byla přijata`}>
@@ -128,7 +130,7 @@ export function OrderConfirmation({
       {/* CTA */}
       <Section style={{ textAlign: "center" as const }}>
         <Link
-          href={`https://qsport.cz/objednavka/${orderNumber}`}
+          href={`https://qsport.cz/objednavka/${orderNumber}${viewToken ? `?token=${viewToken}` : ""}`}
           style={{
             display: "inline-block",
             backgroundColor: "#0B1727",

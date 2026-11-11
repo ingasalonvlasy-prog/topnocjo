@@ -6,13 +6,14 @@ interface PaymentReceivedProps {
   firstName: string;
   total: number;
   paidAt: string;
+  viewToken?: string;
 }
 
 function formatPrice(amount: number): string {
   return new Intl.NumberFormat("cs-CZ", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount) + "\u00A0Kč";
 }
 
-export function PaymentReceived({ orderNumber, firstName, total, paidAt }: PaymentReceivedProps) {
+export function PaymentReceived({ orderNumber, firstName, total, paidAt, viewToken }: PaymentReceivedProps) {
   return (
     <EmailLayout preview={`Platba za objednávku ${orderNumber} přijata`}>
       <Text style={{ fontSize: "16px", color: "#333", margin: "0 0 16px" }}>
@@ -44,7 +45,7 @@ export function PaymentReceived({ orderNumber, firstName, total, paidAt }: Payme
       {/* CTA */}
       <Section style={{ textAlign: "center" as const }}>
         <Link
-          href={`https://qsport.cz/objednavka/${orderNumber}`}
+          href={`https://qsport.cz/objednavka/${orderNumber}${viewToken ? `?token=${viewToken}` : ""}`}
           style={{
             display: "inline-block",
             backgroundColor: "#0B1727",

@@ -2,54 +2,29 @@
 
 ## AKTIVNÍ
 
-## TASK-039: Admin upgrade na Shopify úroveň
+## TASK-042: Kompletní audit + opravy celého e-shopu
 Priorita: 1
-Stav: čeká
+Stav: probíhá (audit)
 Projekt: /Users/zen/qsport
 
 ### Kompletní zadání:
-Celý admin musí vypadat a fungovat jako Shopify admin. Uživatel poskytl screenshoty svého reálného Shopify adminu jako referenci.
+Uživatel říká: "není možný aby všechno fungovalo", "určitě tam je ještě ranec práce", "objednávky všechno eshop je velká věc", "pokračuj s teamem a všechno dodělej"
 
-**Shopify Objednávky seznam:**
-- Nahoře stat karty se sparkline mini-grafy: Objednávky (dnes), Objednané položky (% změna), Vrácení prodejů, Splněné objednávky, Doručené objednávky, Doba od objednání do plnění
-- Filter bar: dropdown "Vše" + "Hledat a filtrovat" search
-- Bohatá tabulka: checkbox, #číslo, Datum, Zákazník, Termín plnění (Včera/Před X dny), Kanál, Celkem, Stav platby (badge), Stav plnění (badge Nesplněno/Probíhá/Splněno), Položky, Stav doručení, Metoda doručení
-- Bulk select checkboxy
-- Paginace (1-50)
-- Tlačítka vpravo nahoře: Exportovat, Další akce, Vytvořit objednávku
-
-**ShipD Delivery (fulfillment):**
-- Akční tlačítka: Vytvořit štítky, Vytvořit štítky & Splnit, Exportovat do CSV, Packing slipy, Předávací protokol, Tisknout štítky
-- Tabs: vše | Nesplněné | Splněné
-- Tabulka: Č. objednávky, Zákazník, Vytvořeno, Cena, Stav (badge), Stav splnění (tracking číslo + datum), Akce (ikony edit/print/delete), Doprava (GLS/Zásilkovna + konkrétní Z-BOX název a adresa)
-
-**Shopify detail objednávky #1076:**
-- Header: #1076 + badge Zaplaceno + badge Probíhá, datum "10. listopadu 2026 v 9:13 z Online Store"
-- Tlačítka: Vrátit peníze, Upravit, Další akce
-- Fulfillment sekce "Probíhá" s tlačítkem "Označit jako splněno":
-  - Dopravce: GLS – Doručení na adresu
-  - Dodavatel: LEVEL
-  - Deadline: Splnit do čtvrtek 12. listopadu v 12:00
-  - Doručení: 18.–20. listopadu
-- Položky s obrázky produktů, varianta (velikost XL), SKU, cena × množství = celkem
-- Sekce "Zaplaceno": Mezisoučet, Doprava, Daně (CZ VAT 21%), Celkem, Zaplaceno
-- Metapole: Marže celkem (Kč), Nákupní cena celkem (Kč), Sklady položek (barevné tečky)
-- Pravý sidebar: Zákazník (jméno, link na profil, email, počet objednávek), Dodací adresa (+ "Zobrazit mapu"), Fakturační adresa, Shrnutí konverze (1. objednávka, relace z Google), Riziko objednávky (bar Nízké/Střední/Vysoké)
-- Poznámky (přidatelné), Časová osa dole
-
-**Doprava stránka:**
-- Tabulková forma je nepřehledná, potřebuje karty/tabs
-
-**Shopify sidebar navigace (co mají navíc):**
-- Opuštěné pokladny
-- Finance
-- Růst
+Provést kompletní audit celého e-shopu (admin + public) a opravit/doplnit VŠECHNO co chybí:
+- Objednávky: celý flow, manuální vytvoření, editace, vrácení peněz, zrušení, fulfillment
+- Produkty: CRUD, varianty, fotky, SEO, import/export
+- Pokladna: celý checkout flow, platby, validace
+- Zákaznický účet: registrace, přihlášení, profil, historie, oblíbené
+- Doprava: Zásilkovna integrace, tracking
+- Emaily: transakční emaily
+- SEO: meta tagy, sitemap, robots, structured data
+- Admin: vše co chybí oproti Shopify
 
 ### Kontext:
-- Všechny admin stránky: src/app/(admin)/admin/
-- Aktuální objednávky: src/app/(admin)/admin/objednavky/ (page.tsx + [id]/)
-- Brand brief: .claude-context/tasks/qsport-brand-brief.md
-- Screenshoty od uživatele: Shopify admin objednávky seznam, ShipD Delivery, detail #1076, doprava
+- Audit běží — plánovač prochází kód, test-chrome kliká jako zákazník
+- 3 commity hotové: 1fe15b5, c9f0508, 6b8a196
+- Všech 23 routes vrací HTTP 200
+- Dev server: localhost:9999
 
 ---
 
@@ -58,6 +33,17 @@ Celý admin musí vypadat a fungovat jako Shopify admin. Uživatel poskytl scree
 ---
 
 ## HOTOVÉ
+
+## TASK-039: Admin upgrade na Shopify úroveň
+Stav: hotovo (commit 1fe15b5)
+Features: objednávky seznam+detail+expedice, dashboard sparklines+drill-down, doprava karty, sidebar reorganizace
+
+## TASK-040: Dashboard promo cards, customer stats, brand logos, Finance page
+Stav: hotovo (commit c9f0508)
+
+## TASK-041: Opuštěné pokladny + Růst stránka
+Stav: hotovo (commit 6b8a196)
+Features: abandoned checkouts (full lifecycle: tracking→cron→email→recovery→admin), growth page (konverze, SEO audit, doporučení, retence, rychlé akce)
 
 ## TASK-025 až TASK-037: Kompletní e-shop features
 Stav: hotovo (build clean, Chrome test 10/10 PASS, Evžen schváleno)

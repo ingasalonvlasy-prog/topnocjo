@@ -91,7 +91,7 @@ export default async function AccountPage() {
                   return (
                     <a
                       key={order.id}
-                      href={`/objednavka/${order.orderNumber}`}
+                      href={`/objednavka/${order.orderNumber}${order.viewToken ? `?token=${order.viewToken}` : ""}`}
                       className="flex items-center justify-between py-2 border-b border-wash last:border-0 hover:bg-wash/50 -mx-2 px-2 rounded transition-colors"
                     >
                       <div>

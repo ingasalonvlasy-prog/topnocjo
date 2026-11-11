@@ -61,7 +61,7 @@ export default async function HomePage() {
         brand: true,
         categories: { include: { category: true } },
       },
-      orderBy: { createdAt: "asc" },
+      orderBy: { reviewCount: "desc" },
       take: 4,
     }),
     getLatestBlogPosts(3),

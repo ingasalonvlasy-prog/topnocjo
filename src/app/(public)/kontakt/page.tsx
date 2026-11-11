@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { ContactForm } from "./ContactForm";
 
 export const metadata: Metadata = {
   title: "Kontakt | Qsport.cz",
@@ -54,43 +55,7 @@ export default function ContactPage() {
         {/* Contact form */}
         <div>
           <h2 className="text-[22px] font-extrabold text-navy mb-4">Kontaktní formulář</h2>
-          <form className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-[13px] font-bold text-ink mb-1.5">Jméno</label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                className="w-full py-2.5 px-4 text-[14px] font-medium border border-line rounded-[var(--radius-field)] bg-white focus:border-navy focus:shadow-[0_0_0_3px_rgba(11,23,39,0.06)] outline-none transition-all"
-              />
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-[13px] font-bold text-ink mb-1.5">E-mail</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                className="w-full py-2.5 px-4 text-[14px] font-medium border border-line rounded-[var(--radius-field)] bg-white focus:border-navy focus:shadow-[0_0_0_3px_rgba(11,23,39,0.06)] outline-none transition-all"
-              />
-            </div>
-            <div>
-              <label htmlFor="message" className="block text-[13px] font-bold text-ink mb-1.5">Zpráva</label>
-              <textarea
-                id="message"
-                name="message"
-                rows={5}
-                className="w-full py-2.5 px-4 text-[14px] font-medium border border-line rounded-[var(--radius-field)] bg-white focus:border-navy focus:shadow-[0_0_0_3px_rgba(11,23,39,0.06)] outline-none transition-all resize-y"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled
-              className="h-[44px] bg-navy text-white text-[13px] font-extrabold uppercase tracking-[0.12em] px-8 rounded-[var(--radius-pill)] opacity-50 cursor-not-allowed"
-              title="Formulář bude brzy funkční"
-            >
-              Odeslat
-            </button>
-          </form>
+          <ContactForm />
         </div>
       </div>
     </div>

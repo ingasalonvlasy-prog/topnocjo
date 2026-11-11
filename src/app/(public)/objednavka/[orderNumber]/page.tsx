@@ -2,11 +2,12 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/products";
+import { getCurrentUser } from "@/lib/auth";
 import { ClearCartOnMount } from "./ClearCart";
 
 interface Props {
   params: Promise<{ orderNumber: string }>;
-  searchParams: Promise<{ new?: string; fallback?: string; platba?: string }>;
+  searchParams: Promise<{ new?: string; fallback?: string; platba?: string; token?: string }>;
 }
 
 const statusLabels: Record<string, string> = {
@@ -38,6 +39,14 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
   });
 
   if (!order) notFound();
+
+  // Auth check: valid token, or logged-in owner
+  const hasValidToken = sp.token && order.viewToken && sp.token === order.viewToken;
+  if (!hasValidToken) {
+    const user = await getCurrentUser();
+    const isOwner = user && order.userId && user.id === order.userId;
+    if (!isOwner) notFound();
+  }
 
   const isNew = sp.new === "1";
   const isFallback = sp.fallback === "1";

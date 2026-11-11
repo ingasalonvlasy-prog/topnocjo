@@ -5,6 +5,7 @@ import { generateOrderNumber } from "@/lib/orders";
 import { createPayment } from "@/lib/comgate";
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import crypto from "crypto";
 import { totalStock, allocateStock, orderNeedsSupplier } from "@/lib/stock";
 import { sendEmail } from "@/lib/email";
 import { OrderConfirmation } from "@/lib/emails/order-confirmation";
@@ -128,9 +129,11 @@ export async function createOrder(data: CheckoutData) {
 
   // 7. Create order
   const orderNumber = await generateOrderNumber();
+  const viewToken = crypto.randomUUID();
   const order = await prisma.order.create({
     data: {
       orderNumber,
+      viewToken,
       email: data.email,
       phone: data.phone || null,
       firstName: data.firstName,
@@ -186,6 +189,7 @@ export async function createOrder(data: CheckoutData) {
       city: data.city,
       zip: data.zip,
       packetaPointName: data.packetaPointName || undefined,
+      viewToken,
     }),
   });
 
@@ -248,13 +252,13 @@ export async function createOrder(data: CheckoutData) {
         where: { id: order.id },
         data: { paymentMethod: "transfer", status: "CONFIRMED" },
       });
-      redirect(`/objednavka/${order.orderNumber}?new=1&fallback=1`);
+      redirect(`/objednavka/${order.orderNumber}?new=1&fallback=1&token=${viewToken}`);
     }
   } else {
     await prisma.order.update({
       where: { id: order.id },
       data: { status: "CONFIRMED" },
     });
-    redirect(`/objednavka/${order.orderNumber}?new=1`);
+    redirect(`/objednavka/${order.orderNumber}?new=1&token=${viewToken}`);
   }
 }

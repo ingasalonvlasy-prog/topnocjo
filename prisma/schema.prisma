@@ -161,10 +161,13 @@ model User {
   adminNote    String?
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
-  lastLoginAt  DateTime?
-  orders       Order[]
-  reviews      ProductReview[]
-  wishlists    Wishlist[]
+  lastLoginAt         DateTime?
+  role                String          @default("customer")
+  resetToken          String?         @unique
+  resetTokenExpiresAt DateTime?
+  orders              Order[]
+  reviews             ProductReview[]
+  wishlists           Wishlist[]
 
   @@map("users")
 }
@@ -199,6 +202,7 @@ model Order {
   adminNote          String?
   trackingNumber     String?
   trackingUrl        String?
+  viewToken          String?
   userId             String?
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
@@ -218,6 +222,7 @@ model Order {
   @@index([createdAt])
   @@index([comgateTransId])
   @@index([userId])
+  @@index([viewToken])
   @@map("orders")
 }
 

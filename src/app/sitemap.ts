@@ -30,6 +30,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/kontakt`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${baseUrl}/o-nas`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${baseUrl}/obchodni-podminky`, changeFrequency: "monthly", priority: 0.3 },
+    { url: `${baseUrl}/akce`, changeFrequency: "daily", priority: 0.7 },
+    { url: `${baseUrl}/bazar`, changeFrequency: "daily", priority: 0.6 },
     { url: `${baseUrl}/doprava-a-platba`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${baseUrl}/reklamace`, changeFrequency: "monthly", priority: 0.3 },
     { url: `${baseUrl}/vraceni-zbozi`, changeFrequency: "monthly", priority: 0.3 },

@@ -1,13 +1,21 @@
 import { cookies } from "next/headers";
-import { createHmac } from "crypto";
+import { createHmac, randomBytes } from "crypto";
 import bcrypt from "bcryptjs";
 import { prisma } from "./db";
+import { redirect } from "next/navigation";
 
 const SESSION_COOKIE = "qsport_session";
 const SESSION_MAX_AGE = 30 * 24 * 60 * 60; // 30 days
 
 function getSecret(): string {
-  return process.env.SESSION_SECRET || "dev-fallback-secret-change-me";
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("SESSION_SECRET environment variable is required in production");
+    }
+    return "dev-fallback-secret-change-me";
+  }
+  return secret;
 }
 
 function sign(value: string): string {
@@ -66,6 +74,7 @@ export async function getCurrentUser() {
       zip: true,
       newsletter: true,
       createdAt: true,
+      role: true,
     },
   });
 
@@ -75,4 +84,19 @@ export async function getCurrentUser() {
 export async function destroySession(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE);
+}
+
+export async function requireAdmin() {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/prihlaseni?redirect=/admin");
+  }
+  if (user.role !== "admin") {
+    redirect("/prihlaseni?error=noadmin&redirect=/admin");
+  }
+  return user;
+}
+
+export function generateResetToken(): string {
+  return randomBytes(32).toString("hex");
 }

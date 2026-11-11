@@ -65,6 +65,10 @@ export default function CheckoutPage() {
   const [discountLoading, setDiscountLoading] = useState(false);
   const [discountError, setDiscountError] = useState("");
   const [checkoutTrackId, setCheckoutTrackId] = useState<string | null>(null);
+  const [userData, setUserData] = useState<{
+    email: string; phone?: string; firstName?: string; lastName?: string;
+    street?: string; city?: string; zip?: string;
+  } | null>(null);
   const [recoveryData, setRecoveryData] = useState<{
     email: string; phone?: string; firstName?: string; lastName?: string;
   } | null>(null);
@@ -137,6 +141,16 @@ export default function CheckoutPage() {
       })
       .catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Fetch logged-in user data for prefill
+  useEffect(() => {
+    fetch("/api/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data) setUserData(data);
+      })
+      .catch(() => {});
   }, []);
 
   // Fetch shipping methods
@@ -300,7 +314,7 @@ export default function CheckoutPage() {
         <p className="text-[13px] text-sale p-3 bg-red-50 rounded-lg mb-6">{error}</p>
       )}
 
-      <form onSubmit={handleSubmit} noValidate ref={formRef}>
+      <form onSubmit={handleSubmit} noValidate ref={formRef} key={userData?.email || "anon"}>
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
           {/* Left — form sections */}
           <div className="space-y-6">
@@ -314,7 +328,7 @@ export default function CheckoutPage() {
                     name="email"
                     type="email"
                     required
-                    defaultValue={recoveryData?.email || ""}
+                    defaultValue={recoveryData?.email || userData?.email || ""}
                     className={fieldErrors.email ? inputErrorCls : inputCls}
                     onChange={() => setFieldErrors((p) => ({ ...p, email: "" }))}
                     onBlur={trackCheckout}
@@ -327,7 +341,7 @@ export default function CheckoutPage() {
                     name="phone"
                     type="tel"
                     required
-                    defaultValue={recoveryData?.phone || ""}
+                    defaultValue={recoveryData?.phone || userData?.phone || ""}
                     className={fieldErrors.phone ? inputErrorCls : inputCls}
                     onChange={() => setFieldErrors((p) => ({ ...p, phone: "" }))}
                   />
@@ -345,7 +359,7 @@ export default function CheckoutPage() {
                   <input
                     name="firstName"
                     required
-                    defaultValue={recoveryData?.firstName || ""}
+                    defaultValue={recoveryData?.firstName || userData?.firstName || ""}
                     className={fieldErrors.firstName ? inputErrorCls : inputCls}
                     onChange={() => setFieldErrors((p) => ({ ...p, firstName: "" }))}
                   />
@@ -356,7 +370,7 @@ export default function CheckoutPage() {
                   <input
                     name="lastName"
                     required
-                    defaultValue={recoveryData?.lastName || ""}
+                    defaultValue={recoveryData?.lastName || userData?.lastName || ""}
                     className={fieldErrors.lastName ? inputErrorCls : inputCls}
                     onChange={() => setFieldErrors((p) => ({ ...p, lastName: "" }))}
                   />
@@ -368,6 +382,7 @@ export default function CheckoutPage() {
                 <input
                   name="street"
                   required
+                  defaultValue={userData?.street || ""}
                   className={fieldErrors.street ? inputErrorCls : inputCls}
                   onChange={() => setFieldErrors((p) => ({ ...p, street: "" }))}
                 />
@@ -379,6 +394,7 @@ export default function CheckoutPage() {
                   <input
                     name="city"
                     required
+                    defaultValue={userData?.city || ""}
                     className={fieldErrors.city ? inputErrorCls : inputCls}
                     onChange={() => setFieldErrors((p) => ({ ...p, city: "" }))}
                   />
@@ -389,6 +405,7 @@ export default function CheckoutPage() {
                   <input
                     name="zip"
                     required
+                    defaultValue={userData?.zip || ""}
                     className={fieldErrors.zip ? inputErrorCls : inputCls}
                     onChange={() => setFieldErrors((p) => ({ ...p, zip: "" }))}
                   />

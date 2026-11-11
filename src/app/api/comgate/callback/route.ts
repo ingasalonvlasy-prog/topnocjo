@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
         firstName: order.firstName,
         total: order.total,
         paidAt: new Date().toLocaleDateString("cs-CZ"),
+        viewToken: order.viewToken || undefined,
       }),
     });
   } else if (verified.status === "CANCELLED") {

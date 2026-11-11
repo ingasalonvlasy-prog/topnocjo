@@ -83,7 +83,7 @@ export default async function OrdersPage() {
                 return (
                   <Link
                     key={order.id}
-                    href={`/objednavka/${order.orderNumber}`}
+                    href={`/objednavka/${order.orderNumber}${order.viewToken ? `?token=${order.viewToken}` : ""}`}
                     className="block border border-line rounded-[10px] p-5 hover:border-navy/30 hover:shadow-sm transition-all"
                   >
                     {/* Header: order number + date */}

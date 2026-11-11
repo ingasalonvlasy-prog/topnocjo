@@ -7,9 +7,10 @@ interface OrderShippedProps {
   shippingName: string;
   trackingNumber?: string;
   trackingUrl?: string;
+  viewToken?: string;
 }
 
-export function OrderShipped({ orderNumber, firstName, shippingName, trackingNumber, trackingUrl }: OrderShippedProps) {
+export function OrderShipped({ orderNumber, firstName, shippingName, trackingNumber, trackingUrl, viewToken }: OrderShippedProps) {
   return (
     <EmailLayout preview={`Objednávka ${orderNumber} byla odeslána`}>
       <Text style={{ fontSize: "16px", color: "#333", margin: "0 0 16px" }}>
@@ -60,7 +61,7 @@ export function OrderShipped({ orderNumber, firstName, shippingName, trackingNum
       {!trackingUrl && (
         <Section style={{ textAlign: "center" as const }}>
           <Link
-            href={`https://qsport.cz/objednavka/${orderNumber}`}
+            href={`https://qsport.cz/objednavka/${orderNumber}${viewToken ? `?token=${viewToken}` : ""}`}
             style={{
               display: "inline-block",
               backgroundColor: "#0B1727",

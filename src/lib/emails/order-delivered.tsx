@@ -4,9 +4,10 @@ import { EmailLayout } from "./layout";
 interface OrderDeliveredProps {
   orderNumber: string;
   firstName: string;
+  viewToken?: string;
 }
 
-export function OrderDelivered({ orderNumber, firstName }: OrderDeliveredProps) {
+export function OrderDelivered({ orderNumber, firstName, viewToken }: OrderDeliveredProps) {
   return (
     <EmailLayout preview={`Objednávka ${orderNumber} byla doručena`}>
       <Text style={{ fontSize: "16px", color: "#333", margin: "0 0 16px" }}>
@@ -34,7 +35,7 @@ export function OrderDelivered({ orderNumber, firstName }: OrderDeliveredProps) 
 
       <Section style={{ textAlign: "center" as const }}>
         <Link
-          href={`https://qsport.cz/objednavka/${orderNumber}`}
+          href={`https://qsport.cz/objednavka/${orderNumber}${viewToken ? `?token=${viewToken}` : ""}`}
           style={{
             display: "inline-block",
             backgroundColor: "#0B1727",

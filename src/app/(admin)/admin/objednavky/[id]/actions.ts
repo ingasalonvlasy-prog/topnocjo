@@ -48,6 +48,7 @@ export async function updateOrderStatus(formData: FormData) {
         shippingName: updatedOrder.shipping.name,
         trackingNumber: updatedOrder.trackingNumber || undefined,
         trackingUrl: updatedOrder.trackingUrl || undefined,
+        viewToken: updatedOrder.viewToken || undefined,
       }),
     });
 
@@ -88,6 +89,7 @@ export async function updateOrderStatus(formData: FormData) {
       react: OrderDelivered({
         orderNumber: order.orderNumber,
         firstName: order.firstName,
+        viewToken: order.viewToken || undefined,
       }),
     });
 
