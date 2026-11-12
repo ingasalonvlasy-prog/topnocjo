@@ -47,9 +47,9 @@ function CheckoutSkeleton() {
 }
 
 export default function CheckoutPage() {
-  const { items, subtotal, loaded, clearCart } = useCart();
+  const { items, subtotal, loaded, clearCart, selectedShipping: cartShipping, shippingPrice: cartShippingPrice } = useCart();
   const [shipping, setShipping] = useState<ShippingOption[]>([]);
-  const [selectedShipping, setSelectedShipping] = useState("");
+  const [selectedShippingId, setSelectedShippingId] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
   const [selectedPoint, setSelectedPoint] = useState<PacketaPoint | null>(null);
   const [differentShipping, setDifferentShipping] = useState(false);
@@ -104,7 +104,7 @@ export default function CheckoutPage() {
               photo: i.photo,
             })),
             subtotal,
-            shippingMethodId: selectedShipping || undefined,
+            shippingMethodId: selectedShippingId || undefined,
             paymentMethod,
           }),
         });
@@ -112,7 +112,7 @@ export default function CheckoutPage() {
         if (data.checkoutId) setCheckoutTrackId(data.checkoutId);
       } catch { /* fire-and-forget */ }
     }, 2000);
-  }, [checkoutTrackId, items, subtotal, selectedShipping, paymentMethod]);
+  }, [checkoutTrackId, items, subtotal, selectedShippingId, paymentMethod]);
 
   // Recovery: load data from token in URL
   useEffect(() => {
@@ -153,18 +153,35 @@ export default function CheckoutPage() {
       .catch(() => {});
   }, []);
 
-  // Fetch shipping methods
+  // Fetch shipping methods, pre-select from cart if available
   useEffect(() => {
     fetch("/api/shipping")
       .then((r) => r.json())
       .then((data: ShippingOption[]) => {
         setShipping(data);
-        if (data.length > 0) setSelectedShipping(data[0].id);
+        if (cartShipping?.methodId && data.some((m: ShippingOption) => m.id === cartShipping.methodId)) {
+          setSelectedShippingId(cartShipping.methodId);
+          // Restore packeta point from cart
+          if (cartShipping.packetaPointId && cartShipping.packetaPointName) {
+            const parts = cartShipping.packetaPointName.split(", ");
+            setSelectedPoint({
+              id: Number(cartShipping.packetaPointId),
+              name: parts[0] || "",
+              nameStreet: parts[1] || "",
+              city: parts[2] || "",
+              zip: "",
+              country: "cz",
+            });
+          }
+        } else if (data.length > 0) {
+          setSelectedShippingId(data[0].id);
+        }
       })
       .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const selectedMethod = shipping.find((s) => s.id === selectedShipping);
+  const selectedMethod = shipping.find((s) => s.id === selectedShippingId);
   const isPersonalPickup = selectedMethod?.type === "personal";
   const shippingPrice =
     selectedMethod && selectedMethod.freeFrom && subtotal >= selectedMethod.freeFrom
@@ -258,7 +275,7 @@ export default function CheckoutPage() {
         shippingStreet: (fd.get("shippingStreet") as string)?.trim() || "",
         shippingCity: (fd.get("shippingCity") as string)?.trim() || "",
         shippingZip: (fd.get("shippingZip") as string)?.trim() || "",
-        shippingMethodId: selectedShipping,
+        shippingMethodId: selectedShippingId,
         packetaPointId: selectedPoint?.id ? String(selectedPoint.id) : "",
         packetaPointName: selectedPoint
           ? `${selectedPoint.name}, ${selectedPoint.nameStreet}, ${selectedPoint.city}`
@@ -461,7 +478,7 @@ export default function CheckoutPage() {
                     <label
                       key={method.id}
                       className={`flex items-center gap-4 p-4 rounded-[8px] border cursor-pointer transition-all ${
-                        selectedShipping === method.id
+                        selectedShippingId === method.id
                           ? "border-navy bg-wash"
                           : "border-line hover:border-muted"
                       }`}
@@ -470,9 +487,9 @@ export default function CheckoutPage() {
                         type="radio"
                         name="shippingMethod"
                         value={method.id}
-                        checked={selectedShipping === method.id}
+                        checked={selectedShippingId === method.id}
                         onChange={() => {
-                          setSelectedShipping(method.id);
+                          setSelectedShippingId(method.id);
                           if (method.type !== "pickup_point") {
                             setSelectedPoint(null);
                           }

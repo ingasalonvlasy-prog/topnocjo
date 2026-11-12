@@ -5,9 +5,9 @@ import Image from "next/image";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/products";
 import { CrossSellProducts } from "@/components/CrossSellProducts";
+import { ShippingSelector } from "@/components/ShippingSelector";
 
 const FREE_SHIPPING_THRESHOLD = 200000; // 2000 Kč in haléře
-const CHEAPEST_SHIPPING = 4900; // 49 Kč
 
 function CartSkeleton() {
   return (
@@ -27,16 +27,16 @@ function CartSkeleton() {
 }
 
 export default function CartPage() {
-  const { items, itemCount, subtotal, loaded, updateQuantity, removeItem } = useCart();
+  const { items, itemCount, subtotal, loaded, updateQuantity, removeItem, selectedShipping, shippingPrice } = useCart();
 
   if (!loaded) {
     return <CartSkeleton />;
   }
 
-  const freeShippingRemaining = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
-  const freeShippingPercent = Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100);
-  const estimatedShipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : CHEAPEST_SHIPPING;
-  const total = subtotal + estimatedShipping;
+  const freeFrom = selectedShipping?.freeFrom || FREE_SHIPPING_THRESHOLD;
+  const freeShippingRemaining = Math.max(0, freeFrom - subtotal);
+  const freeShippingPercent = Math.min(100, (subtotal / freeFrom) * 100);
+  const total = subtotal + shippingPrice;
   const totalSavings = items.reduce((sum, item) => {
     if (item.comparePrice && item.comparePrice > item.price) {
       return sum + (item.comparePrice - item.price) * item.quantity;
@@ -219,6 +219,11 @@ export default function CartPage() {
               &larr; Pokračovat v nákupu
             </Link>
           </div>
+
+          {/* Shipping selector — Bretton.cz style cards */}
+          <div className="mt-8">
+            <ShippingSelector />
+          </div>
         </div>
 
         {/* Summary sidebar */}
@@ -238,12 +243,16 @@ export default function CartPage() {
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-muted">Doprava</span>
+                <span className="text-muted">
+                  Doprava{selectedShipping ? ` (${selectedShipping.methodName})` : ""}
+                </span>
                 <span className="font-medium text-ink">
-                  {estimatedShipping === 0 ? (
+                  {!selectedShipping ? (
+                    <span className="text-muted text-[12px]">Vyberte dopravu</span>
+                  ) : shippingPrice === 0 ? (
                     <span className="text-navy font-bold">Zdarma</span>
                   ) : (
-                    `od ${formatPrice(estimatedShipping)}`
+                    formatPrice(shippingPrice)
                   )}
                 </span>
               </div>
@@ -257,12 +266,22 @@ export default function CartPage() {
               <p className="text-[12px] text-muted mt-1">vč. DPH</p>
             </div>
 
-            <Link
-              href="/pokladna"
-              className="mt-6 w-full h-[48px] bg-lime text-navy text-[13px] font-extrabold uppercase tracking-[0.12em] rounded-[var(--radius-pill)] flex items-center justify-center hover:brightness-110 transition-all"
-            >
-              Pokračovat k pokladně
-            </Link>
+            {selectedShipping?.methodType === "pickup_point" && !selectedShipping.packetaPointId ? (
+              <button
+                type="button"
+                disabled
+                className="mt-6 w-full h-[48px] bg-lime/50 text-navy/50 text-[13px] font-extrabold uppercase tracking-[0.12em] rounded-[var(--radius-pill)] flex items-center justify-center cursor-not-allowed"
+              >
+                Vyber výdejní místo
+              </button>
+            ) : (
+              <Link
+                href="/pokladna"
+                className="mt-6 w-full h-[48px] bg-lime text-navy text-[13px] font-extrabold uppercase tracking-[0.12em] rounded-[var(--radius-pill)] flex items-center justify-center hover:brightness-110 transition-all"
+              >
+                Pokračovat k pokladně
+              </Link>
+            )}
 
             <div className="mt-4 space-y-2 text-[12px] text-muted">
               <div className="flex items-center gap-2">

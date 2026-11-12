@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from "react";
 
 export interface CartItem {
   variantId: string;
@@ -14,6 +14,17 @@ export interface CartItem {
   quantity: number;
 }
 
+export interface SelectedShipping {
+  methodId: string;
+  methodName: string;
+  methodCode: string;
+  methodType: string;
+  price: number;
+  freeFrom: number | null;
+  packetaPointId?: string;
+  packetaPointName?: string;
+}
+
 interface CartContextValue {
   items: CartItem[];
   itemCount: number;
@@ -23,9 +34,14 @@ interface CartContextValue {
   updateQuantity: (variantId: string, quantity: number) => void;
   removeItem: (variantId: string) => void;
   clearCart: () => void;
+  selectedShipping: SelectedShipping | null;
+  setSelectedShipping: (shipping: SelectedShipping | null) => void;
+  setPacketaPoint: (pointId: string, pointName: string) => void;
+  shippingPrice: number;
 }
 
 const STORAGE_KEY = "qsport_cart";
+const SHIPPING_STORAGE_KEY = "qsport_shipping";
 const MAX_QTY = 10;
 
 const CartContext = createContext<CartContextValue>({
@@ -37,6 +53,10 @@ const CartContext = createContext<CartContextValue>({
   updateQuantity: () => {},
   removeItem: () => {},
   clearCart: () => {},
+  selectedShipping: null,
+  setSelectedShipping: () => {},
+  setPacketaPoint: () => {},
+  shippingPrice: 0,
 });
 
 function loadCart(): CartItem[] {
@@ -59,9 +79,14 @@ function saveCart(items: CartItem[]) {
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [selectedShippingState, setSelectedShippingState] = useState<SelectedShipping | null>(null);
 
   useEffect(() => {
     setItems(loadCart());
+    try {
+      const raw = localStorage.getItem(SHIPPING_STORAGE_KEY);
+      if (raw) setSelectedShippingState(JSON.parse(raw));
+    } catch {}
     setLoaded(true);
   }, []);
 
@@ -101,13 +126,42 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = useCallback(() => {
     setItems([]);
+    setSelectedShippingState(null);
+    localStorage.removeItem(SHIPPING_STORAGE_KEY);
+  }, []);
+
+  const setSelectedShipping = useCallback((shipping: SelectedShipping | null) => {
+    setSelectedShippingState(shipping);
+    if (shipping) {
+      localStorage.setItem(SHIPPING_STORAGE_KEY, JSON.stringify(shipping));
+    } else {
+      localStorage.removeItem(SHIPPING_STORAGE_KEY);
+    }
+  }, []);
+
+  const setPacketaPoint = useCallback((pointId: string, pointName: string) => {
+    setSelectedShippingState((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, packetaPointId: pointId, packetaPointName: pointName };
+      localStorage.setItem(SHIPPING_STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
   }, []);
 
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
+  const shippingPrice = useMemo(() => {
+    if (!selectedShippingState) return 0;
+    if (selectedShippingState.freeFrom && subtotal >= selectedShippingState.freeFrom) return 0;
+    return selectedShippingState.price;
+  }, [selectedShippingState, subtotal]);
+
   return (
-    <CartContext.Provider value={{ items, itemCount, subtotal, loaded, addItem, updateQuantity, removeItem, clearCart }}>
+    <CartContext.Provider value={{
+      items, itemCount, subtotal, loaded, addItem, updateQuantity, removeItem, clearCart,
+      selectedShipping: selectedShippingState, setSelectedShipping, setPacketaPoint, shippingPrice,
+    }}>
       {children}
     </CartContext.Provider>
   );
