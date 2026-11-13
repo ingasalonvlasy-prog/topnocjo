@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useCart, type SelectedShipping } from "@/lib/cart";
 import { formatPrice } from "@/lib/products";
 import { ZasilkovnaWidget, type PacketaPoint } from "@/components/ZasilkovnaWidget";
+import { GlsWidget, type GlsPoint } from "@/components/GlsWidget";
 
 interface ShippingOption {
   id: string;
@@ -13,7 +14,11 @@ interface ShippingOption {
   price: number;
   freeFrom: number | null;
   description: string | null;
-  packetaApiKey?: string;
+  carrier?: string;
+  carrierConfig?: {
+    apiKey?: string;
+    widgetType?: string;
+  };
 }
 
 /* Bretton.cz style: large clickable cards with icon circle left, radio indicator right */
@@ -56,10 +61,11 @@ function getIcon(type: string) {
 }
 
 export function ShippingSelector() {
-  const { subtotal, selectedShipping, setSelectedShipping, setPacketaPoint } = useCart();
+  const { subtotal, selectedShipping, setSelectedShipping, setPickupPoint } = useCart();
   const [methods, setMethods] = useState<ShippingOption[]>([]);
   const [loading, setLoading] = useState(true);
-  const [packetaPoint, setPacketaPointLocal] = useState<PacketaPoint | null>(null);
+  const [pickupPointLocal, setPickupPointLocal] = useState<PacketaPoint | null>(null);
+  const [glsPointLocal, setGlsPointLocal] = useState<GlsPoint | null>(null);
 
   useEffect(() => {
     fetch("/api/shipping")
@@ -106,15 +112,26 @@ export function ShippingSelector() {
     };
     setSelectedShipping(shipping);
     if (method.type !== "pickup_point") {
-      setPacketaPointLocal(null);
+      setPickupPointLocal(null);
+      setGlsPointLocal(null);
     }
   }
 
   function handlePointSelect(point: PacketaPoint) {
-    setPacketaPointLocal(point);
-    setPacketaPoint(
+    setPickupPointLocal(point);
+    setGlsPointLocal(null);
+    setPickupPoint(
       String(point.id),
       `${point.name}, ${point.nameStreet}, ${point.city}`,
+    );
+  }
+
+  function handleGlsPointSelect(point: GlsPoint) {
+    setGlsPointLocal(point);
+    setPickupPointLocal(null);
+    setPickupPoint(
+      point.id,
+      `${point.name}, ${point.address}, ${point.city}`,
     );
   }
 
@@ -170,16 +187,32 @@ export function ShippingSelector() {
             </button>
 
             {/* Zasilkovna widget — inline under selected pickup_point */}
-            {isSelected && method.type === "pickup_point" && method.packetaApiKey && (
+            {isSelected && method.carrier === "zasilkovna" && method.carrierConfig?.apiKey && (
               <div className="mt-2 ml-14">
                 <ZasilkovnaWidget
-                  apiKey={method.packetaApiKey}
+                  apiKey={method.carrierConfig.apiKey}
                   onSelect={handlePointSelect}
-                  selectedPoint={packetaPoint}
+                  selectedPoint={pickupPointLocal}
                 />
-                {selectedShipping?.packetaPointName && !packetaPoint && (
+                {selectedShipping?.pickupPointName && !pickupPointLocal && (
                   <div className="mt-2 p-3 bg-wash rounded-lg text-[13px] text-ink">
-                    {selectedShipping.packetaPointName}
+                    {selectedShipping.pickupPointName}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* GLS widget — inline under selected GLS pickup_point */}
+            {isSelected && method.carrier === "gls" && method.type === "pickup_point" && (
+              <div className="mt-2 ml-14">
+                <GlsWidget
+                  onSelect={handleGlsPointSelect}
+                  filterType={(method.carrierConfig?.widgetType as "parcel-shop" | "parcel-locker") || "parcel-shop"}
+                  selectedPoint={glsPointLocal}
+                />
+                {selectedShipping?.pickupPointName && !glsPointLocal && (
+                  <div className="mt-2 p-3 bg-wash rounded-lg text-[13px] text-ink">
+                    {selectedShipping.pickupPointName}
                   </div>
                 )}
               </div>

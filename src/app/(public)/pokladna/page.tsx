@@ -6,18 +6,6 @@ import Image from "next/image";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/products";
 import { createOrder } from "./actions";
-import { ZasilkovnaWidget, type PacketaPoint } from "@/components/ZasilkovnaWidget";
-
-interface ShippingOption {
-  id: string;
-  name: string;
-  code: string;
-  type: string;
-  price: number;
-  freeFrom: number | null;
-  description: string | null;
-  packetaApiKey?: string;
-}
 
 const inputCls =
   "w-full py-2.5 px-4 text-[14px] font-medium border border-line rounded-[var(--radius-field)] bg-white focus:border-navy focus:shadow-[0_0_0_3px_rgba(11,23,39,0.06)] outline-none transition-all";
@@ -25,7 +13,6 @@ const inputErrorCls =
   "w-full py-2.5 px-4 text-[14px] font-medium border border-sale rounded-[var(--radius-field)] bg-white focus:border-navy focus:shadow-[0_0_0_3px_rgba(11,23,39,0.06)] outline-none transition-all";
 const labelCls = "block text-[13px] font-bold text-ink mb-1.5";
 
-type PaymentMethod = "card" | "transfer" | "cod";
 
 function CheckoutSkeleton() {
   return (
@@ -48,10 +35,6 @@ function CheckoutSkeleton() {
 
 export default function CheckoutPage() {
   const { items, subtotal, loaded, clearCart, selectedShipping: cartShipping, shippingPrice: cartShippingPrice } = useCart();
-  const [shipping, setShipping] = useState<ShippingOption[]>([]);
-  const [selectedShippingId, setSelectedShippingId] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
-  const [selectedPoint, setSelectedPoint] = useState<PacketaPoint | null>(null);
   const [differentShipping, setDifferentShipping] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -104,15 +87,15 @@ export default function CheckoutPage() {
               photo: i.photo,
             })),
             subtotal,
-            shippingMethodId: selectedShippingId || undefined,
-            paymentMethod,
+            shippingMethodId: cartShipping?.methodId || undefined,
+            paymentMethod: "card",
           }),
         });
         const data = await res.json();
         if (data.checkoutId) setCheckoutTrackId(data.checkoutId);
       } catch { /* fire-and-forget */ }
     }, 2000);
-  }, [checkoutTrackId, items, subtotal, selectedShippingId, paymentMethod]);
+  }, [checkoutTrackId, items, subtotal, cartShipping?.methodId]);
 
   // Recovery: load data from token in URL
   useEffect(() => {
@@ -153,42 +136,9 @@ export default function CheckoutPage() {
       .catch(() => {});
   }, []);
 
-  // Fetch shipping methods, pre-select from cart if available
-  useEffect(() => {
-    fetch("/api/shipping")
-      .then((r) => r.json())
-      .then((data: ShippingOption[]) => {
-        setShipping(data);
-        if (cartShipping?.methodId && data.some((m: ShippingOption) => m.id === cartShipping.methodId)) {
-          setSelectedShippingId(cartShipping.methodId);
-          // Restore packeta point from cart
-          if (cartShipping.packetaPointId && cartShipping.packetaPointName) {
-            const parts = cartShipping.packetaPointName.split(", ");
-            setSelectedPoint({
-              id: Number(cartShipping.packetaPointId),
-              name: parts[0] || "",
-              nameStreet: parts[1] || "",
-              city: parts[2] || "",
-              zip: "",
-              country: "cz",
-            });
-          }
-        } else if (data.length > 0) {
-          setSelectedShippingId(data[0].id);
-        }
-      })
-      .catch(() => {});
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const selectedMethod = shipping.find((s) => s.id === selectedShippingId);
-  const isPersonalPickup = selectedMethod?.type === "personal";
-  const shippingPrice =
-    selectedMethod && selectedMethod.freeFrom && subtotal >= selectedMethod.freeFrom
-      ? 0
-      : selectedMethod?.price || 0;
+  const isPersonalPickup = cartShipping?.methodType === "personal";
   const discountAmount = discountApplied?.discountAmount || 0;
-  const total = subtotal - discountAmount + shippingPrice;
+  const total = subtotal - discountAmount + cartShippingPrice;
 
   if (!loaded) {
     return <CheckoutSkeleton />;
@@ -253,9 +203,15 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Zasilkovna requires selected point
-    if (selectedMethod?.type === "pickup_point" && !selectedPoint) {
-      setError("Vyber výdejní místo pro Zásilkovnu.");
+    // Shipping must be selected in cart
+    if (!cartShipping?.methodId) {
+      setError("Nebyla vybrána doprava. Vyberte ji v košíku.");
+      return;
+    }
+
+    // Pickup point methods require selected point
+    if (cartShipping.methodType === "pickup_point" && !cartShipping.pickupPointId) {
+      setError("Vyber výdejní místo v košíku.");
       return;
     }
 
@@ -275,12 +231,10 @@ export default function CheckoutPage() {
         shippingStreet: (fd.get("shippingStreet") as string)?.trim() || "",
         shippingCity: (fd.get("shippingCity") as string)?.trim() || "",
         shippingZip: (fd.get("shippingZip") as string)?.trim() || "",
-        shippingMethodId: selectedShippingId,
-        packetaPointId: selectedPoint?.id ? String(selectedPoint.id) : "",
-        packetaPointName: selectedPoint
-          ? `${selectedPoint.name}, ${selectedPoint.nameStreet}, ${selectedPoint.city}`
-          : "",
-        paymentMethod,
+        shippingMethodId: cartShipping.methodId,
+        pickupPointId: cartShipping.pickupPointId || "",
+        pickupPointName: cartShipping.pickupPointName || "",
+        paymentMethod: "card",
         note: (fd.get("note") as string)?.trim() || "",
         discountCode: discountApplied?.code || "",
         items: items.map((i) => ({ variantId: i.variantId, quantity: i.quantity })),
@@ -296,12 +250,7 @@ export default function CheckoutPage() {
     }
   }
 
-  const submitLabel =
-    paymentMethod === "card"
-      ? "Objednat a zaplatit"
-      : paymentMethod === "cod"
-        ? "Objednat na dobírku"
-        : "Objednat";
+  const submitLabel = "Objednat a zaplatit";
 
   return (
     <div className="max-w-[var(--container)] mx-auto px-6 py-8">
@@ -467,137 +416,35 @@ export default function CheckoutPage() {
               )}
             </div>
 
-            {/* 3. Shipping */}
+            {/* 3. Shipping (read-only — selection happens in cart) */}
             <div className="bg-white border border-line rounded-[10px] p-6">
               <h2 className="text-[18px] font-bold text-navy mb-4">3. Doprava</h2>
-              <div className="space-y-3">
-                {shipping.map((method) => {
-                  const isFree = method.freeFrom && subtotal >= method.freeFrom;
-                  const methodPrice = isFree ? 0 : method.price;
-                  return (
-                    <label
-                      key={method.id}
-                      className={`flex items-center gap-4 p-4 rounded-[8px] border cursor-pointer transition-all ${
-                        selectedShippingId === method.id
-                          ? "border-navy bg-wash"
-                          : "border-line hover:border-muted"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="shippingMethod"
-                        value={method.id}
-                        checked={selectedShippingId === method.id}
-                        onChange={() => {
-                          setSelectedShippingId(method.id);
-                          if (method.type !== "pickup_point") {
-                            setSelectedPoint(null);
-                          }
-                          if (method.type === "personal") {
-                            setDifferentShipping(false);
-                          }
-                        }}
-                        className="w-4 h-4 text-navy focus:ring-navy"
-                      />
-                      <div className="flex-1">
-                        <span className="text-[14px] font-bold text-ink">{method.name}</span>
-                        {method.description && (
-                          <p className="text-[12px] text-muted mt-0.5">{method.description}</p>
-                        )}
-                      </div>
-                      <span className="text-[14px] font-bold text-navy">
-                        {methodPrice === 0 ? "Zdarma" : formatPrice(methodPrice)}
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-
-              {/* Zasilkovna widget */}
-              {selectedMethod?.type === "pickup_point" && selectedMethod.packetaApiKey && (
-                <div className="mt-4 pl-0 sm:pl-8">
-                  <ZasilkovnaWidget
-                    apiKey={selectedMethod.packetaApiKey}
-                    onSelect={(point) => setSelectedPoint(point)}
-                    selectedPoint={selectedPoint}
-                  />
+              {cartShipping ? (
+                <div className="flex items-center justify-between p-4 bg-wash rounded-[8px]">
+                  <div>
+                    <span className="text-[14px] font-bold text-ink">{cartShipping.methodName}</span>
+                    {cartShipping.pickupPointName && (
+                      <p className="text-[12px] text-muted mt-0.5">{cartShipping.pickupPointName}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[14px] font-bold text-navy">
+                      {cartShippingPrice === 0 ? "Zdarma" : formatPrice(cartShippingPrice)}
+                    </span>
+                    <Link href="/kosik" className="text-[12px] text-blue underline">Změnit</Link>
+                  </div>
                 </div>
-              )}
-
-              {/* Personal pickup info */}
-              {isPersonalPickup && (
-                <div className="mt-4 p-3 bg-wash rounded-lg">
-                  <p className="text-[13px] text-ink">
-                    {selectedMethod?.description || "Osobní odběr na pobočce."}
-                  </p>
+              ) : (
+                <div className="p-4 bg-red-50 rounded-[8px]">
+                  <p className="text-[13px] text-sale">Nebyla vybrána doprava.</p>
+                  <Link href="/kosik" className="text-[12px] text-blue underline mt-1 inline-block">Vybrat v košíku</Link>
                 </div>
               )}
             </div>
 
-            {/* 4. Payment */}
+            {/* 4. Discount code */}
             <div className="bg-white border border-line rounded-[10px] p-6">
-              <h2 className="text-[18px] font-bold text-navy mb-4">4. Platba</h2>
-              <div className="space-y-3">
-                <label
-                  className={`flex items-center gap-4 p-4 rounded-[8px] border cursor-pointer transition-all ${
-                    paymentMethod === "card" ? "border-navy bg-wash" : "border-line hover:border-muted"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="card"
-                    checked={paymentMethod === "card"}
-                    onChange={() => setPaymentMethod("card")}
-                    className="w-4 h-4 text-navy focus:ring-navy"
-                  />
-                  <div className="flex-1">
-                    <span className="text-[14px] font-bold text-ink">Platba kartou</span>
-                    <p className="text-[12px] text-muted mt-0.5">Visa, Mastercard — přes Comgate</p>
-                  </div>
-                </label>
-                <label
-                  className={`flex items-center gap-4 p-4 rounded-[8px] border cursor-pointer transition-all ${
-                    paymentMethod === "transfer" ? "border-navy bg-wash" : "border-line hover:border-muted"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="transfer"
-                    checked={paymentMethod === "transfer"}
-                    onChange={() => setPaymentMethod("transfer")}
-                    className="w-4 h-4 text-navy focus:ring-navy"
-                  />
-                  <div className="flex-1">
-                    <span className="text-[14px] font-bold text-ink">Bankovní převod</span>
-                    <p className="text-[12px] text-muted mt-0.5">Platba na účet — pokyny obdržíte po objednání</p>
-                  </div>
-                </label>
-                <label
-                  className={`flex items-center gap-4 p-4 rounded-[8px] border cursor-pointer transition-all ${
-                    paymentMethod === "cod" ? "border-navy bg-wash" : "border-line hover:border-muted"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="cod"
-                    checked={paymentMethod === "cod"}
-                    onChange={() => setPaymentMethod("cod")}
-                    className="w-4 h-4 text-navy focus:ring-navy"
-                  />
-                  <div className="flex-1">
-                    <span className="text-[14px] font-bold text-ink">Dobírka</span>
-                    <p className="text-[12px] text-muted mt-0.5">Zaplatíte při převzetí zásilky</p>
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            {/* 5. Discount code */}
-            <div className="bg-white border border-line rounded-[10px] p-6">
-              <h2 className="text-[18px] font-bold text-navy mb-4">5. Slevový kód</h2>
+              <h2 className="text-[18px] font-bold text-navy mb-4">4. Slevový kód</h2>
               {discountApplied ? (
                 <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                   <div>
@@ -673,9 +520,9 @@ export default function CheckoutPage() {
               )}
             </div>
 
-            {/* 6. Note */}
+            {/* 5. Note */}
             <div className="bg-white border border-line rounded-[10px] p-6">
-              <h2 className="text-[18px] font-bold text-navy mb-4">6. Poznámka</h2>
+              <h2 className="text-[18px] font-bold text-navy mb-4">5. Poznámka</h2>
               <textarea
                 name="note"
                 rows={3}
@@ -735,13 +582,13 @@ export default function CheckoutPage() {
                 )}
                 <div className="flex justify-between">
                   <span className="text-muted">
-                    Doprava{selectedMethod ? ` (${selectedMethod.name})` : ""}
+                    Doprava{cartShipping ? ` (${cartShipping.methodName})` : ""}
                   </span>
                   <span className="font-medium text-ink">
-                    {shippingPrice === 0 ? (
+                    {cartShippingPrice === 0 ? (
                       <span className="text-navy font-bold">Zdarma</span>
                     ) : (
-                      formatPrice(shippingPrice)
+                      formatPrice(cartShippingPrice)
                     )}
                   </span>
                 </div>

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getApiKeyFromConfig } from "@/lib/zasilkovna";
 
 export async function GET() {
   const methods = await prisma.shippingMethod.findMany({
@@ -18,11 +17,19 @@ export async function GET() {
     },
   });
 
-  const result = methods.map(({ config, ...m }) => ({
-    ...m,
-    packetaApiKey:
-      m.type === "pickup_point" ? getApiKeyFromConfig(config) : undefined,
-  }));
+  const result = methods.map(({ config, ...m }) => {
+    let parsed: Record<string, unknown> = {};
+    try { parsed = JSON.parse(config || "{}"); } catch { /* noop */ }
+
+    return {
+      ...m,
+      carrier: (parsed.carrier as string) || undefined,
+      carrierConfig: m.type === "pickup_point" ? {
+        apiKey: (parsed.apiKey as string) || undefined,
+        widgetType: (parsed.widgetType as string) || undefined,
+      } : undefined,
+    };
+  });
 
   return NextResponse.json(result);
 }

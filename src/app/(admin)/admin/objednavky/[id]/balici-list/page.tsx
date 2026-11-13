@@ -119,9 +119,9 @@ export default async function PackingSlipPage({ params }: Props) {
               Doprava
             </div>
             <div className="font-bold text-sm">{order.shipping?.name || "-"}</div>
-            {order.packetaPointName && (
+            {order.pickupPointName && (
               <div className="text-sm text-gray-700 mt-1">
-                Výdejní místo: {order.packetaPointName}
+                Výdejní místo: {order.pickupPointName}
               </div>
             )}
             {order.trackingNumber && (

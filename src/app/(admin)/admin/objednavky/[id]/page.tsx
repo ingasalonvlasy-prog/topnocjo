@@ -16,7 +16,9 @@ import {
   updateAdminNote,
   markSupplierOrdered,
   markSupplierReceived,
+  addComment,
 } from "./actions";
+import { OrderTimelineItem } from "./timeline-item";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -65,43 +67,6 @@ function addBusinessDays(date: Date, days: number): Date {
   return result;
 }
 
-interface TimelineEvent {
-  date: Date;
-  label: string;
-  color: string;
-}
-
-function buildTimeline(order: {
-  createdAt: Date;
-  paidAt: Date | null;
-  supplierOrderedAt: Date | null;
-  supplierReceivedAt: Date | null;
-  shippedAt: Date | null;
-  deliveredAt: Date | null;
-  cancelledAt: Date | null;
-}): TimelineEvent[] {
-  const events: TimelineEvent[] = [];
-
-  events.push({ date: order.createdAt, label: "Objednávka vytvořena", color: "blue" });
-  if (order.paidAt) events.push({ date: order.paidAt, label: "Zaplaceno", color: "green" });
-  if (order.supplierOrderedAt)
-    events.push({ date: order.supplierOrderedAt, label: "Objednáno od dodavatele", color: "orange" });
-  if (order.supplierReceivedAt)
-    events.push({ date: order.supplierReceivedAt, label: "Zboží od dodavatele přijato", color: "orange" });
-  if (order.shippedAt) events.push({ date: order.shippedAt, label: "Odesláno", color: "purple" });
-  if (order.deliveredAt) events.push({ date: order.deliveredAt, label: "Doručeno", color: "green" });
-  if (order.cancelledAt) events.push({ date: order.cancelledAt, label: "Zrušeno", color: "red" });
-
-  return events.sort((a, b) => a.date.getTime() - b.date.getTime());
-}
-
-const TIMELINE_COLORS: Record<string, { dot: string; line: string }> = {
-  blue: { dot: "bg-blue-500", line: "border-blue-200" },
-  green: { dot: "bg-green-500", line: "border-green-200" },
-  orange: { dot: "bg-orange-500", line: "border-orange-200" },
-  purple: { dot: "bg-purple-500", line: "border-purple-200" },
-  red: { dot: "bg-red-500", line: "border-red-200" },
-};
 
 export default async function OrderDetailPage({ params }: Props) {
   const { id } = await params;
@@ -112,6 +77,7 @@ export default async function OrderDetailPage({ params }: Props) {
       items: true,
       shipping: true,
       user: { select: { id: true, email: true, firstName: true, lastName: true } },
+      events: { orderBy: { createdAt: "desc" } },
     },
   });
 
@@ -151,7 +117,6 @@ export default async function OrderDetailPage({ params }: Props) {
   const paymentColor = PAYMENT_STATUS_COLORS[paymentKey] || { bg: "bg-gray-100", text: "text-gray-700" };
   const allowedTransitions = ORDER_STATUS_TRANSITIONS[statusKey] || [];
   const fulfillment = FULFILLMENT_MAP[order.status] || { label: order.status, bg: "bg-gray-100", text: "text-gray-700" };
-  const timeline = buildTimeline(order);
 
   const hasShippingAddress = order.shippingStreet && order.shippingCity && order.shippingZip;
 
@@ -293,13 +258,13 @@ export default async function OrderDetailPage({ params }: Props) {
                   {estimatedDelivery || "Po odeslání"}
                 </p>
               </div>
-              {order.packetaPointName && (
+              {order.pickupPointName && (
                 <div className="col-span-2">
                   <span className="text-gray-500">Výdejní místo</span>
                   <p className="font-medium text-gray-900">
-                    {order.packetaPointName}
-                    {order.packetaPointId && (
-                      <span className="text-xs text-gray-400 ml-1">#{order.packetaPointId}</span>
+                    {order.pickupPointName}
+                    {order.pickupPointId && (
+                      <span className="text-xs text-gray-400 ml-1">#{order.pickupPointId}</span>
                     )}
                   </p>
                 </div>
@@ -500,27 +465,6 @@ export default async function OrderDetailPage({ params }: Props) {
             </div>
           )}
 
-          {/* Admin note */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
-            <h2 className="font-semibold text-gray-900 mb-3">Admin poznámka</h2>
-            <form action={updateAdminNote}>
-              <input type="hidden" name="orderId" value={order.id} />
-              <textarea
-                name="adminNote"
-                defaultValue={order.adminNote || ""}
-                rows={3}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none resize-y"
-                placeholder="Interní poznámka k objednávce..."
-              />
-              <button
-                type="submit"
-                className="mt-2 px-4 py-1.5 text-sm font-medium rounded-md bg-gray-900 text-white hover:bg-gray-800 transition-colors"
-              >
-                Uložit poznámku
-              </button>
-            </form>
-          </div>
-
           {/* Customer note */}
           {order.note && (
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
@@ -531,26 +475,44 @@ export default async function OrderDetailPage({ params }: Props) {
 
           {/* Timeline */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
-            <h2 className="font-semibold text-gray-900 mb-4">Historie</h2>
-            <div className="space-y-0">
-              {timeline.map((event, idx) => {
-                const colors = TIMELINE_COLORS[event.color] || TIMELINE_COLORS.blue;
-                return (
-                  <div key={idx} className="flex items-start gap-3">
-                    <div className="flex flex-col items-center">
-                      <div className={`w-2.5 h-2.5 rounded-full mt-1.5 ${colors.dot}`} />
-                      {idx < timeline.length - 1 && (
-                        <div className={`w-px h-6 border-l-2 ${colors.line}`} />
-                      )}
-                    </div>
-                    <div className="pb-4">
-                      <p className="text-sm font-medium text-gray-900">{event.label}</p>
-                      <p className="text-xs text-gray-500">{formatDateTime(event.date)}</p>
-                    </div>
+            <h2 className="font-semibold text-gray-900 mb-4">Časová osa</h2>
+
+            {/* Comment form */}
+            <form action={addComment} className="mb-6">
+              <input type="hidden" name="orderId" value={order.id} />
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                  A
+                </div>
+                <div className="flex-1">
+                  <textarea
+                    name="text"
+                    rows={2}
+                    placeholder="Přidat komentář..."
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none resize-y"
+                  />
+                  <div className="flex justify-end mt-2">
+                    <button
+                      type="submit"
+                      className="px-4 py-1.5 text-sm font-medium rounded-md bg-gray-900 text-white hover:bg-gray-800 transition-colors"
+                    >
+                      Přidat komentář
+                    </button>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              </div>
+            </form>
+
+            {/* Events list */}
+            {order.events.length > 0 ? (
+              <div className="space-y-0 border-l-2 border-gray-200 ml-4">
+                {order.events.map((event) => (
+                  <OrderTimelineItem key={event.id} event={event} />
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">Zatím žádné události.</p>
+            )}
           </div>
         </div>
 
@@ -612,12 +574,12 @@ export default async function OrderDetailPage({ params }: Props) {
             <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Doprava</h3>
             <p className="text-sm font-medium text-gray-900">{order.shipping?.name || "—"}</p>
             <p className="text-sm text-gray-600">{formatPrice(order.shippingPrice)}</p>
-            {order.packetaPointName && (
+            {order.pickupPointName && (
               <div className="mt-2 text-sm text-gray-600">
                 <p className="font-medium">Výdejní místo:</p>
-                <p>{order.packetaPointName}</p>
-                {order.packetaPointId && (
-                  <p className="text-xs text-gray-500">ID: {order.packetaPointId}</p>
+                <p>{order.pickupPointName}</p>
+                {order.pickupPointId && (
+                  <p className="text-xs text-gray-500">ID: {order.pickupPointId}</p>
                 )}
               </div>
             )}
@@ -748,6 +710,27 @@ export default async function OrderDetailPage({ params }: Props) {
               </div>
             </div>
           )}
+
+          {/* Admin note (pinned) */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Poznámka</h3>
+            <form action={updateAdminNote}>
+              <input type="hidden" name="orderId" value={order.id} />
+              <textarea
+                name="adminNote"
+                defaultValue={order.adminNote || ""}
+                rows={2}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none resize-y"
+                placeholder="Interní poznámka..."
+              />
+              <button
+                type="submit"
+                className="mt-2 w-full px-3 py-1.5 text-sm font-medium rounded-md bg-gray-900 text-white hover:bg-gray-800 transition-colors"
+              >
+                Uložit
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </div>

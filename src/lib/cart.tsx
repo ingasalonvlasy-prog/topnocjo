@@ -21,8 +21,8 @@ export interface SelectedShipping {
   methodType: string;
   price: number;
   freeFrom: number | null;
-  packetaPointId?: string;
-  packetaPointName?: string;
+  pickupPointId?: string;
+  pickupPointName?: string;
 }
 
 interface CartContextValue {
@@ -36,7 +36,7 @@ interface CartContextValue {
   clearCart: () => void;
   selectedShipping: SelectedShipping | null;
   setSelectedShipping: (shipping: SelectedShipping | null) => void;
-  setPacketaPoint: (pointId: string, pointName: string) => void;
+  setPickupPoint: (pointId: string, pointName: string) => void;
   shippingPrice: number;
 }
 
@@ -55,7 +55,7 @@ const CartContext = createContext<CartContextValue>({
   clearCart: () => {},
   selectedShipping: null,
   setSelectedShipping: () => {},
-  setPacketaPoint: () => {},
+  setPickupPoint: () => {},
   shippingPrice: 0,
 });
 
@@ -139,10 +139,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const setPacketaPoint = useCallback((pointId: string, pointName: string) => {
+  const setPickupPoint = useCallback((pointId: string, pointName: string) => {
     setSelectedShippingState((prev) => {
       if (!prev) return prev;
-      const updated = { ...prev, packetaPointId: pointId, packetaPointName: pointName };
+      const updated = { ...prev, pickupPointId: pointId, pickupPointName: pointName };
       localStorage.setItem(SHIPPING_STORAGE_KEY, JSON.stringify(updated));
       return updated;
     });
@@ -160,7 +160,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   return (
     <CartContext.Provider value={{
       items, itemCount, subtotal, loaded, addItem, updateQuantity, removeItem, clearCart,
-      selectedShipping: selectedShippingState, setSelectedShipping, setPacketaPoint, shippingPrice,
+      selectedShipping: selectedShippingState, setSelectedShipping, setPickupPoint, shippingPrice,
     }}>
       {children}
     </CartContext.Provider>

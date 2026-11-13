@@ -37,11 +37,19 @@ export default async function ShippingEditPage({
     const code = formData.get("code") as string;
 
     if (code === "zasilkovna") {
+      configObj.carrier = "zasilkovna";
       const apiKey = formData.get("config_apiKey") as string;
       const senderLabel = formData.get("config_senderLabel") as string;
       if (apiKey) configObj.apiKey = apiKey;
       if (senderLabel) configObj.senderLabel = senderLabel;
+    } else if (code === "gls-parcelshop") {
+      configObj.carrier = "gls";
+      configObj.widgetType = "parcel-shop";
+    } else if (code === "gls-parcelbox") {
+      configObj.carrier = "gls";
+      configObj.widgetType = "parcel-locker";
     } else if (code === "gls") {
+      configObj.carrier = "gls";
       const note = formData.get("config_note") as string;
       if (note) configObj.note = note;
     } else if (code === "pickup") {
@@ -188,6 +196,22 @@ export default async function ShippingEditPage({
               apiKey={config.apiKey || ""}
               senderLabel={config.senderLabel || ""}
             />
+          )}
+
+          {(method.code === "gls-parcelshop" || method.code === "gls-parcelbox") && (
+            <div className="border-t border-gray-200 pt-6">
+              <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5 text-yellow-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                </svg>
+                {method.code === "gls-parcelshop" ? "GLS ParcelShop" : "GLS ParcelBox"}
+              </h3>
+              <p className="text-sm text-gray-500">
+                Widget pro vyber vydejniho mista je automaticky — nevyzaduje API klic.
+                Typ widgetu: <span className="font-mono font-medium">{config.widgetType || "neurceno"}</span>
+              </p>
+            </div>
           )}
 
           {method.code === "gls" && (

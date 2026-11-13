@@ -21,7 +21,7 @@ interface OrderConfirmationProps {
   street: string;
   city: string;
   zip: string;
-  packetaPointName?: string;
+  pickupPointName?: string;
   viewToken?: string;
 }
 
@@ -41,7 +41,7 @@ export function OrderConfirmation({
   street,
   city,
   zip,
-  packetaPointName,
+  pickupPointName,
   viewToken,
 }: OrderConfirmationProps) {
   return (
@@ -121,7 +121,7 @@ export function OrderConfirmation({
       </Text>
       <Text style={{ fontSize: "13px", color: "#555", margin: "0 0 4px" }}>
         {shippingName}
-        {packetaPointName ? ` — ${packetaPointName}` : ""}
+        {pickupPointName ? ` — ${pickupPointName}` : ""}
       </Text>
       <Text style={{ fontSize: "13px", color: "#555", margin: "0 0 20px" }}>
         {street}, {zip} {city}

@@ -189,8 +189,8 @@ model Order {
   shippingZip        String?
   shippingId         String
   shippingPrice      Int            @default(0)
-  packetaPointId     String?
-  packetaPointName   String?
+  pickupPointId     String?
+  pickupPointName   String?
   paymentMethod      String         @default("card")
   paymentStatus      String         @default("PENDING")
   comgateTransId     String?
@@ -214,6 +214,7 @@ model Order {
   supplierOrderedAt  DateTime?
   supplierReceivedAt DateTime?
   items              OrderItem[]
+  events             OrderEvent[]
   user               User?          @relation(fields: [userId], references: [id])
   shipping           ShippingMethod @relation(fields: [shippingId], references: [id])
 
@@ -243,6 +244,20 @@ model OrderItem {
 
   @@index([orderId])
   @@map("order_items")
+}
+
+model OrderEvent {
+  id        String   @id @default(cuid())
+  orderId   String
+  type      String
+  title     String
+  detail    String?
+  userId    String?
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+  @@map("order_events")
 }
 
 model Supplier {

@@ -30,8 +30,8 @@ interface CheckoutData {
   shippingCity: string;
   shippingZip: string;
   shippingMethodId: string;
-  packetaPointId: string;
-  packetaPointName: string;
+  pickupPointId: string;
+  pickupPointName: string;
   paymentMethod: "card" | "transfer" | "cod";
   note: string;
   discountCode: string;
@@ -147,8 +147,8 @@ export async function createOrder(data: CheckoutData) {
       shippingZip: data.differentShipping ? data.shippingZip || null : null,
       shippingId: shippingMethod.id,
       shippingPrice,
-      packetaPointId: data.packetaPointId || null,
-      packetaPointName: data.packetaPointName || null,
+      pickupPointId: data.pickupPointId || null,
+      pickupPointName: data.pickupPointName || null,
       paymentMethod: data.paymentMethod,
       subtotal,
       discountCode: discountCodeStr,
@@ -188,7 +188,7 @@ export async function createOrder(data: CheckoutData) {
       street: data.street,
       city: data.city,
       zip: data.zip,
-      packetaPointName: data.packetaPointName || undefined,
+      pickupPointName: data.pickupPointName || undefined,
       viewToken,
     }),
   });

@@ -266,7 +266,7 @@ export default function CartPage() {
               <p className="text-[12px] text-muted mt-1">vč. DPH</p>
             </div>
 
-            {selectedShipping?.methodType === "pickup_point" && !selectedShipping.packetaPointId ? (
+            {selectedShipping?.methodType === "pickup_point" && !selectedShipping.pickupPointId ? (
               <button
                 type="button"
                 disabled

@@ -229,9 +229,9 @@ export default async function FulfillmentPage({ searchParams }: Props) {
                       </td>
                       <td className="px-4 py-3">
                         <div className="text-xs text-gray-900">{order.shipping?.name || "—"}</div>
-                        {order.packetaPointName && (
-                          <div className="text-xs text-gray-500 truncate max-w-[140px]" title={order.packetaPointName}>
-                            {order.packetaPointName}
+                        {order.pickupPointName && (
+                          <div className="text-xs text-gray-500 truncate max-w-[140px]" title={order.pickupPointName}>
+                            {order.pickupPointName}
                           </div>
                         )}
                       </td>

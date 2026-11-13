@@ -231,8 +231,8 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
         <div className="bg-white border border-line rounded-[10px] p-5">
           <h3 className="text-[13px] font-bold text-muted mb-2 uppercase tracking-wide">Doručení</h3>
           <p className="text-[14px] text-ink font-medium">{order.shipping.name}</p>
-          {order.packetaPointName && (
-            <p className="text-[13px] text-muted">{order.packetaPointName}</p>
+          {order.pickupPointName && (
+            <p className="text-[13px] text-muted">{order.pickupPointName}</p>
           )}
           {order.shippingStreet ? (
             <>

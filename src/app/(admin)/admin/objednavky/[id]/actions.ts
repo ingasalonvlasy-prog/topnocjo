@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
-import { ORDER_STATUS_TRANSITIONS } from "@/lib/order-constants";
+import { ORDER_STATUS_TRANSITIONS, ORDER_STATUS_LABELS } from "@/lib/order-constants";
 import type { OrderStatus } from "@/lib/order-constants";
 import { sendEmail } from "@/lib/email";
 import { OrderShipped } from "@/lib/emails/order-shipped";
@@ -10,6 +10,7 @@ import { OrderCancelled } from "@/lib/emails/order-cancelled";
 import { OrderDelivered } from "@/lib/emails/order-delivered";
 import { ReviewInvitation } from "@/lib/emails/review-invitation";
 import { logAdminAction } from "@/lib/admin-log";
+import { logOrderEvent } from "@/lib/order-events";
 import { createZasilkovnaPacket } from "@/lib/zasilkovna";
 import { requireAdmin } from "@/lib/auth";
 
@@ -35,6 +36,13 @@ export async function updateOrderStatus(formData: FormData) {
 
   logAdminAction("status_change", "order", orderId, `${order.orderNumber}: ${currentStatus} → ${newStatus}`);
 
+  logOrderEvent({
+    orderId,
+    type: "status_change",
+    title: `Stav změněn: ${ORDER_STATUS_LABELS[currentStatus] || currentStatus} → ${ORDER_STATUS_LABELS[newStatus] || newStatus}`,
+    detail: { from: currentStatus, to: newStatus },
+  });
+
   // Send email notifications (fire-and-forget)
   if (newStatus === "SHIPPED") {
     const updatedOrder = await prisma.order.findUniqueOrThrow({
@@ -55,7 +63,7 @@ export async function updateOrderStatus(formData: FormData) {
     });
 
     // Auto-create Zásilkovna packet if applicable
-    if (updatedOrder.shipping.code === "zasilkovna" && updatedOrder.packetaPointId) {
+    if (updatedOrder.shipping.code === "zasilkovna" && updatedOrder.pickupPointId) {
       const shippingConfig = JSON.parse(updatedOrder.shipping.config || "{}");
       if (shippingConfig.apiKey) {
         createZasilkovnaPacket({
@@ -65,7 +73,7 @@ export async function updateOrderStatus(formData: FormData) {
           lastName: updatedOrder.lastName,
           email: updatedOrder.email,
           phone: updatedOrder.phone || "",
-          addressId: parseInt(updatedOrder.packetaPointId, 10),
+          addressId: parseInt(updatedOrder.pickupPointId, 10),
           value: updatedOrder.paymentMethod === "cod" ? Math.round(updatedOrder.total / 100) : 0,
           weight: 1,
           senderLabel: shippingConfig.senderLabel,
@@ -166,6 +174,13 @@ export async function updateTracking(formData: FormData) {
     data: { trackingNumber, trackingUrl },
   });
 
+  logOrderEvent({
+    orderId,
+    type: "tracking",
+    title: trackingNumber ? `Tracking přidán: ${trackingNumber}` : "Tracking odebrán",
+    detail: { trackingNumber, trackingUrl },
+  });
+
   revalidatePath(`/admin/objednavky/${orderId}`);
 }
 
@@ -177,6 +192,13 @@ export async function updateAdminNote(formData: FormData) {
   await prisma.order.update({
     where: { id: orderId },
     data: { adminNote },
+  });
+
+  logOrderEvent({
+    orderId,
+    type: "note",
+    title: "Admin poznámka upravena",
+    detail: { text: adminNote || "" },
   });
 
   revalidatePath(`/admin/objednavky/${orderId}`);
@@ -196,6 +218,13 @@ export async function markSupplierOrdered(formData: FormData) {
 
   logAdminAction("status_change", "order", orderId, "Objednáno u dodavatele");
 
+  logOrderEvent({
+    orderId,
+    type: "supplier",
+    title: "Objednáno od dodavatele",
+    detail: { action: "ordered" },
+  });
+
   revalidatePath(`/admin/objednavky/${orderId}`);
   revalidatePath("/admin/objednavky");
 }
@@ -214,6 +243,30 @@ export async function markSupplierReceived(formData: FormData) {
 
   logAdminAction("status_change", "order", orderId, "Přijato od dodavatele");
 
+  logOrderEvent({
+    orderId,
+    type: "supplier",
+    title: "Zboží přijato od dodavatele",
+    detail: { action: "received" },
+  });
+
   revalidatePath(`/admin/objednavky/${orderId}`);
   revalidatePath("/admin/objednavky");
+}
+
+export async function addComment(formData: FormData) {
+  await requireAdmin();
+  const orderId = formData.get("orderId") as string;
+  const text = (formData.get("text") as string)?.trim();
+
+  if (!text) return;
+
+  await logOrderEvent({
+    orderId,
+    type: "comment",
+    title: "Interní komentář",
+    detail: { text, internal: true },
+  });
+
+  revalidatePath(`/admin/objednavky/${orderId}`);
 }
