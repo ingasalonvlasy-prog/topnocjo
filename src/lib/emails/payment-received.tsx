@@ -28,7 +28,7 @@ export function PaymentReceived({ orderNumber, firstName, total, paidAt, viewTok
       <Section style={{ backgroundColor: "#F0FFF0", padding: "16px", borderRadius: "6px", border: "1px solid #D0F0D0", marginBottom: "20px" }}>
         <Text style={{ fontSize: "12px", color: "#666", margin: "0 0 4px" }}>Objednávka</Text>
         <Text style={{ fontSize: "18px", fontWeight: "bold", color: "#0B1727", margin: "0 0 8px", fontFamily: "monospace" }}>
-          {orderNumber}
+          #{orderNumber}
         </Text>
         <Text style={{ fontSize: "14px", color: "#333", margin: "0 0 4px" }}>
           Částka: <strong>{formatPrice(total)}</strong>

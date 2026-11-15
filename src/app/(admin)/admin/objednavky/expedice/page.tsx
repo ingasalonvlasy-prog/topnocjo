@@ -167,7 +167,7 @@ export default async function FulfillmentPage({ searchParams }: Props) {
                           href={`/admin/objednavky/${order.id}`}
                           className="font-mono text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
                         >
-                          {order.orderNumber}
+                          #{order.orderNumber}
                         </Link>
                         <div className="text-xs text-gray-400">{itemCount} pol.</div>
                       </td>

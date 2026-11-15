@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     // Send payment received email (fire-and-forget)
     sendEmail({
       to: order.email,
-      subject: `Platba za objednávku ${order.orderNumber} přijata`,
+      subject: `Platba za objednávku #${order.orderNumber} přijata`,
       react: PaymentReceived({
         orderNumber: order.orderNumber,
         firstName: order.firstName,

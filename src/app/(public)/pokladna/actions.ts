@@ -175,12 +175,14 @@ export async function createOrder(data: CheckoutData) {
   // 8. Send order confirmation email (fire-and-forget)
   sendEmail({
     to: data.email,
-    subject: `Objednávka ${orderNumber} byla přijata`,
+    subject: `Objednávka #${orderNumber} byla přijata`,
     react: OrderConfirmation({
       orderNumber,
       firstName: data.firstName,
       items: orderItems,
       subtotal,
+      discountCode: discountCodeStr || undefined,
+      discountAmount: discountAmount || undefined,
       shippingPrice,
       shippingName: shippingMethod.name,
       total,
@@ -188,7 +190,15 @@ export async function createOrder(data: CheckoutData) {
       street: data.street,
       city: data.city,
       zip: data.zip,
+      shippingStreet: data.differentShipping ? data.shippingStreet || undefined : undefined,
+      shippingCity: data.differentShipping ? data.shippingCity || undefined : undefined,
+      shippingZip: data.differentShipping ? data.shippingZip || undefined : undefined,
+      shippingRecipient: data.differentShipping ? data.shippingName || undefined : undefined,
       pickupPointName: data.pickupPointName || undefined,
+      phone: data.phone || undefined,
+      createdAt: new Date().toLocaleDateString("cs-CZ", {
+        day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
+      }),
       viewToken,
     }),
   });
@@ -197,7 +207,7 @@ export async function createOrder(data: CheckoutData) {
   const adminEmail = process.env.ADMIN_EMAIL || "obchod@qsport.cz";
   sendEmail({
     to: adminEmail,
-    subject: `Nová objednávka ${orderNumber}`,
+    subject: `Nová objednávka #${orderNumber}`,
     react: AdminNewOrder({
       orderNumber,
       firstName: data.firstName,
@@ -206,11 +216,17 @@ export async function createOrder(data: CheckoutData) {
       phone: data.phone || undefined,
       items: orderItems,
       subtotal,
+      discountCode: discountCodeStr || undefined,
+      discountAmount: discountAmount || undefined,
       shippingPrice,
       shippingName: shippingMethod.name,
       total,
       paymentMethod: data.paymentMethod,
       needsSupplier,
+      street: data.street,
+      city: data.city,
+      zip: data.zip,
+      pickupPointName: data.pickupPointName || undefined,
     }),
   });
 

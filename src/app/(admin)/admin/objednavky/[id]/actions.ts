@@ -47,11 +47,11 @@ export async function updateOrderStatus(formData: FormData) {
   if (newStatus === "SHIPPED") {
     const updatedOrder = await prisma.order.findUniqueOrThrow({
       where: { id: orderId },
-      include: { shipping: true },
+      include: { shipping: true, items: { select: { productName: true, quantity: true } } },
     });
     sendEmail({
       to: updatedOrder.email,
-      subject: `Objednávka ${updatedOrder.orderNumber} byla odeslána`,
+      subject: `Objednávka #${updatedOrder.orderNumber} byla odeslána`,
       react: OrderShipped({
         orderNumber: updatedOrder.orderNumber,
         firstName: updatedOrder.firstName,
@@ -59,6 +59,11 @@ export async function updateOrderStatus(formData: FormData) {
         trackingNumber: updatedOrder.trackingNumber || undefined,
         trackingUrl: updatedOrder.trackingUrl || undefined,
         viewToken: updatedOrder.viewToken || undefined,
+        items: updatedOrder.items.map(i => ({ name: i.productName, quantity: i.quantity })),
+        pickupPointName: updatedOrder.pickupPointName || undefined,
+        deliveryAddress: updatedOrder.shippingStreet
+          ? `${updatedOrder.shippingStreet}, ${updatedOrder.shippingZip} ${updatedOrder.shippingCity}`
+          : `${updatedOrder.street}, ${updatedOrder.zip} ${updatedOrder.city}`,
       }),
     });
 
@@ -95,7 +100,7 @@ export async function updateOrderStatus(formData: FormData) {
   if (newStatus === "DELIVERED") {
     sendEmail({
       to: order.email,
-      subject: `Objednávka ${order.orderNumber} byla doručena`,
+      subject: `Objednávka #${order.orderNumber} byla doručena`,
       react: OrderDelivered({
         orderNumber: order.orderNumber,
         firstName: order.firstName,
@@ -135,7 +140,7 @@ export async function updateOrderStatus(formData: FormData) {
   if (newStatus === "CANCELLED") {
     sendEmail({
       to: order.email,
-      subject: `Objednávka ${order.orderNumber} byla zrušena`,
+      subject: `Objednávka #${order.orderNumber} byla zrušena`,
       react: OrderCancelled({
         orderNumber: order.orderNumber,
         firstName: order.firstName,

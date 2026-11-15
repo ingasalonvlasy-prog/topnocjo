@@ -67,7 +67,7 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
             </div>
             <h1 className="text-[26px] font-extrabold text-navy mb-2">Platba se nezdařila</h1>
             <p className="text-[14px] text-muted">
-              Objednávka {order.orderNumber} byla vytvořena, ale platba nebyla dokončena.
+              Objednávka #{order.orderNumber} byla vytvořena, ale platba nebyla dokončena.
             </p>
           </>
         ) : (
@@ -81,7 +81,7 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
               {isNew ? "Děkujeme za objednávku!" : "Detail objednávky"}
             </h1>
             <p className="text-[14px] text-muted">
-              Číslo objednávky: <span className="font-bold text-ink">{order.orderNumber}</span>
+              Číslo objednávky: <span className="font-bold text-ink">#{order.orderNumber}</span>
             </p>
             {isFallback && (
               <p className="text-[13px] text-sale mt-2">

@@ -507,7 +507,7 @@ export default async function AdminDashboard({
                           href={`/admin/objednavky/${order.id}`}
                           className="font-medium text-blue-600 hover:text-blue-800"
                         >
-                          {order.orderNumber}
+                          #{order.orderNumber}
                         </Link>
                       </td>
                       <td className="py-2.5 text-gray-700">

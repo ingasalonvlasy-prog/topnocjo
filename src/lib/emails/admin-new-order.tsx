@@ -17,11 +17,17 @@ interface AdminNewOrderProps {
   phone?: string;
   items: OrderItem[];
   subtotal: number;
+  discountCode?: string;
+  discountAmount?: number;
   shippingPrice: number;
   shippingName: string;
   total: number;
   paymentMethod: string;
   needsSupplier: boolean;
+  street: string;
+  city: string;
+  zip: string;
+  pickupPointName?: string;
 }
 
 function formatPrice(amount: number): string {
@@ -36,14 +42,20 @@ export function AdminNewOrder({
   phone,
   items,
   subtotal,
+  discountCode,
+  discountAmount,
   shippingPrice,
   shippingName,
   total,
   paymentMethod,
   needsSupplier,
+  street,
+  city,
+  zip,
+  pickupPointName,
 }: AdminNewOrderProps) {
   return (
-    <EmailLayout preview={`Nová objednávka ${orderNumber}`}>
+    <EmailLayout preview={`Nová objednávka #${orderNumber}`}>
       <Text style={{ fontSize: "18px", fontWeight: "bold", color: "#0B1727", margin: "0 0 16px" }}>
         Nová objednávka
       </Text>
@@ -52,7 +64,7 @@ export function AdminNewOrder({
       <Section style={{ backgroundColor: "#F3F0FF", padding: "16px", borderRadius: "6px", border: "1px solid #DDD8FF", marginBottom: "20px" }}>
         <Text style={{ fontSize: "12px", color: "#666", margin: "0 0 4px" }}>Číslo objednávky</Text>
         <Text style={{ fontSize: "20px", fontWeight: "bold", color: "#0B1727", margin: "0 0 8px", fontFamily: "monospace" }}>
-          {orderNumber}
+          #{orderNumber}
         </Text>
         <Text style={{ fontSize: "13px", color: "#555", margin: "0 0 2px" }}>
           Zákazník: <strong>{firstName} {lastName}</strong>
@@ -66,7 +78,7 @@ export function AdminNewOrder({
           </Text>
         )}
         <Text style={{ fontSize: "13px", color: "#555", margin: "0 0 2px" }}>
-          Platba: {paymentMethod === "card" ? "Kartou online" : "Bankovní převod"}
+          Platba: {paymentMethod === "card" ? "Kartou online" : paymentMethod === "cod" ? "Dobírka" : "Bankovní převod"}
         </Text>
       </Section>
 
@@ -77,6 +89,21 @@ export function AdminNewOrder({
           </Text>
         </Section>
       )}
+
+      {/* Address */}
+      <Text style={{ fontSize: "14px", fontWeight: "bold", color: "#333", margin: "0 0 8px" }}>
+        Adresa
+      </Text>
+      <Text style={{ fontSize: "13px", color: "#555", margin: "0 0 4px" }}>
+        {street}, {zip} {city}
+      </Text>
+      {pickupPointName && (
+        <Text style={{ fontSize: "13px", color: "#555", margin: "0 0 4px" }}>
+          Výdejní místo: <strong>{pickupPointName}</strong>
+        </Text>
+      )}
+
+      <Hr style={{ borderColor: "#ddd", margin: "16px 0" }} />
 
       {/* Items */}
       <Text style={{ fontSize: "14px", fontWeight: "bold", color: "#333", margin: "0 0 8px" }}>
@@ -107,6 +134,20 @@ export function AdminNewOrder({
         <Column><Text style={{ fontSize: "13px", color: "#666", margin: "4px 0" }}>Mezisoučet</Text></Column>
         <Column style={{ textAlign: "right" as const }}><Text style={{ fontSize: "13px", color: "#333", margin: "4px 0" }}>{formatPrice(subtotal)}</Text></Column>
       </Row>
+      {discountAmount && discountAmount > 0 && (
+        <Row>
+          <Column>
+            <Text style={{ fontSize: "13px", color: "#16a34a", margin: "4px 0" }}>
+              Sleva{discountCode ? ` (${discountCode})` : ""}
+            </Text>
+          </Column>
+          <Column style={{ textAlign: "right" as const }}>
+            <Text style={{ fontSize: "13px", color: "#16a34a", fontWeight: "bold", margin: "4px 0" }}>
+              -{formatPrice(discountAmount)}
+            </Text>
+          </Column>
+        </Row>
+      )}
       <Row>
         <Column><Text style={{ fontSize: "13px", color: "#666", margin: "4px 0" }}>Doprava ({shippingName})</Text></Column>
         <Column style={{ textAlign: "right" as const }}><Text style={{ fontSize: "13px", color: "#333", margin: "4px 0" }}>{shippingPrice === 0 ? "Zdarma" : formatPrice(shippingPrice)}</Text></Column>

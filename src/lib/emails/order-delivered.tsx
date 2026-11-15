@@ -22,7 +22,7 @@ export function OrderDelivered({ orderNumber, firstName, viewToken }: OrderDeliv
       <Section style={{ backgroundColor: "#E8FFE8", padding: "16px", borderRadius: "6px", border: "1px solid #C0E8C0", marginBottom: "20px" }}>
         <Text style={{ fontSize: "12px", color: "#666", margin: "0 0 4px" }}>Objednávka</Text>
         <Text style={{ fontSize: "18px", fontWeight: "bold", color: "#0B1727", margin: "0 0 8px", fontFamily: "monospace" }}>
-          {orderNumber}
+          #{orderNumber}
         </Text>
         <Text style={{ fontSize: "13px", color: "#2D7D2D", margin: "0", fontWeight: "bold" }}>
           Doručeno

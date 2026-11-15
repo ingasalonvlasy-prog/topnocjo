@@ -134,7 +134,7 @@ export default async function AdminCustomerDetailPage({ params }: Props) {
                               href={`/admin/objednavky/${order.id}`}
                               className="font-mono text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
                             >
-                              {order.orderNumber}
+                              #{order.orderNumber}
                             </Link>
                           </td>
                           <td className="px-4 py-3 text-gray-600 whitespace-nowrap">

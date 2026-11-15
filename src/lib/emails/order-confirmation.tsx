@@ -14,6 +14,8 @@ interface OrderConfirmationProps {
   firstName: string;
   items: OrderItem[];
   subtotal: number;
+  discountCode?: string;
+  discountAmount?: number;
   shippingPrice: number;
   shippingName: string;
   total: number;
@@ -21,7 +23,13 @@ interface OrderConfirmationProps {
   street: string;
   city: string;
   zip: string;
+  shippingStreet?: string;
+  shippingCity?: string;
+  shippingZip?: string;
+  shippingRecipient?: string;
   pickupPointName?: string;
+  phone?: string;
+  createdAt?: string;
   viewToken?: string;
 }
 
@@ -34,6 +42,8 @@ export function OrderConfirmation({
   firstName,
   items,
   subtotal,
+  discountCode,
+  discountAmount,
   shippingPrice,
   shippingName,
   total,
@@ -41,11 +51,19 @@ export function OrderConfirmation({
   street,
   city,
   zip,
+  shippingStreet,
+  shippingCity,
+  shippingZip,
+  shippingRecipient,
   pickupPointName,
+  phone,
+  createdAt,
   viewToken,
 }: OrderConfirmationProps) {
+  const vat = Math.round(total * 0.1736);
+
   return (
-    <EmailLayout preview={`Objednávka ${orderNumber} byla přijata`}>
+    <EmailLayout preview={`Objednávka #${orderNumber} byla přijata`}>
       <Text style={{ fontSize: "16px", color: "#333", margin: "0 0 16px" }}>
         Dobrý den, {firstName},
       </Text>
@@ -60,8 +78,13 @@ export function OrderConfirmation({
           Číslo objednávky
         </Text>
         <Text style={{ fontSize: "20px", fontWeight: "bold", color: "#0B1727", margin: 0, fontFamily: "monospace" }}>
-          {orderNumber}
+          #{orderNumber}
         </Text>
+        {createdAt && (
+          <Text style={{ fontSize: "12px", color: "#666", margin: "4px 0 0" }}>
+            {createdAt}
+          </Text>
+        )}
       </Section>
 
       {/* Items */}
@@ -93,9 +116,27 @@ export function OrderConfirmation({
         <Column><Text style={{ fontSize: "13px", color: "#666", margin: "4px 0" }}>Mezisoučet</Text></Column>
         <Column style={{ textAlign: "right" as const }}><Text style={{ fontSize: "13px", color: "#333", margin: "4px 0" }}>{formatPrice(subtotal)}</Text></Column>
       </Row>
+      {discountAmount && discountAmount > 0 && (
+        <Row>
+          <Column>
+            <Text style={{ fontSize: "13px", color: "#16a34a", margin: "4px 0" }}>
+              Sleva{discountCode ? ` (${discountCode})` : ""}
+            </Text>
+          </Column>
+          <Column style={{ textAlign: "right" as const }}>
+            <Text style={{ fontSize: "13px", color: "#16a34a", fontWeight: "bold", margin: "4px 0" }}>
+              -{formatPrice(discountAmount)}
+            </Text>
+          </Column>
+        </Row>
+      )}
       <Row>
         <Column><Text style={{ fontSize: "13px", color: "#666", margin: "4px 0" }}>Doprava ({shippingName})</Text></Column>
         <Column style={{ textAlign: "right" as const }}><Text style={{ fontSize: "13px", color: "#333", margin: "4px 0" }}>{shippingPrice === 0 ? "Zdarma" : formatPrice(shippingPrice)}</Text></Column>
+      </Row>
+      <Row>
+        <Column><Text style={{ fontSize: "12px", color: "#999", margin: "2px 0" }}>vč. DPH 21%</Text></Column>
+        <Column style={{ textAlign: "right" as const }}><Text style={{ fontSize: "12px", color: "#999", margin: "2px 0" }}>{formatPrice(vat)}</Text></Column>
       </Row>
       <Hr style={{ borderColor: "#ddd", margin: "8px 0" }} />
       <Row>
@@ -112,23 +153,51 @@ export function OrderConfirmation({
       <Text style={{ fontSize: "13px", color: "#555", margin: "0 0 16px" }}>
         {paymentMethod === "card"
           ? "Platba kartou online — zpracováváme Vaši platbu."
-          : "Platba bankovním převodem — po připsání platby objednávku potvrdíme."}
+          : paymentMethod === "cod"
+            ? "Platba dobírkou — zaplatíte při převzetí zásilky."
+            : "Platba bankovním převodem — po připsání platby objednávku potvrdíme."}
       </Text>
 
-      {/* Shipping */}
+      {/* Shipping — billing address */}
       <Text style={{ fontSize: "14px", fontWeight: "bold", color: "#333", margin: "0 0 8px" }}>
-        Doručení
+        {shippingStreet || pickupPointName ? "Fakturační adresa" : "Doručení"}
       </Text>
       <Text style={{ fontSize: "13px", color: "#555", margin: "0 0 4px" }}>
-        {shippingName}
-        {pickupPointName ? ` — ${pickupPointName}` : ""}
+        {!shippingStreet && !pickupPointName && shippingName}
+        {!shippingStreet && pickupPointName && `${shippingName} — ${pickupPointName}`}
       </Text>
-      <Text style={{ fontSize: "13px", color: "#555", margin: "0 0 20px" }}>
+      <Text style={{ fontSize: "13px", color: "#555", margin: "0 0 4px" }}>
         {street}, {zip} {city}
       </Text>
+      {phone && (
+        <Text style={{ fontSize: "13px", color: "#555", margin: "0 0 4px" }}>
+          Tel: {phone}
+        </Text>
+      )}
+
+      {/* Shipping — delivery address (if different) */}
+      {(shippingStreet || pickupPointName) && (
+        <>
+          <Text style={{ fontSize: "14px", fontWeight: "bold", color: "#333", margin: "16px 0 8px" }}>
+            Doručovací adresa
+          </Text>
+          {shippingRecipient && (
+            <Text style={{ fontSize: "13px", color: "#555", margin: "0 0 4px" }}>{shippingRecipient}</Text>
+          )}
+          {pickupPointName ? (
+            <Text style={{ fontSize: "13px", color: "#555", margin: "0 0 4px" }}>
+              {shippingName} — {pickupPointName}
+            </Text>
+          ) : (
+            <Text style={{ fontSize: "13px", color: "#555", margin: "0 0 20px" }}>
+              {shippingStreet}, {shippingZip} {shippingCity}
+            </Text>
+          )}
+        </>
+      )}
 
       {/* CTA */}
-      <Section style={{ textAlign: "center" as const }}>
+      <Section style={{ textAlign: "center" as const, marginTop: "20px" }}>
         <Link
           href={`https://qsport.cz/objednavka/${orderNumber}${viewToken ? `?token=${viewToken}` : ""}`}
           style={{
