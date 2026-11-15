@@ -3,6 +3,8 @@ import { Footer } from "@/components/Footer";
 import { CartProvider } from "@/lib/cart";
 import { CookieConsent } from "@/components/CookieConsent";
 
+export const dynamic = "force-dynamic";
+
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <CartProvider>

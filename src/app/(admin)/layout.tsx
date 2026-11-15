@@ -2,6 +2,8 @@ import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   await requireAdmin();
   const newOrderCount = await prisma.order.count({ where: { status: "NEW" } });
