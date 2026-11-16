@@ -4,6 +4,7 @@ import { getProductBySlug, getRelatedProducts, formatPrice, getMinPrice, getComp
 import { ProductTabs } from "@/components/ProductTabs";
 import { ProductGallery } from "@/components/ProductGallery";
 import { ProductActions } from "@/components/ProductActions";
+import { MobileStickyBar } from "@/components/MobileStickyBar";
 import { ProductCard } from "@/components/ProductCard";
 import { RecentlyViewed } from "@/components/RecentlyViewed";
 import { TrackProductView } from "@/components/TrackProductView";
@@ -133,7 +134,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </div>
 
       {/* Product detail — 2 columns */}
-      <div className="max-w-[var(--container)] mx-auto px-6 pb-14 grid grid-cols-1 md:grid-cols-[1fr_1fr] gap-10">
+      <div className="max-w-[var(--container)] mx-auto px-6 pb-14 md:pb-14 grid grid-cols-1 md:grid-cols-[1fr_1fr] gap-10">
         {/* Left: Gallery */}
         <ProductGallery
           photos={photos}
@@ -317,6 +318,24 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
       {/* Track this view */}
       <TrackProductView productId={product.id} />
+
+      {/* Mobile sticky CTA bar */}
+      <MobileStickyBar
+        price={price}
+        discount={discount}
+        productId={product.id}
+        productSlug={product.slug}
+        productName={product.name}
+        photo={photos[0] || ""}
+        variants={product.variants.map(v => ({
+          id: v.id,
+          title: v.title,
+          price: v.price,
+          comparePrice: v.comparePrice,
+          ownStock: v.ownStock,
+          supplierStock: v.supplierStock,
+        }))}
+      />
 
       {/* JSON-LD */}
       <script

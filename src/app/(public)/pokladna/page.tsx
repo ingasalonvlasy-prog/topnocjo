@@ -628,6 +628,34 @@ export default function CheckoutPage() {
           </div>
         </div>
       </form>
+
+      {/* Mobile sticky bottom bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-line p-4 lg:hidden z-40 safe-area-bottom">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[14px] font-bold text-navy">Celkem</span>
+          <span className="text-[18px] font-extrabold text-navy">{formatPrice(total)}</span>
+        </div>
+        <button
+          type="button"
+          disabled={submitting}
+          onClick={() => {
+            formRef.current?.requestSubmit();
+          }}
+          className="w-full h-[48px] bg-lime text-navy text-[13px] font-extrabold uppercase tracking-[0.12em] rounded-[var(--radius-pill)] flex items-center justify-center gap-2 hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+        >
+          {submitting ? (
+            <>
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Zpracovávám...
+            </>
+          ) : (
+            submitLabel
+          )}
+        </button>
+      </div>
     </div>
   );
 }

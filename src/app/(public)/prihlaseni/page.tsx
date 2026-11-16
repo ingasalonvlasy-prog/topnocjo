@@ -37,6 +37,10 @@ export default async function PrihlaseniPage({
       redirect("/prihlaseni?error=invalid");
     }
 
+    if (found.passwordHash === "$IMPORTED$") {
+      redirect("/prihlaseni?error=imported");
+    }
+
     const valid = await verifyPassword(password, found.passwordHash);
     if (!valid) {
       redirect("/prihlaseni?error=invalid");
@@ -65,13 +69,25 @@ export default async function PrihlaseniPage({
 
         <div className="bg-white border border-line rounded-[10px] p-6 lg:p-8">
           {error && (
-            <p className="text-[13px] text-sale mb-4 p-3 bg-red-50 rounded-lg">
-              {error === "missing"
-                ? "Vyplň e-mail a heslo."
-                : error === "noadmin"
-                ? "Nemáte oprávnění k přístupu do administrace."
-                : "Nesprávný e-mail nebo heslo."}
-            </p>
+            <div className="mb-4 p-3 bg-red-50 rounded-lg">
+              <p className="text-[13px] text-sale">
+                {error === "missing"
+                  ? "Vyplň e-mail a heslo."
+                  : error === "noadmin"
+                  ? "Nemáte oprávnění k přístupu do administrace."
+                  : error === "imported"
+                  ? "Váš účet byl převeden z původního eshopu. Pro přístup si prosím nastavte nové heslo."
+                  : "Nesprávný e-mail nebo heslo."}
+              </p>
+              {error === "imported" && (
+                <Link
+                  href="/zapomenute-heslo"
+                  className="inline-block mt-2 text-[13px] font-bold text-blue hover:underline"
+                >
+                  Nastavit heslo →
+                </Link>
+              )}
+            </div>
           )}
 
           <form action={loginUser}>

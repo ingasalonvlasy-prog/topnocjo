@@ -152,12 +152,12 @@ export default async function ShippingPage({ searchParams }: Props) {
                     {m.price === 0 ? (
                       <span className="font-medium text-green-600">Zdarma</span>
                     ) : (
-                      <span className="font-medium text-gray-900">{m.price} Kč</span>
+                      <span className="font-medium text-gray-900">{m.price / 100} Kč</span>
                     )}
                     {m.freeFrom && (
                       <>
                         <span className="text-gray-300">&middot;</span>
-                        <span className="text-gray-500">Zdarma od {m.freeFrom} Kč</span>
+                        <span className="text-gray-500">Zdarma od {m.freeFrom / 100} Kč</span>
                       </>
                     )}
                   </div>

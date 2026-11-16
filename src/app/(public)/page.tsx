@@ -72,7 +72,7 @@ export default async function HomePage() {
     <div>
       {/* 1. Hero — search-first */}
       <section className="bg-navy text-white">
-        <div className="max-w-[var(--container)] mx-auto px-6 py-14 lg:py-20 text-center">
+        <div className="max-w-[var(--container)] mx-auto px-6 py-10 lg:py-20 text-center">
           <h1 className="text-[32px] lg:text-[48px] font-extrabold tracking-[-0.04em] mb-2">
             Výkon bez{" "}
             <span className="relative inline-block">
@@ -84,12 +84,12 @@ export default async function HomePage() {
             Sportovní vybavení od značek On, POC, Maloja, Alpina a Mizuno
           </p>
           <HeroSearch />
-          <div className="flex flex-wrap justify-center gap-2 mt-6">
+          <div className="flex flex-nowrap overflow-x-auto sm:flex-wrap justify-center gap-2 mt-6 pb-2 sm:pb-0 scrollbar-hide">
             {["Běžecké boty", "POC helmy", "Maloja bundy", "Trailové boty", "Zimní bundy", "Doplňky"].map((q) => (
               <Link
                 key={q}
                 href={`/hledat?q=${encodeURIComponent(q)}`}
-                className="px-4 py-2 rounded-full border border-white/20 text-white/70 text-[13px] font-medium hover:bg-white/10 hover:text-white transition-colors"
+                className="shrink-0 px-4 py-2 rounded-full border border-white/20 text-white/70 text-[13px] font-medium hover:bg-white/10 hover:text-white transition-colors"
               >
                 {q}
               </Link>
@@ -224,7 +224,7 @@ export default async function HomePage() {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4">
           {/* Navy info panel */}
-          <div className="bg-navy rounded-[10px] p-8 flex flex-col justify-between min-h-[300px]">
+          <div className="bg-navy rounded-[10px] p-6 lg:p-8 flex flex-col justify-between min-h-[220px] lg:min-h-[300px]">
             <div>
               <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/40 mb-2">Série · POC na zimu</div>
               <h3 className="text-[28px] lg:text-[32px] font-extrabold text-white tracking-[-0.04em] leading-tight">
@@ -318,6 +318,16 @@ export default async function HomePage() {
           </a>
         </div>
         <InstagramGrid posts={instagramPosts} />
+        <div className="sm:hidden mt-4 text-center">
+          <a
+            href="https://instagram.com/qsport.cz"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center h-10 border border-ink text-ink text-[11px] font-extrabold uppercase tracking-[0.12em] px-5 rounded-[var(--radius-pill)] hover:bg-ink hover:text-white transition-all"
+          >
+            Sledovat
+          </a>
+        </div>
       </section>
 
       {/* 8. Newsletter — navy pozadí, lime tlačítko */}

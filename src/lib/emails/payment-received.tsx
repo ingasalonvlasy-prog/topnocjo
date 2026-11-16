@@ -10,7 +10,7 @@ interface PaymentReceivedProps {
 }
 
 function formatPrice(amount: number): string {
-  return new Intl.NumberFormat("cs-CZ", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount) + "\u00A0Kč";
+  return new Intl.NumberFormat("cs-CZ", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.round(amount / 100)) + "\u00A0Kč";
 }
 
 export function PaymentReceived({ orderNumber, firstName, total, paidAt, viewToken }: PaymentReceivedProps) {

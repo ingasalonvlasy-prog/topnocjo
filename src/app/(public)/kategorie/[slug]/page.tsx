@@ -127,10 +127,10 @@ export default async function CategoryPage({
               const siblings = isChild ? category.parent!.children : category.children;
 
               return (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-nowrap overflow-x-auto sm:flex-wrap gap-2 pb-2 sm:pb-0 scrollbar-hide">
                   <Link
                     href={`/kategorie/${parentCat.slug}`}
-                    className={`px-5 py-2 rounded-full text-[14px] font-bold transition-colors ${
+                    className={`shrink-0 px-5 py-2 rounded-full text-[14px] font-bold transition-colors ${
                       !isChild
                         ? "bg-white text-navy"
                         : "border border-white/30 text-white hover:bg-white/10"
@@ -142,7 +142,7 @@ export default async function CategoryPage({
                     <Link
                       key={sub.id}
                       href={`/kategorie/${sub.slug}`}
-                      className={`px-5 py-2 rounded-full text-[14px] font-bold transition-colors ${
+                      className={`shrink-0 px-5 py-2 rounded-full text-[14px] font-bold transition-colors ${
                         sub.slug === slug
                           ? "bg-white text-navy"
                           : "border border-white/30 text-white hover:bg-white/10"

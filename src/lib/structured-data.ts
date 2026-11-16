@@ -83,7 +83,7 @@ export function buildProductJsonLd(product: ProductJsonLdInput) {
     offers: product.variants.map((v) => ({
       "@type": "Offer",
       name: v.title,
-      price: v.price,
+      price: (v.price / 100).toFixed(2),
       priceCurrency: "CZK",
       availability:
         v.availability === "in_stock"

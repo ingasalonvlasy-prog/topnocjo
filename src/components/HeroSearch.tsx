@@ -12,10 +12,11 @@ interface SearchResult {
 }
 
 function formatPrice(amount: number): string {
+  const czk = Math.round(amount / 100);
   const formatted = new Intl.NumberFormat("cs-CZ", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount);
+  }).format(czk);
   return `${formatted}\u00A0Kč`;
 }
 

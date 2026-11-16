@@ -1,5 +1,19 @@
 @import "tailwindcss";
 
+/* Safe area for iPhones with dynamic island / home bar */
+.safe-area-bottom {
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+/* Hide scrollbar for horizontal scroll areas */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 :root {
   --navy: #0B1727;
   --ink: #111C2E;

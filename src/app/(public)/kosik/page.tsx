@@ -303,6 +303,30 @@ export default function CartPage() {
       </div>
 
       <CrossSellProducts />
+
+      {/* Mobile sticky bottom bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-line p-4 lg:hidden z-40 safe-area-bottom">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[14px] font-bold text-navy">Celkem</span>
+          <span className="text-[18px] font-extrabold text-navy">{formatPrice(total)}</span>
+        </div>
+        {selectedShipping?.methodType === "pickup_point" && !selectedShipping.pickupPointId ? (
+          <button
+            type="button"
+            disabled
+            className="w-full h-[48px] bg-lime/50 text-navy/50 text-[13px] font-extrabold uppercase tracking-[0.12em] rounded-[var(--radius-pill)] flex items-center justify-center cursor-not-allowed"
+          >
+            Vyber vydejni misto
+          </button>
+        ) : (
+          <Link
+            href="/pokladna"
+            className="w-full h-[48px] bg-lime text-navy text-[13px] font-extrabold uppercase tracking-[0.12em] rounded-[var(--radius-pill)] flex items-center justify-center hover:brightness-110 transition-all"
+          >
+            Pokracovat k pokladne
+          </Link>
+        )}
+      </div>
     </div>
   );
 }

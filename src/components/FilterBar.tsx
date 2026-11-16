@@ -10,9 +10,9 @@ interface FilterBarProps {
 }
 
 const priceRanges = [
-  { label: "Do 3 000 Kč", min: 0, max: 3000 },
-  { label: "3 000 – 5 000 Kč", min: 3000, max: 5000 },
-  { label: "Nad 5 000 Kč", min: 5000, max: 999999 },
+  { label: "Do 3 000 Kč", min: 0, max: 300000 },
+  { label: "3 000 – 5 000 Kč", min: 300000, max: 500000 },
+  { label: "Nad 5 000 Kč", min: 500000, max: 99999900 },
 ];
 
 function CheckIcon() {

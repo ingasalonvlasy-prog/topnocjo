@@ -100,9 +100,7 @@ export default async function SearchPage({
                 />
               </div>
             </div>
-            <div className="hidden lg:block">
-              <SortDropdown />
-            </div>
+            <SortDropdown />
           </div>
 
           {/* Active filter chips */}

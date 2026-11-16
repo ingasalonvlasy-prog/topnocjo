@@ -7,23 +7,32 @@ export const dynamic = "force-dynamic";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://qsport.cz";
 
-  const [products, categories, brands, blogPosts] = await Promise.all([
-    prisma.product.findMany({
-      where: { status: "ACTIVE" },
-      select: { slug: true, updatedAt: true },
-    }),
-    prisma.category.findMany({
-      select: { slug: true, updatedAt: true },
-    }),
-    prisma.brand.findMany({
-      where: { products: { some: { status: "ACTIVE" } } },
-      select: { slug: true, updatedAt: true },
-    }),
-    prisma.blogPost.findMany({
-      where: { published: true },
-      select: { slug: true, updatedAt: true },
-    }),
-  ]);
+  let products: { slug: string; updatedAt: Date }[] = [];
+  let categories: { slug: string; updatedAt: Date }[] = [];
+  let brands: { slug: string; updatedAt: Date }[] = [];
+  let blogPosts: { slug: string; updatedAt: Date }[] = [];
+
+  try {
+    [products, categories, brands, blogPosts] = await Promise.all([
+      prisma.product.findMany({
+        where: { status: "ACTIVE" },
+        select: { slug: true, updatedAt: true },
+      }),
+      prisma.category.findMany({
+        select: { slug: true, updatedAt: true },
+      }),
+      prisma.brand.findMany({
+        where: { products: { some: { status: "ACTIVE" } } },
+        select: { slug: true, updatedAt: true },
+      }),
+      prisma.blogPost.findMany({
+        where: { published: true },
+        select: { slug: true, updatedAt: true },
+      }),
+    ]);
+  } catch {
+    // DB unavailable — return static pages only
+  }
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "daily", priority: 1 },

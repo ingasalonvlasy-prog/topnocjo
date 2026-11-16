@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   trailingSlash: false,
-  serverExternalPackages: ["sharp"],
+  serverExternalPackages: ["sharp", "@libsql/client", "@prisma/adapter-libsql"],
   devIndicators: false,
   poweredByHeader: false,
   images: {

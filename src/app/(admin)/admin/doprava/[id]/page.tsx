@@ -25,9 +25,9 @@ export default async function ShippingEditPage({
 
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
-    const price = parseInt(formData.get("price") as string, 10) || 0;
+    const price = Math.round(parseFloat(formData.get("price") as string) * 100) || 0;
     const freeFromStr = formData.get("freeFrom") as string;
-    const freeFrom = freeFromStr ? parseInt(freeFromStr, 10) || null : null;
+    const freeFrom = freeFromStr ? Math.round(parseFloat(freeFromStr) * 100) || null : null;
     const active = formData.get("active") === "on";
     const type = formData.get("type") as string;
     const position = parseInt(formData.get("position") as string, 10) || 0;
@@ -137,7 +137,7 @@ export default async function ShippingEditPage({
                 name="price"
                 type="number"
                 min={0}
-                defaultValue={method.price}
+                defaultValue={method.price / 100}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
@@ -147,7 +147,7 @@ export default async function ShippingEditPage({
                 name="freeFrom"
                 type="number"
                 min={0}
-                defaultValue={method.freeFrom ?? ""}
+                defaultValue={method.freeFrom ? method.freeFrom / 100 : ""}
                 placeholder="Nevyplněno = vždy platí cena"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />

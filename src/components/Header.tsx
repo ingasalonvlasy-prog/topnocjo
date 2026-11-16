@@ -25,7 +25,7 @@ export function Header() {
   return (
     <>
       {/* Top info bar — navy, centered text with lime dots */}
-      <div className="bg-navy text-white text-[12px] font-medium tracking-wide" style={{ height: 32 }}>
+      <div className="bg-navy text-white text-[11px] sm:text-[12px] font-medium tracking-wide" style={{ height: 32 }}>
         <div className="max-w-[var(--container)] mx-auto px-6 h-full flex items-center justify-center">
           <div className="flex items-center">
             <span>Nákup bez registrace</span>
@@ -133,7 +133,12 @@ export function Header() {
               />
             </Link>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0">
+              <Link href="/ucet" className="w-10 h-10 flex items-center justify-center text-ink" aria-label="Můj účet">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+              </Link>
               <Link href="/kosik" className="relative w-10 h-10 flex items-center justify-center text-ink" aria-label="Košík">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
                   <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
@@ -178,6 +183,13 @@ export function Header() {
                   {link.label}
                 </Link>
               ))}
+              <Link
+                href="/ucet"
+                className="block px-0 py-3 text-[15px] font-medium text-ink border-t border-wash"
+                onClick={() => setMenuOpen(false)}
+              >
+                Můj účet
+              </Link>
             </div>
           </nav>
         )}

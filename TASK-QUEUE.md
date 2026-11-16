@@ -2,29 +2,36 @@
 
 ## AKTIVNÍ
 
-## TASK-042: Kompletní audit + opravy celého e-shopu
+## TASK-046: Shopify → vlastní DB import (15092 produktů, 59 kolekcí)
 Priorita: 1
-Stav: probíhá (audit)
+Stav: probíhá (plánování)
 Projekt: /Users/zen/qsport
 
 ### Kompletní zadání:
-Uživatel říká: "není možný aby všechno fungovalo", "určitě tam je ještě ranec práce", "objednávky všechno eshop je velká věc", "pokračuj s teamem a všechno dodělej"
-
-Provést kompletní audit celého e-shopu (admin + public) a opravit/doplnit VŠECHNO co chybí:
-- Objednávky: celý flow, manuální vytvoření, editace, vrácení peněz, zrušení, fulfillment
-- Produkty: CRUD, varianty, fotky, SEO, import/export
-- Pokladna: celý checkout flow, platby, validace
-- Zákaznický účet: registrace, přihlášení, profil, historie, oblíbené
-- Doprava: Zásilkovna integrace, tracking
-- Emaily: transakční emaily
-- SEO: meta tagy, sitemap, robots, structured data
-- Admin: vše co chybí oproti Shopify
+- Token: EXPIRED_REMOVED
+- Store: zt2xr1-ry.myshopify.com (ID: 108970705235)
+- 15092 produktů, 59 kolekcí, 89 objednávek, 15651 zákazníků
+- Uživatel: "přihlaš se a stahni si feedy, jak tam jsou a zadej je to adminu"
+- Uživatel: "chci aby tam byl nahrany cely eshop"
+- Import VŠEHO: produkty, varianty, fotky, kolekce→kategorie, brands
 
 ### Kontext:
-- Audit běží — plánovač prochází kód, test-chrome kliká jako zákazník
-- 3 commity hotové: 1fe15b5, c9f0508, 6b8a196
-- Všech 23 routes vrací HTTP 200
-- Dev server: localhost:9999
+- Shopify API version 2024-01
+- Cursor-based pagination, 250/page, 2 req/sec limit
+- Lokální DB: prisma/dev.db (SQLite), Produkce: Turso libsql
+
+---
+
+## TASK-047: Mobilní optimalizace celého e-shopu
+Priorita: 2
+Stav: čeká na plán
+Projekt: /Users/zen/qsport
+
+### Kompletní zadání:
+Uživatel: "udelej optimalizaci pro mobil !"
+- Všechny public stránky musí být perfektně responsivní
+- Touch targets min 44px, fonty min 14px, žádný horizontal scroll
+- Sticky CTA tlačítka kde potřeba
 
 ---
 
@@ -34,23 +41,21 @@ Provést kompletní audit celého e-shopu (admin + public) a opravit/doplnit VŠ
 
 ## HOTOVÉ
 
-## TASK-039: Admin upgrade na Shopify úroveň
-Stav: hotovo (commit 1fe15b5)
-Features: objednávky seznam+detail+expedice, dashboard sparklines+drill-down, doprava karty, sidebar reorganizace
+## TASK-045: Order numbers Shopify style + admin redesign + emaily
+Stav: hotovo (deploy qsport.vercel.app)
+Features: sequential #1001 numbers, premium admin detail, 6 email templates, Turso cloud DB
 
-## TASK-040: Dashboard promo cards, customer stats, brand logos, Finance page
-Stav: hotovo (commit c9f0508)
+## TASK-042: Kompletní audit + opravy celého e-shopu
+Stav: hotovo (audit)
 
-## TASK-041: Opuštěné pokladny + Růst stránka
-Stav: hotovo (commit 6b8a196)
-Features: abandoned checkouts (full lifecycle: tracking→cron→email→recovery→admin), growth page (konverze, SEO audit, doporučení, retence, rychlé akce)
+## TASK-039-041: Admin upgrade, dashboard, abandoned checkouts, growth
+Stav: hotovo
 
-## TASK-025 až TASK-037: Kompletní e-shop features
-Stav: hotovo (build clean, Chrome test 10/10 PASS, Evžen schváleno)
-Features: košík, pokladna, auth, objednávky, slevy, doprava, recenze, blog WYSIWYG, zákazníci CSV+notes, analytika period selector, nastavení social+SEO, Instagram feed, dodavatelé kontakt
+## TASK-025-037: Kompletní e-shop features
+Stav: hotovo (build clean, Chrome test PASS)
 
 ## TASK-022: Vizuální opravy podle brand briefu
-Stav: hotovo (commit 9393ad4)
+Stav: hotovo
 
 ## TASK-021: Shopify → SQLite data migration
-Stav: odloženo (potřeba nového API tokenu)
+Stav: nahrazeno TASK-046 (nový funkční token)

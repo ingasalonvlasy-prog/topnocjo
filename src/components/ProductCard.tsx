@@ -129,8 +129,8 @@ export function ProductCard({ product, badge }: ProductCardProps) {
             style={{ mixBlendMode: "multiply" }}
           />
         )}
-        {/* Wishlist heart — top-right */}
-        <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Wishlist heart — top-right, always visible on mobile */}
+        <div className="absolute top-2 right-2 z-10 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
           <WishlistButton productId={product.id} size="sm" className="bg-white/80 backdrop-blur-sm shadow-sm" />
         </div>
 
@@ -194,9 +194,9 @@ export function ProductCard({ product, badge }: ProductCardProps) {
           </div>
         )}
 
-        {/* Quick-add button on hover */}
+        {/* Quick-add button — always visible on mobile, hover on desktop */}
         {stock > 0 && !showSizes && !added && (
-          <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-200 z-10">
+          <div className="absolute bottom-3 left-3 right-3 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 translate-y-0 lg:translate-y-2 lg:group-hover:translate-y-0 transition-all duration-200 z-10">
             <button
               className="w-full h-[36px] bg-navy text-white text-[11px] font-extrabold uppercase tracking-[0.08em] rounded-[var(--radius-pill)] hover:bg-navy/90 transition-colors cursor-pointer"
               onClick={handleQuickAdd}
