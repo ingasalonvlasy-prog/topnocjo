@@ -83,8 +83,8 @@ export default async function BrandsPage() {
                       src={brand.logo}
                       alt={brand.name}
                       width={120}
-                      height={60}
-                      className="object-contain max-h-[60px] w-auto mix-blend-multiply"
+                      height={48}
+                      className="object-contain max-w-[120px] max-h-[48px] w-auto h-auto mix-blend-multiply"
                     />
                   ) : (
                     <span className="text-[14px] font-extrabold uppercase tracking-[0.08em] text-navy/40">{brand.name}</span>
