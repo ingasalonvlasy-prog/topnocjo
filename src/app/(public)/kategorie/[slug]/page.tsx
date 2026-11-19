@@ -11,6 +11,7 @@ import { ActiveFilterChips } from "@/components/ActiveFilterChips";
 import { CategorySidebar } from "@/components/CategorySidebar";
 import { HorizontalFilters } from "@/components/HorizontalFilters";
 import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
+import { cleanTitle } from "@/lib/seo";
 
 type SortOption = "price_asc" | "price_desc" | "name" | "newest";
 
@@ -18,11 +19,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const category = await prisma.category.findUnique({ where: { slug } });
   if (!category) return { title: "Kategorie nenalezena" };
+  const title = cleanTitle(category.seoTitle || category.name);
   return {
-    title: category.seoTitle || `${category.name} | Qsport.cz`,
+    title,
     description: category.seoDesc || `${category.name} – sportovní vybavení na Qsport.cz`,
     openGraph: {
-      title: category.seoTitle || category.name,
+      title,
       description: category.seoDesc || `${category.name} – sportovní vybavení na Qsport.cz`,
     },
   };

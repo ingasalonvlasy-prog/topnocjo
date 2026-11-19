@@ -13,6 +13,7 @@ import { buildProductJsonLd, buildBreadcrumbJsonLd } from "@/lib/structured-data
 import { ReviewSummary } from "@/components/ReviewSection";
 import { ShareButtons } from "@/components/ShareButtons";
 import { prisma } from "@/lib/db";
+import { cleanTitle } from "@/lib/seo";
 
 const categoryPastels: Record<string, string> = {
   "bezecke-boty": "bg-mint",
@@ -33,11 +34,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   const photos: string[] = JSON.parse(product.photos || "[]");
 
+  const title = cleanTitle(product.seoTitle || product.name);
   return {
-    title: product.seoTitle || `${product.name} | Qsport.cz`,
+    title,
     description: product.seoDescription || product.description || `${product.name} – koupit na Qsport.cz`,
     openGraph: {
-      title: product.seoTitle || product.name,
+      title,
       description: product.seoDescription || product.description || `${product.name} – koupit na Qsport.cz`,
       images: photos[0] ? [{ url: photos[0], width: 800, height: 1000 }] : undefined,
     },
