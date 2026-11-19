@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useRef } from "react";
+import { usePathname } from "next/navigation";
 
 export interface NavCategory {
   id: string;
@@ -298,14 +299,16 @@ interface MobileMenuItemProps {
 
 export function MobileMenuItem({ category, onClose }: MobileMenuItemProps) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
   const isGender = GENDER_SLUGS.has(category.slug);
   const sections = isGender ? GENDER_SECTIONS[category.slug] : null;
+  const isActive = pathname.startsWith(`/kategorie/${category.slug}`);
 
   if (category.children.length === 0 && !isGender) {
     return (
       <Link
         href={`/kategorie/${category.slug}`}
-        className="block px-0 py-3 text-[15px] font-medium border-b border-wash text-ink"
+        className={`block px-0 py-3 text-[15px] font-medium border-b border-wash ${isActive ? "text-navy font-bold" : "text-ink"}`}
         onClick={onClose}
       >
         {category.name}
@@ -316,12 +319,12 @@ export function MobileMenuItem({ category, onClose }: MobileMenuItemProps) {
   return (
     <div className="border-b border-wash">
       <button
-        className="w-full flex items-center justify-between py-3 text-[15px] font-medium text-ink"
+        className={`w-full flex items-center justify-between py-3 text-[15px] font-medium ${isActive ? "text-navy font-bold" : "text-ink"}`}
         onClick={() => setOpen(!open)}
       >
         {category.name}
         <svg
-          className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`w-5 h-5 transition-transform ${open ? "rotate-180" : ""}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -335,7 +338,7 @@ export function MobileMenuItem({ category, onClose }: MobileMenuItemProps) {
         <div className="pb-3 pl-1 space-y-4">
           <Link
             href={`/kategorie/${category.slug}`}
-            className="block py-2 text-[14px] font-semibold text-navy"
+            className="block py-2.5 text-[14px] font-semibold text-navy"
             onClick={onClose}
           >
             Vše pro {category.name.toLowerCase()}
@@ -349,7 +352,7 @@ export function MobileMenuItem({ category, onClose }: MobileMenuItemProps) {
                 <Link
                   key={link.slug + link.label}
                   href={`/kategorie/${link.slug}`}
-                  className="block py-1.5 pl-2 text-[14px] text-ink"
+                  className="block py-2.5 pl-2 text-[14px] text-ink"
                   onClick={onClose}
                 >
                   {link.label}
@@ -364,7 +367,7 @@ export function MobileMenuItem({ category, onClose }: MobileMenuItemProps) {
         <div className="pb-2 pl-3 space-y-0">
           <Link
             href={`/kategorie/${category.slug}`}
-            className="block py-2 text-[14px] font-semibold text-navy"
+            className="block py-2.5 text-[14px] font-semibold text-navy"
             onClick={onClose}
           >
             Vše v {category.name}
@@ -373,7 +376,7 @@ export function MobileMenuItem({ category, onClose }: MobileMenuItemProps) {
             <Link
               key={child.id}
               href={`/kategorie/${child.slug}`}
-              className="block py-2 text-[14px] text-ink border-t border-wash/50"
+              className="block py-3 text-[14px] text-ink border-t border-wash/50"
               onClick={onClose}
             >
               {child.name}

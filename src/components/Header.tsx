@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { SearchAutocomplete } from "./SearchAutocomplete";
 import { useCart } from "@/lib/cart";
@@ -21,14 +21,25 @@ interface HeaderProps {
 export function Header({ categories = [] }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const { itemCount } = useCart();
   const pathname = usePathname();
   const isHomepage = pathname === "/";
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [menuOpen]);
+
   return (
     <>
-      {/* Top info bar — navy, centered text with lime dots */}
-      <div className="bg-navy text-white text-[11px] sm:text-[12px] font-medium tracking-wide" style={{ height: 32 }}>
+      {/* Top info bar — navy, hidden on mobile to save space */}
+      <div className="hidden sm:block bg-navy text-white text-[11px] sm:text-[12px] font-medium tracking-wide" style={{ height: 32 }}>
         <div className="max-w-[var(--container)] mx-auto px-6 h-full flex items-center justify-center">
           <div className="flex items-center">
             <span>Nákup bez registrace</span>
@@ -116,11 +127,11 @@ export function Header({ categories = [] }: HeaderProps) {
             </div>
           </div>
 
-          {/* Mobile header — hamburger left, logo center, cart right */}
-          <div className="flex lg:hidden items-center justify-between h-[52px] relative">
+          {/* Mobile header — hamburger left, logo center, search+account+cart right */}
+          <div className="flex lg:hidden items-center justify-between h-[56px] relative">
             <button
               className="w-10 h-10 flex items-center justify-center text-ink"
-              onClick={() => setMenuOpen(!menuOpen)}
+              onClick={() => { setMenuOpen(!menuOpen); setMobileSearchOpen(false); }}
               aria-label="Menu"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -144,6 +155,19 @@ export function Header({ categories = [] }: HeaderProps) {
             </Link>
 
             <div className="flex items-center gap-0">
+              <button
+                className="w-10 h-10 flex items-center justify-center text-ink"
+                onClick={() => { setMobileSearchOpen(!mobileSearchOpen); setMenuOpen(false); }}
+                aria-label="Hledat"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                  {mobileSearchOpen ? (
+                    <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>
+                  ) : (
+                    <><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></>
+                  )}
+                </svg>
+              </button>
               <Link href="/ucet" className="w-10 h-10 flex items-center justify-center text-ink" aria-label="Můj účet">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
@@ -169,50 +193,60 @@ export function Header({ categories = [] }: HeaderProps) {
             </div>
           )}
 
-          {/* Mobile search — always visible except on homepage */}
-          {!isHomepage && (
+          {/* Mobile search — toggled via search icon */}
+          {mobileSearchOpen && (
             <div className="lg:hidden pb-3">
               <SearchAutocomplete placeholder="Hledej značku nebo produkt..." />
             </div>
           )}
         </div>
 
-        {/* Mobile menu */}
-        {menuOpen && (
-          <nav className="lg:hidden border-t border-line bg-white">
-            <div className="max-w-[var(--container)] mx-auto px-6 py-3">
-              {categories.map((cat) => (
-                <MobileMenuItem
-                  key={cat.id}
-                  category={cat}
-                  onClose={() => setMenuOpen(false)}
-                />
-              ))}
-              {staticLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`block px-0 py-3 text-[15px] font-medium border-b border-wash last:border-0 ${
-                    link.isAccent
-                      ? "text-sale font-bold"
-                      : "text-ink"
-                  }`}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <Link
-                href="/ucet"
-                className="block px-0 py-3 text-[15px] font-medium text-ink border-t border-wash"
-                onClick={() => setMenuOpen(false)}
-              >
-                Můj účet
-              </Link>
-            </div>
-          </nav>
-        )}
       </header>
+
+      {/* Mobile menu — full-screen overlay */}
+      <div
+        className={`fixed inset-0 bg-black/30 z-40 lg:hidden transition-opacity duration-200 ${
+          menuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setMenuOpen(false)}
+      />
+      <nav
+        className={`fixed left-0 right-0 bottom-0 z-50 bg-white lg:hidden overflow-y-auto overscroll-contain transition-transform duration-200 ease-out ${
+          menuOpen ? "translate-y-0" : "-translate-y-full"
+        }`}
+        style={{ top: 56 }}
+      >
+        <div className="px-6 py-4">
+          {categories.map((cat) => (
+            <MobileMenuItem
+              key={cat.id}
+              category={cat}
+              onClose={() => setMenuOpen(false)}
+            />
+          ))}
+          {staticLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`block px-0 py-3 text-[15px] font-medium border-b border-wash last:border-0 ${
+                link.isAccent
+                  ? "text-sale font-bold"
+                  : "text-ink"
+              }`}
+              onClick={() => setMenuOpen(false)}
+            >
+              {link.label}
+            </Link>
+          ))}
+          <Link
+            href="/ucet"
+            className="block px-0 py-3 text-[15px] font-medium text-ink border-t border-wash"
+            onClick={() => setMenuOpen(false)}
+          >
+            Můj účet
+          </Link>
+        </div>
+      </nav>
     </>
   );
 }
