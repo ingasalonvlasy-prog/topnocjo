@@ -44,7 +44,6 @@ function formatDateTime(date: Date): string {
   });
 }
 
-// Fulfillment status mapping
 const FULFILLMENT_MAP: Record<string, { label: string; bg: string; text: string }> = {
   NEW: { label: "Nesplněno", bg: "bg-yellow-100", text: "text-yellow-700" },
   CONFIRMED: { label: "Nesplněno", bg: "bg-yellow-100", text: "text-yellow-700" },
@@ -66,7 +65,6 @@ function addBusinessDays(date: Date, days: number): Date {
   result.setHours(12, 0, 0, 0);
   return result;
 }
-
 
 export default async function OrderDetailPage({ params }: Props) {
   const { id } = await params;
@@ -148,7 +146,7 @@ export default async function OrderDetailPage({ params }: Props) {
     : null;
 
   // Financial calculations
-  const vat = Math.round(order.total * 0.1736); // 21% from price including VAT
+  const vat = Math.round(order.total * 0.1736);
   const totalCost = order.items.reduce((sum, item) => {
     const cost = item.variantId ? (costMap.get(item.variantId) || 0) : 0;
     return sum + cost * item.quantity;
@@ -156,10 +154,13 @@ export default async function OrderDetailPage({ params }: Props) {
   const margin = totalCost > 0 ? order.subtotal - totalCost : null;
 
   // Risk assessment
-  const isHighValue = order.total > 300000; // > 3000 Kč
+  const isHighValue = order.total > 300000;
   const isNewCustomer = customerOrderCount <= 1;
-  const riskLevel = isHighValue && isNewCustomer ? "Střední" : "Nízké";
-  const riskColor = riskLevel === "Střední" ? "text-amber-600 bg-amber-50" : "text-green-600 bg-green-50";
+  const riskLevel = isHighValue && isNewCustomer ? "Střední" : null;
+
+  // Non-cancel transitions for select
+  const nextTransitions = allowedTransitions.filter((s) => s !== "CANCELLED");
+  const canCancel = allowedTransitions.includes("CANCELLED");
 
   return (
     <div>
@@ -171,44 +172,36 @@ export default async function OrderDetailPage({ params }: Props) {
         >
           &larr; Zpět na objednávky
         </Link>
-        <div className="flex items-center justify-between mt-2">
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-gray-900">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
               #{order.orderNumber}
             </h1>
-            {/* Payment badge */}
             <span className={`inline-flex items-center px-2.5 py-0.5 text-xs font-semibold rounded-full ${paymentColor.bg} ${paymentColor.text}`}>
               {PAYMENT_STATUS_LABELS[paymentKey] || order.paymentStatus}
             </span>
-            {/* Fulfillment badge */}
             <span className={`inline-flex items-center px-2.5 py-0.5 text-xs font-semibold rounded-full ${fulfillment.bg} ${fulfillment.text}`}>
               {fulfillment.label}
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <button className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
+          <div className="flex flex-wrap items-center gap-2">
+            <button className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-sm font-medium rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
               Vrátit peníze
             </button>
             <a
               href={`/admin/objednavky/${order.id}/faktura`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-sm font-medium rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18.75 12h.008v.008h-.008V12Zm-2.25 0h.008v.008H16.5V12Z" />
-              </svg>
               Faktura
             </a>
             <a
               href={`/admin/objednavky/${order.id}/balici-list`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-sm font-medium rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
-              </svg>
               Balicí list
             </a>
           </div>
@@ -220,25 +213,31 @@ export default async function OrderDetailPage({ params }: Props) {
 
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left column — 2/3 */}
+        {/* ============ LEFT COLUMN (2/3) ============ */}
         <div className="lg:col-span-2 space-y-6">
 
-          {/* Fulfillment section */}
+          {/* CARD 1: Fulfillment + Items (merged) */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.08)] overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-gray-200 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
-                  <svg className="w-4.5 h-4.5 text-gray-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H18.75m-7.5-3v6.75m0-6.75h7.5M6 12h.008v.008H6V12Zm.375-3.75h4.5V12h-4.5V8.25ZM3.75 21h16.5" />
-                  </svg>
-                </div>
-                <h2 className="font-semibold text-gray-900">Plnění</h2>
-                <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${fulfillment.bg} ${fulfillment.text}`}>
+            {/* Fulfillment header */}
+            <div className="px-5 py-3.5 border-b border-gray-200 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className={`inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full ${fulfillment.bg} ${fulfillment.text}`}>
                   {fulfillment.label}
                 </span>
+                <span className="text-sm text-gray-700 truncate">
+                  {order.shipping?.name || "—"}
+                  {order.pickupPointName && (
+                    <> &middot; {order.pickupPointName}</>
+                  )}
+                </span>
+                {order.needsSupplierOrder && (
+                  <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium rounded bg-orange-50 text-orange-700 border border-orange-200">
+                    Dodavatel
+                  </span>
+                )}
               </div>
               {!order.shippedAt && statusKey !== "CANCELLED" && (
-                <form action={updateOrderStatus}>
+                <form action={updateOrderStatus} className="shrink-0">
                   <input type="hidden" name="orderId" value={order.id} />
                   <input type="hidden" name="newStatus" value="SHIPPED" />
                   <button
@@ -251,74 +250,20 @@ export default async function OrderDetailPage({ params }: Props) {
                 </form>
               )}
             </div>
-            <div className="px-5 py-4 grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-xs text-gray-500 uppercase tracking-wide">Dopravce</span>
-                <p className="font-medium text-gray-900 mt-0.5">{order.shipping?.name || "—"}</p>
-              </div>
-              <div>
-                <span className="text-xs text-gray-500 uppercase tracking-wide">Dodavatel</span>
-                <p className="font-medium text-gray-900 mt-0.5">
-                  {order.needsSupplierOrder ? "Vyžaduje dodavatele" : "Vlastní sklad"}
-                </p>
-              </div>
-              <div>
-                <span className="text-xs text-gray-500 uppercase tracking-wide">Splnit do</span>
-                <p className={`font-medium mt-0.5 ${isOverdue ? "text-red-600" : "text-gray-900"}`}>
-                  {formatDateTime(fulfillmentDeadline)}
-                  {isOverdue && <span className="ml-1 text-xs text-red-500 font-semibold">(po termínu!)</span>}
-                </p>
-              </div>
-              <div>
-                <span className="text-xs text-gray-500 uppercase tracking-wide">Odhad doručení</span>
-                <p className="font-medium text-gray-900 mt-0.5">
-                  {estimatedDelivery || "Po odeslání"}
-                </p>
-              </div>
-              {order.pickupPointName && (
-                <div className="col-span-2 bg-blue-50 rounded-lg px-3 py-2.5">
-                  <span className="text-xs text-blue-600 uppercase tracking-wide font-medium">Výdejní místo</span>
-                  <p className="font-semibold text-blue-900 mt-0.5">
-                    {order.pickupPointName}
-                    {order.pickupPointId && (
-                      <span className="text-xs text-blue-500 ml-1.5 font-normal">#{order.pickupPointId}</span>
-                    )}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
 
-          {/* Order items with thumbnails */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.08)] overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-gray-200">
-              <h2 className="font-semibold text-gray-900">Položky</h2>
-            </div>
+            {/* Items */}
             <div className="divide-y divide-gray-100">
               {order.items.map((item) => {
                 const photo = item.productId ? photoMap.get(item.productId) : null;
                 const slug = item.productId ? slugMap.get(item.productId) : null;
-                let source: { label: string; color: string };
-                if (item.fromOwnStock > 0 && item.fromSupplierStock === 0) {
-                  source = { label: "Vlastní sklad", color: "text-green-700 bg-green-50" };
-                } else if (item.fromOwnStock === 0 && item.fromSupplierStock > 0) {
-                  source = { label: "Dodavatel", color: "text-orange-700 bg-orange-50" };
-                } else if (item.fromOwnStock > 0 && item.fromSupplierStock > 0) {
-                  source = { label: "Mix", color: "text-amber-700 bg-amber-50" };
-                } else {
-                  source = { label: "—", color: "text-gray-400" };
-                }
+                const isSupplier = item.fromSupplierStock > 0 && item.fromOwnStock === 0;
+                const isOwn = item.fromOwnStock > 0 && item.fromSupplierStock === 0;
 
                 return (
-                  <div key={item.id} className="flex items-center gap-4 px-5 py-3.5">
-                    {/* Thumbnail — bigger */}
-                    <div className="w-12 h-12 rounded-lg border border-gray-200 bg-gray-50 flex-shrink-0 overflow-hidden">
+                  <div key={item.id} className="flex items-center gap-3 px-5 py-3">
+                    <div className="w-11 h-11 rounded-lg border border-gray-200 bg-gray-50 flex-shrink-0 overflow-hidden">
                       {photo ? (
-                        <img
-                          src={photo}
-                          alt={item.productName}
-                          className="w-full h-full object-cover"
-                        />
+                        <img src={photo} alt={item.productName} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-300">
                           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -327,8 +272,6 @@ export default async function OrderDetailPage({ params }: Props) {
                         </div>
                       )}
                     </div>
-
-                    {/* Product info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         {slug ? (
@@ -338,99 +281,150 @@ export default async function OrderDetailPage({ params }: Props) {
                         ) : (
                           <span className="text-sm font-medium text-gray-900 truncate">{item.productName}</span>
                         )}
-                        <span className={`inline-flex px-1.5 py-0.5 text-xs rounded ${source.color}`}>
-                          {source.label}
-                        </span>
+                        {isSupplier && (
+                          <span className="inline-flex items-center gap-1 text-[10px] text-orange-600">
+                            <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                            Dodavatel
+                          </span>
+                        )}
+                        {isOwn && (
+                          <span className="inline-flex items-center gap-1 text-[10px] text-green-600">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                            Sklad
+                          </span>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="inline-flex items-center bg-gray-100 text-gray-700 text-xs font-medium rounded-full px-2 py-0.5">
-                          {item.variantTitle}
-                        </span>
-                        {item.sku && <span className="font-mono text-[11px] text-gray-400">SKU: {item.sku}</span>}
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-xs text-gray-500">{item.variantTitle}</span>
+                        {item.sku && <span className="font-mono text-[11px] text-gray-400">{item.sku}</span>}
                       </div>
                     </div>
-
-                    {/* Price */}
                     <div className="text-right flex-shrink-0">
                       <p className="text-xs text-gray-500">
                         {formatPrice(item.unitPrice)} &times; {item.quantity}
                       </p>
-                      <p className="font-bold text-gray-900 text-sm">{formatPrice(item.totalPrice)}</p>
+                      <p className="font-semibold text-gray-900 text-sm">{formatPrice(item.totalPrice)}</p>
                     </div>
                   </div>
                 );
               })}
             </div>
 
-            {/* Financial summary — improved separation */}
-            <div className="px-5 py-4 border-t-2 border-gray-200 bg-gray-50/80 text-sm space-y-1.5">
-              <div className="flex justify-between py-0.5">
-                <span className="text-gray-600">Mezisoučet</span>
+            {/* Supplier action — inside the card */}
+            {order.needsSupplierOrder && (
+              <div className="px-5 py-3 border-t border-orange-200 bg-orange-50/50">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-sm text-orange-800">
+                    <span className="font-medium">Čeká na dodavatele</span>
+                    <span className="text-orange-600 ml-1.5">
+                      ({order.items.filter((i) => i.fromSupplierStock > 0).reduce((sum, i) => sum + i.fromSupplierStock, 0)} ks)
+                    </span>
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <form action={markSupplierOrdered}>
+                      <input type="hidden" name="orderId" value={order.id} />
+                      <button
+                        type="submit"
+                        disabled={!!order.supplierOrderedAt}
+                        className="px-3 py-1 text-xs font-medium rounded-md bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      >
+                        {order.supplierOrderedAt ? `Objednáno ${formatDate(order.supplierOrderedAt)}` : "Objednat"}
+                      </button>
+                    </form>
+                    <form action={markSupplierReceived}>
+                      <input type="hidden" name="orderId" value={order.id} />
+                      <button
+                        type="submit"
+                        disabled={!!order.supplierReceivedAt || !order.supplierOrderedAt}
+                        className="px-3 py-1 text-xs font-medium rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      >
+                        {order.supplierReceivedAt ? `Přijato ${formatDate(order.supplierReceivedAt)}` : "Přijato"}
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* CARD 2: Zaplaceno (financial summary) */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.08)] overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-gray-200 flex items-center gap-2.5">
+              <h2 className="font-semibold text-gray-900">Zaplaceno</h2>
+              <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${paymentColor.bg} ${paymentColor.text}`}>
+                {PAYMENT_STATUS_LABELS[paymentKey]}
+              </span>
+            </div>
+            <div className="px-5 py-4 text-sm space-y-2">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Mezisoučet <span className="text-gray-400">({order.items.length} {order.items.length === 1 ? "položka" : order.items.length < 5 ? "položky" : "položek"})</span></span>
                 <span className="text-gray-900">{formatPrice(order.subtotal)}</span>
               </div>
               {order.discountAmount > 0 && (
-                <div className="flex justify-between py-0.5">
+                <div className="flex justify-between">
                   <span className="text-gray-600">
-                    Sleva{order.discountCode && <span className="ml-1 font-mono text-xs">({order.discountCode})</span>}
+                    Sleva{order.discountCode && <span className="ml-1 font-mono text-xs text-gray-400">({order.discountCode})</span>}
                   </span>
                   <span className="text-green-600 font-medium">-{formatPrice(order.discountAmount)}</span>
                 </div>
               )}
-              <div className="flex justify-between py-0.5">
-                <span className="text-gray-600">Doprava ({order.shipping?.name})</span>
+              <div className="flex justify-between">
+                <span className="text-gray-600">
+                  Doprava
+                  <span className="text-gray-400 ml-1">({order.shipping?.name})</span>
+                </span>
                 <span className="text-gray-900">
-                  {order.shippingPrice === 0 ? <span className="text-green-600 font-medium">Zdarma</span> : formatPrice(order.shippingPrice)}
+                  {order.shippingPrice === 0 ? <span className="text-green-600">Zdarma</span> : formatPrice(order.shippingPrice)}
                 </span>
               </div>
-              <div className="flex justify-between py-0.5">
+              <div className="flex justify-between">
                 <span className="text-gray-600">DPH 21%</span>
-                <span className="text-gray-900">{formatPrice(vat)}</span>
+                <span className="text-gray-400">Zahrnuto</span>
               </div>
-              <div className="flex justify-between items-center py-2 border-t border-gray-300 mt-2 pt-3">
+              <div className="flex justify-between items-center pt-3 mt-2 border-t border-gray-200">
                 <span className="font-bold text-gray-900 text-base">Celkem</span>
                 <span className="font-bold text-gray-900 text-lg">{formatPrice(order.total)}</span>
               </div>
-              <div className="flex justify-between items-center pt-1">
-                <span className="text-gray-500 text-xs flex items-center gap-1.5">
-                  {order.paymentStatus === "PAID" && (
-                    <svg className="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                    </svg>
+              <div className="flex justify-between items-center text-xs text-gray-500 pt-1">
+                <span className="flex items-center gap-1.5">
+                  {PAYMENT_METHOD_LABELS[order.paymentMethod] || order.paymentMethod}
+                  {order.comgateTransId && (
+                    <span className="font-mono text-gray-400">#{order.comgateTransId}</span>
                   )}
-                  {order.paymentStatus === "PAID" ? "Zaplaceno" : "Čeká na platbu"}
-                  {order.paidAt && ` ${formatDate(order.paidAt)}`}
                 </span>
-                <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${paymentColor.bg} ${paymentColor.text}`}>
-                  {PAYMENT_STATUS_LABELS[paymentKey]}
+                <span>
+                  {order.paymentStatus === "PAID" && order.paidAt
+                    ? `Zaplaceno ${formatDate(order.paidAt)}`
+                    : PAYMENT_STATUS_LABELS[paymentKey]}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Margin / Meta fields */}
+          {/* CARD 3: Ekonomika (conditional) */}
           {(margin !== null || totalCost > 0) && (
-            <div className="bg-white rounded-lg border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.08)] p-4">
-              <h2 className="font-semibold text-gray-900 mb-3">Ekonomika objednávky</h2>
+            <div className="bg-white rounded-lg border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.08)] p-5">
+              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Ekonomika objednávky</h2>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-500">Nákupní cena</span>
+                  <span className="text-gray-500 text-xs">Nákupní cena</span>
                   <p className="font-medium text-gray-900">{formatPrice(totalCost)}</p>
                 </div>
                 {margin !== null && (
                   <div>
-                    <span className="text-gray-500">Marže</span>
+                    <span className="text-gray-500 text-xs">Marže</span>
                     <p className={`font-medium ${margin > 0 ? "text-green-600" : "text-red-600"}`}>
                       {formatPrice(margin)}
                     </p>
                   </div>
                 )}
                 <div>
-                  <span className="text-gray-500">Zdroj položek</span>
+                  <span className="text-gray-500 text-xs">Zdroj</span>
                   <div className="flex items-center gap-2 mt-0.5">
                     {order.items.some((i) => i.fromOwnStock > 0) && (
                       <span className="flex items-center gap-1 text-xs">
                         <span className="w-2 h-2 rounded-full bg-green-500" />
-                        Vlastní
+                        Sklad
                       </span>
                     )}
                     {order.items.some((i) => i.fromSupplierStock > 0) && (
@@ -445,63 +439,18 @@ export default async function OrderDetailPage({ params }: Props) {
             </div>
           )}
 
-          {/* Supplier banner */}
-          {order.needsSupplierOrder && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <h3 className="font-semibold text-amber-800 mb-2">
-                Objednávka vyžaduje dodání od dodavatele
-              </h3>
-              <ul className="text-sm text-amber-700 space-y-1 mb-3">
-                {order.items
-                  .filter((i) => i.fromSupplierStock > 0)
-                  .map((i) => (
-                    <li key={i.id}>
-                      {i.productName} ({i.variantTitle}) — {i.fromSupplierStock} ks
-                    </li>
-                  ))}
-              </ul>
-              <div className="flex gap-2">
-                <form action={markSupplierOrdered}>
-                  <input type="hidden" name="orderId" value={order.id} />
-                  <button
-                    type="submit"
-                    disabled={!!order.supplierOrderedAt}
-                    className="px-3 py-1.5 text-sm font-medium rounded-md bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {order.supplierOrderedAt
-                      ? `Objednáno ${formatDate(order.supplierOrderedAt)}`
-                      : "Označit jako objednáno"}
-                  </button>
-                </form>
-                <form action={markSupplierReceived}>
-                  <input type="hidden" name="orderId" value={order.id} />
-                  <button
-                    type="submit"
-                    disabled={!!order.supplierReceivedAt || !order.supplierOrderedAt}
-                    className="px-3 py-1.5 text-sm font-medium rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {order.supplierReceivedAt
-                      ? `Přijato ${formatDate(order.supplierReceivedAt)}`
-                      : "Zboží přijato"}
-                  </button>
-                </form>
-              </div>
-            </div>
-          )}
-
           {/* Customer note */}
           {order.note && (
-            <div className="bg-white rounded-lg border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.08)] p-4">
-              <h2 className="font-semibold text-gray-900 mb-2">Poznámka zákazníka</h2>
-              <p className="text-sm text-gray-700">{order.note}</p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg px-5 py-3.5">
+              <p className="text-xs font-medium text-blue-600 uppercase tracking-wide mb-1">Poznámka zákazníka</p>
+              <p className="text-sm text-blue-900">{order.note}</p>
             </div>
           )}
 
-          {/* Timeline */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.08)] p-4">
+          {/* CARD 4: Timeline */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.08)] p-5">
             <h2 className="font-semibold text-gray-900 mb-4">Časová osa</h2>
 
-            {/* Comment form */}
             <form action={addComment} className="mb-6">
               <input type="hidden" name="orderId" value={order.id} />
               <div className="flex gap-3">
@@ -518,16 +467,15 @@ export default async function OrderDetailPage({ params }: Props) {
                   <div className="flex justify-end mt-2">
                     <button
                       type="submit"
-                      className="px-4 py-1.5 text-sm font-medium rounded-md bg-gray-900 text-white hover:bg-gray-800 transition-colors"
+                      className="px-4 py-1.5 text-sm font-medium rounded-md bg-gray-900 text-white hover:bg-gray-800 transition-colors cursor-pointer"
                     >
-                      Přidat komentář
+                      Přidat
                     </button>
                   </div>
                 </div>
               </div>
             </form>
 
-            {/* Events list */}
             {order.events.length > 0 ? (
               <div className="space-y-0 border-l-2 border-gray-200 ml-4">
                 {order.events.map((event) => (
@@ -540,160 +488,89 @@ export default async function OrderDetailPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Right column — 1/3 sidebar */}
-        <div className="space-y-6">
-          {/* Status */}
+        {/* ============ RIGHT COLUMN (1/3 sidebar) ============ */}
+        <div className="space-y-5">
+
+          {/* SIDEBAR 1: Poznámky */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.08)] p-4">
+            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Poznámky</h3>
+            <form action={updateAdminNote}>
+              <input type="hidden" name="orderId" value={order.id} />
+              <textarea
+                name="adminNote"
+                defaultValue={order.adminNote || ""}
+                rows={2}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none resize-y"
+                placeholder="Interní poznámka..."
+              />
+              <button
+                type="submit"
+                className="mt-2 w-full px-3 py-1.5 text-sm font-medium rounded-md bg-gray-900 text-white hover:bg-gray-800 transition-colors cursor-pointer"
+              >
+                Uložit
+              </button>
+            </form>
+          </div>
+
+          {/* SIDEBAR 2: Stav objednávky */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.08)] p-4">
             <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Stav</h3>
-            <span
-              className={`inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full ${statusColor.bg} ${statusColor.text}`}
-            >
+            <span className={`inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full ${statusColor.bg} ${statusColor.text}`}>
               {ORDER_STATUS_LABELS[statusKey] || order.status}
             </span>
-            {allowedTransitions.length > 0 && (
+
+            {nextTransitions.length > 0 && (
               <div className="mt-3 space-y-2">
-                {allowedTransitions.map((nextStatus) => {
-                  const nextColor = ORDER_STATUS_COLORS[nextStatus];
-                  const isCancelAction = nextStatus === "CANCELLED";
-                  return (
-                    <form action={updateOrderStatus} key={nextStatus}>
-                      <input type="hidden" name="orderId" value={order.id} />
-                      <input type="hidden" name="newStatus" value={nextStatus} />
-                      <button
-                        type="submit"
-                        className={`w-full px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                          isCancelAction
-                            ? "border border-red-300 text-red-700 hover:bg-red-50"
-                            : `${nextColor.bg} ${nextColor.text} hover:opacity-80`
-                        }`}
-                      >
-                        {ORDER_TRANSITION_LABELS[nextStatus]}
-                      </button>
-                    </form>
-                  );
-                })}
+                {nextTransitions.map((nextStatus) => (
+                  <form action={updateOrderStatus} key={nextStatus}>
+                    <input type="hidden" name="orderId" value={order.id} />
+                    <input type="hidden" name="newStatus" value={nextStatus} />
+                    <button
+                      type="submit"
+                      className="w-full px-3 py-1.5 text-sm font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors cursor-pointer"
+                    >
+                      {ORDER_TRANSITION_LABELS[nextStatus]}
+                    </button>
+                  </form>
+                ))}
               </div>
             )}
-          </div>
 
-          {/* Payment */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.08)] p-4">
-            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Platba</h3>
-            <span
-              className={`inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full ${paymentColor.bg} ${paymentColor.text}`}
-            >
-              {PAYMENT_STATUS_LABELS[paymentKey] || order.paymentStatus}
-            </span>
-            <div className="mt-2 text-sm text-gray-600 space-y-1">
-              <p>{PAYMENT_METHOD_LABELS[order.paymentMethod] || order.paymentMethod}</p>
-              {order.comgateTransId && (
-                <p className="font-mono text-xs text-gray-500">ID: {order.comgateTransId}</p>
-              )}
-              {order.paidAt && <p>Zaplaceno: {formatDate(order.paidAt)}</p>}
-            </div>
-          </div>
-
-          {/* Shipping */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.08)] p-4">
-            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Doprava</h3>
-            <p className="text-sm font-medium text-gray-900">{order.shipping?.name || "—"}</p>
-            <p className="text-sm text-gray-600">{formatPrice(order.shippingPrice)}</p>
-            {order.pickupPointName && (
-              <div className="mt-2 text-sm text-gray-600">
-                <p className="font-medium">Výdejní místo:</p>
-                <p>{order.pickupPointName}</p>
-                {order.pickupPointId && (
-                  <p className="text-xs text-gray-500">ID: {order.pickupPointId}</p>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Tracking */}
-          {order.trackingNumber ? (
-            <div className="bg-green-50 rounded-lg border border-green-200 shadow-[0_1px_3px_rgba(0,0,0,0.08)] p-4">
-              <h3 className="text-xs font-medium text-green-700 uppercase tracking-wide mb-2">Tracking</h3>
-              <p className="font-mono text-sm font-bold text-green-900">{order.trackingNumber}</p>
-              {order.trackingUrl && (
-                <a
-                  href={order.trackingUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 mt-2 text-sm font-medium text-green-700 hover:text-green-900 transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                  </svg>
-                  Sledovat zásilku
-                </a>
-              )}
-              <details className="mt-3">
-                <summary className="text-xs text-green-600 cursor-pointer hover:text-green-800">Upravit tracking</summary>
-                <form action={updateTracking} className="space-y-2 mt-2">
-                  <input type="hidden" name="orderId" value={order.id} />
-                  <input
-                    name="trackingNumber"
-                    defaultValue={order.trackingNumber || ""}
-                    className="w-full rounded-md border border-green-300 px-3 py-1.5 text-sm focus:border-green-500 focus:outline-none bg-white"
-                  />
-                  <input
-                    name="trackingUrl"
-                    defaultValue={order.trackingUrl || ""}
-                    placeholder="https://..."
-                    className="w-full rounded-md border border-green-300 px-3 py-1.5 text-sm focus:border-green-500 focus:outline-none bg-white"
-                  />
-                  <button
-                    type="submit"
-                    className="w-full px-3 py-1.5 text-sm font-medium rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors"
-                  >
-                    Uložit
-                  </button>
-                </form>
-              </details>
-            </div>
-          ) : (
-            <div className="bg-white rounded-lg border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.08)] p-4">
-              <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Tracking</h3>
-              <form action={updateTracking} className="space-y-2">
+            {canCancel && (
+              <form action={updateOrderStatus} className="mt-3 pt-3 border-t border-gray-100">
                 <input type="hidden" name="orderId" value={order.id} />
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Tracking číslo</label>
-                  <input
-                    name="trackingNumber"
-                    defaultValue=""
-                    className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-gray-500 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Tracking URL</label>
-                  <input
-                    name="trackingUrl"
-                    defaultValue=""
-                    placeholder="https://..."
-                    className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-gray-500 focus:outline-none"
-                  />
-                </div>
+                <input type="hidden" name="newStatus" value="CANCELLED" />
                 <button
                   type="submit"
-                  className="w-full px-3 py-1.5 text-sm font-medium rounded-md bg-gray-900 text-white hover:bg-gray-800 transition-colors"
+                  className="text-sm text-red-600 hover:text-red-800 transition-colors cursor-pointer"
                 >
-                  Uložit tracking
+                  Zrušit objednávku
                 </button>
               </form>
-            </div>
-          )}
+            )}
+          </div>
 
-          {/* Customer — premium card */}
+          {/* SIDEBAR 3: Zákazník */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.08)] p-4">
             <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Zákazník</h3>
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+              <div className="w-9 h-9 rounded-full bg-gray-900 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                 {customerInitials}
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">
-                  {order.firstName} {order.lastName}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-gray-900 truncate">
+                    {order.firstName} {order.lastName}
+                  </p>
+                  <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${customerSegment.color}`}>
+                    {customerSegment.label}
+                  </span>
+                  {riskLevel && (
+                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600">
+                      Riziko: {riskLevel}
+                    </span>
+                  )}
+                </div>
                 <a href={`mailto:${order.email}`} className="text-xs text-blue-600 hover:text-blue-800 truncate block">
                   {order.email}
                 </a>
@@ -701,9 +578,6 @@ export default async function OrderDetailPage({ params }: Props) {
             </div>
             {order.phone && (
               <a href={`tel:${order.phone}`} className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 mb-3">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
-                </svg>
                 {order.phone}
               </a>
             )}
@@ -718,93 +592,144 @@ export default async function OrderDetailPage({ params }: Props) {
                 <p>útrata</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 mt-2">
-              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${customerSegment.color}`}>
-                {customerSegment.label}
-              </span>
-            </div>
             {order.user && (
               <Link
                 href={`/admin/zakaznici/${order.user.id}`}
-                className="inline-flex items-center gap-1 mt-3 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                className="inline-flex items-center gap-1 mt-2 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors"
               >
-                Profil zákazníka
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                </svg>
+                Profil zákazníka &rarr;
               </Link>
             )}
           </div>
 
-          {/* Risk assessment */}
+          {/* SIDEBAR 4: Doprava & Tracking (merged) */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.08)] p-4">
-            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Riziko objednávky</h3>
-            <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded ${riskColor}`}>
-              {riskLevel}
-            </span>
-            {riskLevel === "Střední" && (
-              <p className="text-xs text-gray-500 mt-1">
-                Nový zákazník, částka nad 3 000 Kč
-              </p>
+            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Doprava</h3>
+            <p className="text-sm font-medium text-gray-900">{order.shipping?.name || "—"}</p>
+            <p className="text-sm text-gray-500">{formatPrice(order.shippingPrice)}</p>
+
+            {order.pickupPointName && (
+              <div className="mt-2 text-sm">
+                <p className="text-xs text-gray-500">Výdejní místo</p>
+                <p className="font-medium text-gray-900">{order.pickupPointName}</p>
+                {order.pickupPointId && (
+                  <p className="text-xs text-gray-400">ID: {order.pickupPointId}</p>
+                )}
+              </div>
             )}
+
+            {!order.shippedAt && statusKey !== "CANCELLED" && (
+              <div className="mt-2 text-sm">
+                <p className="text-xs text-gray-500">Splnit do</p>
+                <p className={`font-medium ${isOverdue ? "text-red-600" : "text-gray-900"}`}>
+                  {formatDateTime(fulfillmentDeadline)}
+                  {isOverdue && <span className="text-xs text-red-500 ml-1">(po termínu!)</span>}
+                </p>
+              </div>
+            )}
+
+            {estimatedDelivery && (
+              <div className="mt-2 text-sm">
+                <p className="text-xs text-gray-500">Odhad doručení</p>
+                <p className="font-medium text-gray-900">{estimatedDelivery}</p>
+              </div>
+            )}
+
+            {/* Tracking */}
+            <div className="mt-4 pt-3 border-t border-gray-100">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Tracking</p>
+              {order.trackingNumber ? (
+                <div>
+                  <p className="font-mono text-sm font-semibold text-gray-900">{order.trackingNumber}</p>
+                  {order.trackingUrl && (
+                    <a
+                      href={order.trackingUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 mt-1 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                    >
+                      Sledovat zásilku &rarr;
+                    </a>
+                  )}
+                  <details className="mt-2">
+                    <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">Upravit</summary>
+                    <form action={updateTracking} className="space-y-2 mt-2">
+                      <input type="hidden" name="orderId" value={order.id} />
+                      <input
+                        name="trackingNumber"
+                        defaultValue={order.trackingNumber || ""}
+                        className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-gray-500 focus:outline-none"
+                      />
+                      <input
+                        name="trackingUrl"
+                        defaultValue={order.trackingUrl || ""}
+                        placeholder="https://..."
+                        className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-gray-500 focus:outline-none"
+                      />
+                      <button
+                        type="submit"
+                        className="w-full px-3 py-1.5 text-sm font-medium rounded-md bg-gray-900 text-white hover:bg-gray-800 transition-colors cursor-pointer"
+                      >
+                        Uložit
+                      </button>
+                    </form>
+                  </details>
+                </div>
+              ) : (
+                <form action={updateTracking} className="space-y-2">
+                  <input type="hidden" name="orderId" value={order.id} />
+                  <input
+                    name="trackingNumber"
+                    placeholder="Tracking číslo"
+                    className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-gray-500 focus:outline-none"
+                  />
+                  <input
+                    name="trackingUrl"
+                    placeholder="https://..."
+                    className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-gray-500 focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    className="w-full px-3 py-1.5 text-sm font-medium rounded-md bg-gray-900 text-white hover:bg-gray-800 transition-colors cursor-pointer"
+                  >
+                    Uložit tracking
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
 
-          {/* Billing address */}
+          {/* SIDEBAR 5: Fakturační adresa */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.08)] p-4">
-            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-              Fakturační adresa
-            </h3>
-            <div className="text-sm text-gray-700">
-              <p>{order.firstName} {order.lastName}</p>
+            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Fakturační adresa</h3>
+            <div className="text-sm text-gray-700 space-y-0.5">
+              <p className="font-medium text-gray-900">{order.firstName} {order.lastName}</p>
               <p>{order.street}</p>
               <p>{order.zip} {order.city}</p>
             </div>
           </div>
 
-          {/* Shipping address */}
+          {/* SIDEBAR 6: Doručovací adresa */}
           {hasShippingAddress && (
             <div className="bg-white rounded-lg border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.08)] p-4">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                  Doručovací adresa
-                </h3>
+                <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide">Doručovací adresa</h3>
                 <a
                   href={`https://mapy.cz/zakladni?q=${encodeURIComponent(`${order.shippingStreet}, ${order.shippingZip} ${order.shippingCity}`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-blue-600 hover:text-blue-800"
                 >
-                  Zobrazit mapu
+                  Mapa
                 </a>
               </div>
-              <div className="text-sm text-gray-700">
-                {order.shippingName && <p>{order.shippingName}</p>}
+              <div className="text-sm text-gray-700 space-y-0.5">
+                {order.shippingName && <p className="font-medium text-gray-900">{order.shippingName}</p>}
                 <p>{order.shippingStreet}</p>
                 <p>{order.shippingZip} {order.shippingCity}</p>
               </div>
             </div>
           )}
-
-          {/* Admin note (pinned) */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.08)] p-4">
-            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Poznámka</h3>
-            <form action={updateAdminNote}>
-              <input type="hidden" name="orderId" value={order.id} />
-              <textarea
-                name="adminNote"
-                defaultValue={order.adminNote || ""}
-                rows={2}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none resize-y"
-                placeholder="Interní poznámka..."
-              />
-              <button
-                type="submit"
-                className="mt-2 w-full px-3 py-1.5 text-sm font-medium rounded-md bg-gray-900 text-white hover:bg-gray-800 transition-colors"
-              >
-                Uložit
-              </button>
-            </form>
-          </div>
         </div>
       </div>
     </div>
