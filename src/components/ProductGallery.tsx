@@ -13,7 +13,8 @@ interface ProductGalleryProps {
 
 export function ProductGallery({ photos, productName, pastelBg, discount, badge }: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const mainPhoto = photos[activeIndex] || "https://placehold.co/800x1000/f3f5f6/667085?text=Qsport";
+  const mainPhoto = photos[activeIndex] || "";
+  const hasPhotos = photos.length > 0;
 
   return (
     <div>
@@ -32,22 +33,32 @@ export function ProductGallery({ photos, productName, pastelBg, discount, badge 
             </span>
           )}
         </div>
-        <Image
-          key={activeIndex}
-          src={mainPhoto}
-          alt={productName}
-          fill
-          sizes="(max-width: 1024px) 100vw, 50vw"
-          className="object-contain p-10"
-          style={{ mixBlendMode: "multiply" }}
-          priority
-        />
+        {hasPhotos ? (
+          <Image
+            key={activeIndex}
+            src={mainPhoto}
+            alt={productName}
+            fill
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            className="object-contain p-10 mix-blend-multiply"
+            priority
+          />
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-muted/40">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+            <span className="text-[14px] font-bold mt-3">Foto není k dispozici</span>
+          </div>
+        )}
       </div>
 
       {/* Thumbnails */}
-      <div className="flex gap-2">
-        {photos.length > 0 ? (
-          photos.slice(0, 5).map((photo, i) => (
+      {hasPhotos && (
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+          {photos.slice(0, 5).map((photo, i) => (
             <button
               key={i}
               onClick={() => setActiveIndex(i)}
@@ -60,15 +71,12 @@ export function ProductGallery({ photos, productName, pastelBg, discount, badge 
                 alt={`${productName} – ${i + 1}`}
                 width={80}
                 height={80}
-                className="w-full h-full object-contain p-1"
-                style={{ mixBlendMode: "multiply", backgroundColor: "var(--wash)" }}
+                className="w-full h-full object-contain p-1 mix-blend-multiply bg-wash"
               />
             </button>
-          ))
-        ) : (
-          <div className="w-[80px] h-[80px] rounded-[8px] bg-wash border-2 border-navy" />
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

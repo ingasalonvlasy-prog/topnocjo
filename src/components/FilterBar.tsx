@@ -7,6 +7,7 @@ interface FilterBarProps {
   brands: { slug: string; name: string; count: number }[];
   sizes: string[];
   priceRange: { min: number; max: number };
+  showSizeFilter?: boolean;
 }
 
 const priceRanges = [
@@ -78,7 +79,7 @@ function Section({ title, defaultOpen = true, children }: { title: string; defau
   );
 }
 
-export function FilterBar({ brands, sizes, priceRange }: FilterBarProps) {
+export function FilterBar({ brands, sizes, priceRange, showSizeFilter = true }: FilterBarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -146,7 +147,7 @@ export function FilterBar({ brands, sizes, priceRange }: FilterBarProps) {
       )}
 
       {/* Size filter */}
-      {sizes.length > 0 && (
+      {showSizeFilter && sizes.length > 0 && (
         <Section title="Velikost skladem">
           <div className="flex flex-wrap gap-1.5">
             {sizes.map((s) => (

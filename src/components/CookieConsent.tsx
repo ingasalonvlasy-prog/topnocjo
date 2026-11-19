@@ -99,22 +99,22 @@ export function CookieConsent() {
                 </Link>
               </p>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0 w-full sm:w-auto">
               <button
                 onClick={() => setShowSettings(true)}
-                className="h-[36px] px-4 text-[13px] font-bold text-ink border border-line rounded-[var(--radius-pill)] hover:bg-wash transition-colors cursor-pointer"
+                className="h-[44px] px-4 text-[13px] font-bold text-ink border border-line rounded-[var(--radius-pill)] hover:bg-wash transition-colors cursor-pointer"
               >
                 Nastavení
               </button>
               <button
                 onClick={handleNecessaryOnly}
-                className="h-[36px] px-4 text-[13px] font-bold text-ink border border-line rounded-[var(--radius-pill)] hover:bg-wash transition-colors cursor-pointer"
+                className="h-[44px] px-4 text-[13px] font-bold text-ink border border-line rounded-[var(--radius-pill)] hover:bg-wash transition-colors cursor-pointer"
               >
                 Pouze nezbytné
               </button>
               <button
                 onClick={handleAcceptAll}
-                className="h-[36px] px-5 text-[13px] font-extrabold text-white bg-navy rounded-[var(--radius-pill)] hover:bg-navy/90 transition-colors cursor-pointer"
+                className="h-[44px] px-5 text-[13px] font-extrabold text-white bg-navy rounded-[var(--radius-pill)] hover:bg-navy/90 transition-colors cursor-pointer"
               >
                 Přijmout vše
               </button>

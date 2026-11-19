@@ -41,7 +41,7 @@ export function SortDropdown() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="text-[13px] text-muted hover:text-ink transition-colors cursor-pointer"
+        className="h-[44px] flex items-center px-2 text-[13px] text-muted hover:text-ink transition-colors cursor-pointer"
       >
         Řadit: <span className="font-bold text-ink">{currentLabel}</span>
         <span className="ml-1">&#9660;</span>
@@ -52,7 +52,7 @@ export function SortDropdown() {
             <button
               key={opt.value}
               onClick={() => handleSort(opt.value)}
-              className={`w-full text-left px-4 py-2 text-[13px] hover:bg-wash transition-colors ${
+              className={`w-full text-left px-4 py-3 text-[13px] hover:bg-wash transition-colors ${
                 current === opt.value ? "font-bold text-navy" : "text-ink"
               }`}
             >

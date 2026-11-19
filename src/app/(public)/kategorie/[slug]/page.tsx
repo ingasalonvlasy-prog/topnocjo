@@ -5,10 +5,11 @@ import { getFilteredProducts } from "@/lib/products";
 import { getFilterOptions } from "@/lib/filter-options";
 import { ProductCard } from "@/components/ProductCard";
 import { Pagination } from "@/components/Pagination";
-import { FilterBar } from "@/components/FilterBar";
 import { MobileFilterDrawer } from "@/components/MobileFilterDrawer";
 import { SortDropdown } from "@/components/SortDropdown";
 import { ActiveFilterChips } from "@/components/ActiveFilterChips";
+import { CategorySidebar } from "@/components/CategorySidebar";
+import { HorizontalFilters } from "@/components/HorizontalFilters";
 import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
 
 type SortOption = "price_asc" | "price_desc" | "name" | "newest";
@@ -58,9 +59,15 @@ export default async function CategoryPage({
   const priceMax = sp.cena_do ? Number(sp.cena_do) : undefined;
   const inStock = sp.skladem === "1";
 
+  // For parent categories, include all child category IDs
+  const isParent = category.children.length > 0;
+  const categoryIds = isParent
+    ? [category.id, ...category.children.map((c) => c.id)]
+    : category.id;
+
   const [result, filterOptions] = await Promise.all([
     getFilteredProducts({
-      categoryId: category.id,
+      categoryId: categoryIds,
       brandSlug,
       size,
       priceMin,
@@ -69,7 +76,11 @@ export default async function CategoryPage({
       page,
       inStock,
     }),
-    getFilterOptions(category.id),
+    getFilterOptions(
+      isParent
+        ? [category.id, ...category.children.map((c) => c.id)]
+        : category.id
+    ),
   ]);
 
   const paginationParams: Record<string, string> = {};
@@ -127,7 +138,7 @@ export default async function CategoryPage({
               const siblings = isChild ? category.parent!.children : category.children;
 
               return (
-                <div className="flex flex-nowrap overflow-x-auto sm:flex-wrap gap-2 pb-2 sm:pb-0 scrollbar-hide">
+                <div className="flex flex-nowrap overflow-x-auto sm:flex-wrap gap-2 pb-2 sm:pb-0 scrollbar-hide lg:hidden">
                   <Link
                     href={`/kategorie/${parentCat.slug}`}
                     className={`shrink-0 px-5 py-2 rounded-full text-[14px] font-bold transition-colors ${
@@ -158,60 +169,86 @@ export default async function CategoryPage({
         </div>
       </section>
 
-      {/* Content: sidebar filters + product grid */}
+      {/* Content: category sidebar + horizontal filters + product grid */}
       <div className="max-w-[var(--container)] mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-8">
-          {/* Sidebar filters */}
-          <aside className="hidden lg:block">
-            <FilterBar
-              brands={filterOptions.brands}
-              sizes={filterOptions.sizes}
-              priceRange={filterOptions.priceRange}
-            />
-          </aside>
+        {(() => {
+          // Determine sidebar data
+          const isChild = !!category.parent;
+          const parentCat = isChild
+            ? { id: category.parent!.id, name: category.parent!.name, slug: category.parent!.slug }
+            : { id: category.id, name: category.name, slug: category.slug };
+          const childCats = isChild ? category.parent!.children : category.children;
+          const hasSidebar = childCats.length > 0;
 
-          {/* Product grid */}
-          <div>
-            {/* Top bar: count + sort + mobile filter trigger */}
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-3">
-                <span className="text-[14px] font-bold text-ink">{result.total} produktů</span>
-                <div className="lg:hidden">
-                  <MobileFilterDrawer
+          return (
+            <div className={`grid grid-cols-1 ${hasSidebar ? "lg:grid-cols-[200px_1fr]" : ""} gap-8`}>
+              {/* Sidebar: Category tree navigation (desktop only) */}
+              {hasSidebar && (
+                <aside className="hidden lg:block">
+                  <CategorySidebar
+                    currentSlug={slug}
+                    parentCategory={parentCat}
+                    childCategories={childCats}
+                  />
+                </aside>
+              )}
+
+              {/* Main content */}
+              <div>
+                {/* Horizontal filter chips (desktop) */}
+                <div className="hidden lg:block">
+                  <HorizontalFilters
                     brands={filterOptions.brands}
                     sizes={filterOptions.sizes}
+                    sizeType={filterOptions.sizeType}
                     priceRange={filterOptions.priceRange}
-                    activeFilterCount={activeFilterCount}
+                    showSizeFilter={!isParent}
                   />
                 </div>
+
+                {/* Top bar: count + sort + mobile filter trigger */}
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-3">
+                    <span className="text-[14px] font-bold text-ink">{result.total} produktů</span>
+                    <div className="lg:hidden">
+                      <MobileFilterDrawer
+                        brands={filterOptions.brands}
+                        sizes={filterOptions.sizes}
+                        priceRange={filterOptions.priceRange}
+                        activeFilterCount={activeFilterCount}
+                        showSizeFilter={!isParent}
+                      />
+                    </div>
+                  </div>
+                  <SortDropdown />
+                </div>
+
+                {/* Active filter chips */}
+                <ActiveFilterChips brands={filterOptions.brands} />
+
+                {result.items.length > 0 ? (
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                    {result.items.map((product) => (
+                      <ProductCard key={product.id} product={product} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-16">
+                    <p className="text-[16px] font-bold text-ink mb-2">Žádné produkty neodpovídají filtru.</p>
+                    <p className="text-[13px] text-muted">Zkus upravit filtry nebo zobraz všechny produkty.</p>
+                  </div>
+                )}
+
+                <Pagination
+                  currentPage={result.page}
+                  totalPages={result.totalPages}
+                  baseUrl={`/kategorie/${slug}`}
+                  searchParams={paginationParams}
+                />
               </div>
-              <SortDropdown />
             </div>
-
-            {/* Active filter chips */}
-            <ActiveFilterChips brands={filterOptions.brands} />
-
-            {result.items.length > 0 ? (
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                {result.items.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-16">
-                <p className="text-[16px] font-bold text-ink mb-2">Žádné produkty neodpovídají filtru.</p>
-                <p className="text-[13px] text-muted">Zkus upravit filtry nebo zobraz všechny produkty.</p>
-              </div>
-            )}
-
-            <Pagination
-              currentPage={result.page}
-              totalPages={result.totalPages}
-              baseUrl={`/kategorie/${slug}`}
-              searchParams={paginationParams}
-            />
-          </div>
-        </div>
+          );
+        })()}
       </div>
 
       {/* JSON-LD: BreadcrumbList */}

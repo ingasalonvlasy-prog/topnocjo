@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/db";
 import { ProductCard } from "@/components/ProductCard";
-import { HeroSearch } from "@/components/HeroSearch";
+import { SearchAutocomplete } from "@/components/SearchAutocomplete";
 import { getLatestBlogPosts } from "@/lib/blog";
 import { BlogCard } from "@/components/BlogCard";
 import { NewsletterForm } from "@/components/NewsletterForm";
@@ -11,62 +11,95 @@ import { getInstagramPosts } from "@/lib/instagram";
 import { InstagramGrid } from "@/components/InstagramGrid";
 
 const categoryPastels: Record<string, string> = {
-  "bezecke-boty": "bg-mint",
+  "muzi": "bg-sky",
+  "zeny": "bg-peach",
+  "deti": "bg-mint",
   "beh": "bg-mint",
-  "kopacky": "bg-mint",
-  "volejbalova-obuv": "bg-mint",
-  "cyklo-helmy": "bg-sky",
-  "hory-a-outdoor": "bg-sky",
   "zima": "bg-sky",
+  "hory-a-outdoor": "bg-sky",
   "obleceni": "bg-peach",
   "doplnky": "bg-lilac",
   "bazar": "bg-wash",
 };
 
-const categoryIcons: Record<string, string> = {
-  "beh": "/icons/beh.svg",
-  "bezecke-boty": "/icons/beh.svg",
-  "hory-a-outdoor": "/icons/outdoor.svg",
-  "zima": "/icons/zima.svg",
-  "obleceni": "/icons/obleceni.svg",
-  "doplnky": "/icons/doplnky.svg",
-  "kopacky": "/icons/beh.svg",
-  "volejbalova-obuv": "/icons/beh.svg",
-  "cyklo-helmy": "/icons/outdoor.svg",
-  "bazar": "/icons/beh.svg",
-};
-
-// Grid positions for asymmetric category layout (matching mockup)
-// Row 1: Běh (large, 2 rows), Zima (1 row), Oblečení (1 row)
-// Row 2: (Běh continues), Batohy (1 row), Bazar (1 row)
 
 export default async function HomePage() {
-  const [categories, brands, newest, bestsellers, blogPosts, instagramPosts] = await Promise.all([
-    prisma.category.findMany({ orderBy: { position: "asc" } }),
+  const [brands, bestsellers, blogPosts, instagramPosts, pocProducts, genderCategories] = await Promise.all([
     prisma.brand.findMany({ orderBy: { name: "asc" } }),
     prisma.product.findMany({
-      where: { status: "ACTIVE" },
+      where: {
+        status: "ACTIVE",
+        photos: { contains: "shopify" },
+        variants: {
+          some: {
+            active: true,
+            OR: [{ ownStock: { gt: 0 } }, { supplierStock: { gt: 0 } }],
+          },
+        },
+      },
+      include: {
+        variants: { where: { active: true }, orderBy: { position: "asc" } },
+        brand: true,
+        categories: { include: { category: true } },
+      },
+      orderBy: { updatedAt: "desc" },
+      take: 60,
+    }),
+    getLatestBlogPosts(3),
+    getInstagramPosts(6),
+    prisma.product.findMany({
+      where: {
+        status: "ACTIVE",
+        photos: { contains: "shopify" },
+        brand: { slug: "poc" },
+      },
       include: {
         variants: { where: { active: true }, orderBy: { position: "asc" } },
         brand: true,
         categories: { include: { category: true } },
       },
       orderBy: { createdAt: "desc" },
-      take: 8,
-    }),
-    prisma.product.findMany({
-      where: { status: "ACTIVE" },
-      include: {
-        variants: { where: { active: true }, orderBy: { position: "asc" } },
-        brand: true,
-        categories: { include: { category: true } },
-      },
-      orderBy: { reviewCount: "desc" },
       take: 4,
     }),
-    getLatestBlogPosts(3),
-    getInstagramPosts(6),
+    prisma.category.findMany({
+      where: { slug: { in: ["muzi", "zeny", "deti"] } },
+      include: { children: { select: { id: true } } },
+    }),
   ]);
+
+  // Build gender category counts (parent + all children) and fetch card images
+  const genderData: Record<string, { count: number; photo: string | null }> = {};
+  await Promise.all(
+    genderCategories.map(async (gc) => {
+      const allIds = [gc.id, ...gc.children.map((c) => c.id)];
+      const [count, sample] = await Promise.all([
+        prisma.product.count({
+          where: {
+            status: "ACTIVE",
+            photos: { not: "[]" },
+            categories: { some: { categoryId: { in: allIds } } },
+          },
+        }),
+        prisma.product.findFirst({
+          where: {
+            status: "ACTIVE",
+            photos: { contains: "shopify" },
+            categories: { some: { categoryId: { in: allIds } } },
+          },
+          select: { photos: true },
+          orderBy: { createdAt: "desc" },
+        }),
+      ]);
+      let photo: string | null = null;
+      if (sample) {
+        try {
+          const photos = JSON.parse(sample.photos);
+          if (photos.length > 0) photo = photos[0];
+        } catch {}
+      }
+      genderData[gc.slug] = { count, photo };
+    })
+  );
 
   return (
     <div>
@@ -83,7 +116,7 @@ export default async function HomePage() {
           <p className="text-[15px] text-white/50 font-medium mb-8">
             Sportovní vybavení od značek On, POC, Maloja, Alpina a Mizuno
           </p>
-          <HeroSearch />
+          <SearchAutocomplete variant="hero" placeholder="Hledej značku, produkt nebo kategorii..." />
           <div className="flex flex-nowrap overflow-x-auto sm:flex-wrap justify-center gap-2 mt-6 pb-2 sm:pb-0 scrollbar-hide">
             {["Běžecké boty", "POC helmy", "Maloja bundy", "Trailové boty", "Zimní bundy", "Doplňky"].map((q) => (
               <Link
@@ -102,7 +135,7 @@ export default async function HomePage() {
       <section className="border-b border-line">
         <div className="max-w-[var(--container)] mx-auto px-6 py-10">
           <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted text-center mb-6">Prémiové značky</div>
-          <div className="flex justify-between items-center gap-6 lg:gap-0 flex-wrap">
+          <div className="flex flex-wrap justify-center gap-6 lg:justify-between lg:gap-0">
             {[
               { name: "On", slug: "on", file: "/brands/on.svg", w: 60, h: 24 },
               { name: "POC", slug: "poc", file: "/brands/poc.svg", w: 72, h: 24 },
@@ -114,7 +147,7 @@ export default async function HomePage() {
               <Link
                 key={brand.slug}
                 href={`/znacky/${brand.slug}`}
-                className="grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
+                className="grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300 py-3"
               >
                 <Image
                   src={brand.file}
@@ -144,77 +177,118 @@ export default async function HomePage() {
           </Link>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-          {bestsellers.map((product, i) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              badge={i === 0 ? "BESTSELLER" : i === 2 ? "NOVINKA" : null}
-            />
-          ))}
+          {(() => {
+            // Seed-based shuffle for variety per day (avoids hydration mismatch)
+            const daySeed = Math.floor(Date.now() / 86400000);
+            const idHash = (id: string) => id.split('').reduce((acc, ch, i) => acc + ch.charCodeAt(0) * (i + 1), 0);
+            const shuffled = [...bestsellers].sort((a, b) => {
+              const ha = ((idHash(a.id) + daySeed) % 1000) / 1000;
+              const hb = ((idHash(b.id) + daySeed) % 1000) / 1000;
+              return ha - hb;
+            });
+            const sorted = shuffled.sort((a, b) => {
+              const aOwn = a.variants.some(v => v.ownStock > 0) ? 1 : 0;
+              const bOwn = b.variants.some(v => v.ownStock > 0) ? 1 : 0;
+              return bOwn - aOwn;
+            });
+            // Pick 4 from different brands
+            const seen = new Set<string>();
+            const picks = sorted.filter((p) => {
+              if (seen.has(p.brand.slug)) return false;
+              seen.add(p.brand.slug);
+              return true;
+            }).slice(0, 4);
+            if (picks.length < 4) {
+              for (const p of sorted) {
+                if (picks.length >= 4) break;
+                if (!picks.includes(p)) picks.push(p);
+              }
+            }
+            return picks.map((product, i) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                badge={i === 0 ? "BESTSELLER" : i === 2 ? "NOVINKA" : null}
+              />
+            ));
+          })()}
         </div>
       </section>
 
-      {/* 4. Kategorie — "Venku je tvoje hřiště." — asymmetric grid */}
+      {/* 4. Nakupovat podle — Muži, Ženy, Děti (AboutYou style) */}
       <section className="max-w-[var(--container)] mx-auto px-6 pb-14">
         <div className="mb-1">
-          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted mb-1">Kategorie</div>
-          <h2 className="text-[32px] lg:text-[40px] font-extrabold tracking-[-0.04em]">Venku je tvoje hřiště.</h2>
+          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted mb-1">Nakupovat podle</div>
+          <h2 className="text-[32px] lg:text-[40px] font-extrabold tracking-[-0.04em]">Pro koho hledáš?</h2>
         </div>
 
-        {/* Asymmetric grid: Běh (tall left, row-span-2), Hory+Zima (right top), Oblečení+Doplňky (right bottom), Bazar (full width) */}
-        {(() => {
-          const categoryOrder = ["beh", "hory-a-outdoor", "zima", "obleceni", "doplnky", "bazar"];
-          const orderedCategories = categoryOrder
-            .map(slug => categories.find(c => c.slug === slug))
-            .filter((c): c is NonNullable<typeof c> => c != null);
+        {/* 3 big gender cards — product photo + gradient overlay */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+          {[
+            { slug: "muzi", name: "Muži", bg: "bg-sky", gradient: "from-sky via-sky/70 to-transparent", desc: "Bundy, kalhoty, trička, termoprádlo" },
+            { slug: "zeny", name: "Ženy", bg: "bg-peach", gradient: "from-peach via-peach/70 to-transparent", desc: "Bundy, sukně, mikiny, termoprádlo" },
+            { slug: "deti", name: "Děti", bg: "bg-mint", gradient: "from-mint via-mint/70 to-transparent", desc: "Bundy, kalhoty, trička, mikiny" },
+          ].map((item) => {
+            const data = genderData[item.slug];
+            return (
+              <Link
+                key={item.slug}
+                href={`/kategorie/${item.slug}`}
+                className={`group relative overflow-hidden rounded-[10px] ${item.bg} hover:shadow-[0_8px_24px_rgba(11,23,39,0.08)] hover:-translate-y-1 transition-all`}
+              >
+                {/* Product photo background */}
+                {data?.photo && (
+                  <Image
+                    src={data.photo}
+                    alt={item.name}
+                    fill
+                    className="object-cover object-center opacity-40 group-hover:opacity-50 group-hover:scale-105 transition-all duration-500"
+                    sizes="(max-width: 640px) 100vw, 33vw"
+                  />
+                )}
+                {/* Gradient overlay for text readability */}
+                <div className={`absolute inset-0 bg-gradient-to-r ${item.gradient}`} />
+                <div className="aspect-[4/3] p-6 flex flex-col justify-between relative z-10">
+                  <div>
+                    <h3 className="text-[32px] lg:text-[40px] font-extrabold text-navy tracking-[-0.02em]">{item.name}</h3>
+                    <p className="text-[13px] text-navy/50 font-medium mt-1">{item.desc}</p>
+                    <p className="text-[12px] font-bold text-navy/30 mt-2">{data?.count || 0} produktů</p>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[12px] font-bold uppercase tracking-[0.08em] text-navy/60 group-hover:text-navy transition-colors">Nakupovat</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-navy/60 group-hover:translate-x-1 group-hover:text-navy transition-all">
+                      <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
 
-          return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr] gap-4 mt-6">
-              {orderedCategories.map((cat, i) => {
-                const bg = categoryPastels[cat.slug] || "bg-wash";
-                const icon = categoryIcons[cat.slug] || "/icons/beh.svg";
-                const isLarge = i === 0;
-                const isFullWidth = cat.slug === "bazar";
-
-                return (
-                  <Link
-                    key={cat.id}
-                    href={`/kategorie/${cat.slug}`}
-                    className={`group relative overflow-hidden rounded-[10px] ${bg} ${
-                      isLarge ? "sm:col-span-2 lg:col-span-1 lg:row-span-2" : ""
-                    } ${isFullWidth ? "sm:col-span-2 lg:col-span-3" : ""}`}
-                  >
-                    <div className={`${isLarge ? "aspect-square lg:aspect-auto lg:h-full min-h-[280px]" : isFullWidth ? "min-h-[120px]" : "aspect-[3/2] min-h-[160px]"} p-5 flex flex-col justify-between relative`}>
-                      <div>
-                        <h3 className="text-[22px] lg:text-[28px] font-extrabold text-navy tracking-[-0.02em]">{cat.name}</h3>
-                        <div className="flex items-center gap-1 mt-1">
-                          <span className="text-[12px] font-bold uppercase tracking-[0.08em] text-navy/60">Nakupovat</span>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-navy/60">
-                            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-                          </svg>
-                        </div>
-                        {cat.slug === "bazar" && (
-                          <p className="text-[13px] text-navy/50 font-medium mt-2 max-w-[140px]">
-                            Druhá šance pro výbavu.
-                          </p>
-                        )}
-                      </div>
-                      {/* Category icon */}
-                      <div className={`${isLarge ? "absolute bottom-4 right-4 w-[120px] h-[120px] lg:w-[180px] lg:h-[180px]" : "absolute bottom-2 right-2 w-[80px] h-[80px] lg:w-[100px] lg:h-[100px]"}`}>
-                        <Image
-                          src={icon}
-                          alt={cat.name}
-                          fill
-                          className="object-contain opacity-30"
-                        />
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          );
-        })()}
+        {/* Sport categories — smaller row below */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+          {[
+            { slug: "beh", name: "Běh", bg: "bg-mint" },
+            { slug: "zima", name: "Zima", bg: "bg-sky" },
+            { slug: "hory-a-outdoor", name: "Outdoor", bg: "bg-sky" },
+            { slug: "doplnky", name: "Doplňky", bg: "bg-lilac" },
+          ].map((item) => (
+            <Link
+              key={item.slug}
+              href={`/kategorie/${item.slug}`}
+              className={`group ${item.bg} rounded-[10px] p-4 min-h-[100px] flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition-all`}
+            >
+              <h3 className="text-[18px] font-extrabold text-navy">{item.name}</h3>
+              <div className="flex items-center gap-1 mt-1">
+                <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-navy/50">Prozkoumat</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-navy/50">
+                  <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                </svg>
+              </div>
+            </Link>
+          ))}
+        </div>
       </section>
 
       {/* 5. Série / Akce — navy left panel + product cards */}
@@ -243,30 +317,57 @@ export default async function HomePage() {
           </div>
           {/* Product cards */}
           <div className="grid grid-cols-2 gap-4">
-            {newest.slice(0, 2).map((product) => (
+            {pocProducts.slice(0, 2).map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
         </div>
       </section>
 
-      {/* 6. Proč Qsport — "Výkon bez kompromisů." with numbered boxes */}
-      <section className="max-w-[var(--container)] mx-auto px-6 pb-14">
-        <div className="mb-6">
-          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted mb-1">Proč Qsport</div>
-          <h2 className="text-[32px] lg:text-[40px] font-extrabold tracking-[-0.04em]">Výkon bez kompromisů.</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            { num: "01", title: "Nákup bez registrace" },
-            { num: "02", title: "Cena a dostupnost u každého produktu" },
-            { num: "03", title: "Doprava a platba předem jasně" },
-          ].map((box) => (
-            <div key={box.num} className="bg-wash rounded-[10px] p-6 min-h-[160px] flex flex-col justify-between">
-              <span className="text-[28px] font-extrabold text-line">{box.num}</span>
-              <h3 className="text-[15px] font-bold text-ink mt-4">{box.title}</h3>
-            </div>
-          ))}
+      {/* 6. Proč Qsport — navy thin strip, icon left + text right */}
+      <section className="bg-navy">
+        <div className="max-w-[var(--container)] mx-auto px-6 py-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
+            {[
+              {
+                title: "Nákup bez registrace",
+                icon: (
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-lime">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                ),
+              },
+              {
+                title: "Skladem — expedice do 24h",
+                icon: (
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-lime">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                    <line x1="12" y1="22.08" x2="12" y2="12" />
+                  </svg>
+                ),
+              },
+              {
+                title: "Doprava od 49 Kč",
+                icon: (
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-lime">
+                    <rect x="1" y="3" width="15" height="13" rx="2" />
+                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                    <circle cx="5.5" cy="18.5" r="2.5" />
+                    <circle cx="18.5" cy="18.5" r="2.5" />
+                  </svg>
+                ),
+              },
+            ].map((item) => (
+              <div key={item.title} className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                  {item.icon}
+                </div>
+                <span className="text-[14px] font-bold text-white">{item.title}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

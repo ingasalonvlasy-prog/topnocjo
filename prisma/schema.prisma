@@ -7,14 +7,16 @@ datasource db {
 }
 
 model Brand {
-  id        String    @id @default(cuid())
-  name      String    @unique
-  slug      String    @unique
-  logo      String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  products  Product[]
+  id         String    @id @default(cuid())
+  name       String    @unique
+  nameSearch String?
+  slug       String    @unique
+  logo       String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  products   Product[]
 
+  @@index([nameSearch])
   @@map("brands")
 }
 
@@ -40,6 +42,7 @@ model Category {
 model Product {
   id             String            @id @default(cuid())
   name           String
+  nameSearch     String?
   slug           String            @unique
   description    String?
   bodyHtml       String?
@@ -65,6 +68,7 @@ model Product {
 
   @@index([brandId])
   @@index([status])
+  @@index([nameSearch])
   @@map("products")
 }
 

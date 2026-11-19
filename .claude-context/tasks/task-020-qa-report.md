@@ -1,8 +1,116 @@
-# QA Report — Task #20: Checkout + Comgate + Košík
+# QA Report — Task #20 Kolo 2: Server actions auth, OG, error boundaries, slevy, cross-sell
 
-**Datum:** 2026-11-08  
+**Datum:** 2026-11-11  
 **Kontrolor:** kontrolor agent  
-**Verdict: NESCHVÁLENO — 1 BLOCKER**
+**Verdict: CONDITIONAL PASS — 1 KRITICKÝ BUG (discounts export role check)**
+
+---
+
+## Výsledek buildu
+
+- `npm run build` — PASS, 0 chyb, 0 warnings
+
+---
+
+## KRITICKÝ BUG: discounts export — špatné role jméno
+
+**Soubor:** `src/app/api/admin/discounts/export/route.ts:14`
+
+```ts
+if (!user || user.role !== "ADMIN") {  // BUG: "ADMIN" vs "admin"
+```
+
+Všechny ostatní routes používají `"admin"` (lowercase), což odpovídá DB defaultu (`@default("admin")` v schema.prisma). Tato route **nikdy nepustí dál** — vždy vrátí 401 i přihlášenému adminovi.
+
+**Fix:** Změnit `"ADMIN"` na `"admin"` na řádku 14.
+
+---
+
+## Task #14 — requireAdmin() v admin server actions
+
+| Soubor | Počet funkcí | requireAdmin | Stav |
+|--------|-------------|--------------|------|
+| newsletter/actions.ts | 2 | 2x | PASS |
+| produkty/actions.ts | 2 | 2x | PASS |
+| slevy/actions.ts | 3 | 3x | PASS |
+| recenze/actions.ts | 3 | 3x | PASS |
+| objednavky/[id]/actions.ts | 5 | 5x | PASS |
+| nastaveni/actions.ts | 4 | 4x | PASS |
+| opustene-pokladny/actions.ts | 2 | 2x | PASS |
+
+Všechny server actions mají `requireAdmin()` na prvním řádku každé funkce. **PASS.**
+
+---
+
+## Task #15 — OG metadata pro 11 statických stránek
+
+Všech 11 stránek má `export const metadata`:
+
+`/o-nas`, `/kontakt`, `/obchodni-podminky`, `/doprava-a-platba`, `/vraceni-zbozi`, `/reklamace`, `/cookies`, `/velikosti`, `/registrace`, `/prihlaseni`, `/znacky`
+
+**PASS.**
+
+---
+
+## Task #16 — Error boundaries
+
+| Soubor | Stav | Poznámka |
+|--------|------|----------|
+| `src/app/(admin)/admin/error.tsx` | PASS | `"use client"`, reset + Dashboard link |
+| `src/app/(public)/error.tsx` | PASS | `"use client"`, reset + Hlavní stránka link |
+
+Oba správně exportují default function s `error` a `reset` props. **PASS.**
+
+---
+
+## Task #17 — Slevy stránka upgrade
+
+| Bod | Stav | Poznámka |
+|-----|------|----------|
+| Stat karty (3) | PASS | Aktivní, Celkem využití, Vypršelé |
+| Export CSV link | PASS | Link na `/api/admin/discounts/export` |
+| Export route auth | FAIL | `"ADMIN"` místo `"admin"` — viz kritický bug |
+| Empty state | PASS | Hezký placeholder s ikonou a CTA |
+| Stav badges | PASS | Neaktivní / Vypršel / Vyčerpán / Aktivní |
+
+---
+
+## Task #18 — Košík cross-sell
+
+| Bod | Stav | Poznámka |
+|-----|------|----------|
+| `CrossSellProducts` komponenta | PASS | `src/components/CrossSellProducts.tsx` |
+| `"use client"` | PASS | Správně, používá `useEffect`/`useState` |
+| API endpoint | PASS | `/api/products/cross-sell` — 4 náhodné aktivní produkty se skladem |
+| Integrováno do košíku | PASS | `<CrossSellProducts />` na konci `kosik/page.tsx` |
+| Skrytí při 0 výsledcích | PASS | `if (products.length === 0) return null` |
+| Error handling | PASS | `.catch(() => {})` tichý fallback |
+| Responsivní grid | PASS | `grid-cols-2 lg:grid-cols-4` |
+
+---
+
+## Task #19 — Finance export link fix
+
+`src/app/(admin)/admin/finance/page.tsx` řádek 361:
+```tsx
+<a href="/api/admin/orders/export" download>Export CSV</a>
+```
+Správný odkaz na auth-chráněný endpoint. **PASS.**
+
+---
+
+## Souhrn
+
+| Task | Stav |
+|------|------|
+| #14 requireAdmin() | PASS |
+| #15 OG metadata | PASS |
+| #16 Error boundaries | PASS |
+| #17 Slevy upgrade | PARTIAL (export route má bug) |
+| #18 Cross-sell | PASS |
+| #19 Finance export | PASS |
+
+**Celkový výsledek: CONDITIONAL PASS** — build prošel čistě, ale discounts export route (`src/app/api/admin/discounts/export/route.ts:14`) má `"ADMIN"` místo `"admin"` a nikdy nepustí admina. Nutný fix před nasazením.
 
 ---
 

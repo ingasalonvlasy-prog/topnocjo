@@ -3,24 +3,27 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { SearchAutocomplete } from "./SearchAutocomplete";
 import { useCart } from "@/lib/cart";
+import { MegaMenuItem, MobileMenuItem, type NavCategory } from "./MegaMenu";
 
-const navLinks = [
-  { href: "/kategorie/beh", label: "Běh" },
-  { href: "/kategorie/hory-a-outdoor", label: "Hory a outdoor" },
-  { href: "/kategorie/zima", label: "Zima" },
-  { href: "/kategorie/obleceni", label: "Oblečení" },
-  { href: "/kategorie/doplnky", label: "Doplňky" },
+const staticLinks = [
   { href: "/znacky", label: "Značky" },
   { href: "/bazar", label: "Bazar" },
   { href: "/akce", label: "Akce", isAccent: true },
 ];
 
-export function Header() {
+interface HeaderProps {
+  categories?: NavCategory[];
+}
+
+export function Header({ categories = [] }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const { itemCount } = useCart();
+  const pathname = usePathname();
+  const isHomepage = pathname === "/";
 
   return (
     <>
@@ -56,7 +59,14 @@ export function Header() {
 
             {/* Desktop nav */}
             <nav className="flex items-center gap-1 flex-1">
-              {navLinks.map((link) => (
+              {categories.map((cat) => (
+                <MegaMenuItem
+                  key={cat.id}
+                  category={cat}
+                  onClose={() => setMenuOpen(false)}
+                />
+              ))}
+              {staticLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -152,24 +162,33 @@ export function Header() {
             </div>
           </div>
 
-          {/* Desktop search — toggled */}
-          {searchOpen && (
+          {/* Desktop search — toggled (hidden on homepage which has hero search) */}
+          {searchOpen && !isHomepage && (
             <div className="hidden lg:block pb-3">
               <SearchAutocomplete placeholder="Hledej značku nebo produkt..." />
             </div>
           )}
 
-          {/* Mobile search — always visible */}
-          <div className="lg:hidden pb-3">
-            <SearchAutocomplete placeholder="Hledej značku nebo produkt..." />
-          </div>
+          {/* Mobile search — always visible except on homepage */}
+          {!isHomepage && (
+            <div className="lg:hidden pb-3">
+              <SearchAutocomplete placeholder="Hledej značku nebo produkt..." />
+            </div>
+          )}
         </div>
 
         {/* Mobile menu */}
         {menuOpen && (
           <nav className="lg:hidden border-t border-line bg-white">
-            <div className="max-w-[var(--container)] mx-auto px-6 py-3 space-y-0">
-              {navLinks.map((link) => (
+            <div className="max-w-[var(--container)] mx-auto px-6 py-3">
+              {categories.map((cat) => (
+                <MobileMenuItem
+                  key={cat.id}
+                  category={cat}
+                  onClose={() => setMenuOpen(false)}
+                />
+              ))}
+              {staticLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}

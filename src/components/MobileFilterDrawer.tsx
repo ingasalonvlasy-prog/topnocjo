@@ -8,9 +8,10 @@ interface Props {
   sizes: string[];
   priceRange: { min: number; max: number };
   activeFilterCount: number;
+  showSizeFilter?: boolean;
 }
 
-export function MobileFilterDrawer({ brands, sizes, priceRange, activeFilterCount }: Props) {
+export function MobileFilterDrawer({ brands, sizes, priceRange, activeFilterCount, showSizeFilter = true }: Props) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -50,7 +51,7 @@ export function MobileFilterDrawer({ brands, sizes, priceRange, activeFilterCoun
                 </svg>
               </button>
             </div>
-            <FilterBar brands={brands} sizes={sizes} priceRange={priceRange} />
+            <FilterBar brands={brands} sizes={sizes} priceRange={priceRange} showSizeFilter={showSizeFilter} />
             <button
               onClick={() => setOpen(false)}
               className="w-full mt-4 h-[44px] bg-navy text-white text-[13px] font-extrabold uppercase tracking-[0.1em] rounded-[var(--radius-pill)]"

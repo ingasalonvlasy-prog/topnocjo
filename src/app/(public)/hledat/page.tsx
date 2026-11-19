@@ -11,11 +11,17 @@ import { MobileFilterDrawer } from "@/components/MobileFilterDrawer";
 
 type SortOption = "price_asc" | "price_desc" | "name" | "newest";
 
-export function generateMetadata({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }): Metadata {
+export async function generateMetadata({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }): Promise<Metadata> {
+  const sp = await searchParams;
+  const query = (sp.q as string) || "";
+  const title = query ? `${query} — Hledání | Qsport.cz` : "Vyhledávání | Qsport.cz";
+  const description = query
+    ? `Výsledky hledání pro „${query}" na Qsport.cz`
+    : "Hledej sportovní vybavení na Qsport.cz";
   return {
-    title: "Vyhledávání",
-    description: "Hledej sportovní vybavení na Qsport.cz",
-    openGraph: { title: "Vyhledávání", description: "Hledej sportovní vybavení na Qsport.cz" },
+    title,
+    description,
+    openGraph: { title, description },
     robots: { index: false },
   };
 }
@@ -46,7 +52,7 @@ export default async function SearchPage({
       page,
       inStock,
     }),
-    getFilterOptions(),
+    getFilterOptions(undefined, { search: query || undefined }),
   ]);
 
   const paginationParams: Record<string, string> = {};
@@ -70,10 +76,9 @@ export default async function SearchPage({
         <span className="text-ink">{query ? `Hledání: „${query}"` : "Všechny produkty"}</span>
       </nav>
 
-      <h1 className="text-[26px] lg:text-[36px] font-extrabold tracking-[-0.04em] mb-2">
+      <h1 className="text-[26px] lg:text-[36px] font-extrabold tracking-[-0.04em] mb-6">
         {query ? `Výsledky pro „${query}"` : "Všechny produkty"}
       </h1>
-      <p className="text-[13px] text-muted font-medium mb-6">{result.total} produktů</p>
 
       <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-8">
         {/* Sidebar filters — desktop */}
@@ -82,6 +87,7 @@ export default async function SearchPage({
             brands={filterOptions.brands}
             sizes={filterOptions.sizes}
             priceRange={filterOptions.priceRange}
+            showSizeFilter={filterOptions.sizeType !== "mixed" && filterOptions.sizeType !== null}
           />
         </aside>
 
@@ -97,6 +103,7 @@ export default async function SearchPage({
                   sizes={filterOptions.sizes}
                   priceRange={filterOptions.priceRange}
                   activeFilterCount={activeFilterCount}
+                  showSizeFilter={filterOptions.sizeType !== "mixed" && filterOptions.sizeType !== null}
                 />
               </div>
             </div>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { formatPrice, getMinPrice, getComparePrice } from "@/lib/products";
+import { isValidSize } from "@/lib/filter-options";
 import { useCart } from "@/lib/cart";
 import { WishlistButton } from "./WishlistButton";
 
@@ -41,7 +42,8 @@ export function ProductCard({ product, badge }: ProductCardProps) {
   const { addItem } = useCart();
 
   const photos: string[] = JSON.parse(product.photos || "[]");
-  const photo = photos[0] || "https://placehold.co/400x500/f3f5f6/667085?text=Qsport";
+  const photo = photos[0] || "";
+  const hasPhoto = photo.length > 0;
   const price = getMinPrice(product.variants);
   const comparePrice = getComparePrice(product.variants);
   const stock = product.variants.reduce((sum, v) => sum + v.ownStock + v.supplierStock, 0);
@@ -57,7 +59,7 @@ export function ProductCard({ product, badge }: ProductCardProps) {
   const hasOwnStock = product.variants.some(v => v.ownStock > 0);
   const hasSupplierStock = !hasOwnStock && product.variants.some(v => v.supplierStock > 0);
   const availableSizes = inStockVariants
-    .filter(v => v.size)
+    .filter(v => v.size && isValidSize(v.size))
     .map(v => v.size!);
 
   const brandLabel = product.brand.name.toUpperCase();
@@ -103,31 +105,43 @@ export function ProductCard({ product, badge }: ProductCardProps) {
     setShowSizes(false);
   }
 
+  const isSoldOut = stock === 0;
+
   return (
     <Link
       href={`/produkt/${product.slug}`}
-      className="group block bg-white rounded-[10px] overflow-hidden transition-all duration-200 hover:shadow-[0_8px_24px_rgba(11,23,39,0.08)] hover:-translate-y-1"
+      className={`group block bg-white rounded-[10px] overflow-hidden transition-all duration-200 hover:shadow-[0_8px_24px_rgba(11,23,39,0.08)] hover:-translate-y-1 ${isSoldOut ? "opacity-50 grayscale" : ""}`}
     >
       {/* Image — 4:5 aspect ratio on pastel */}
       <div className={`relative aspect-[4/5] ${pastelBg} rounded-[10px] overflow-hidden`}>
-        <Image
-          src={photo}
-          alt={product.name}
-          fill
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-contain p-6"
-          style={{ mixBlendMode: "multiply" }}
-        />
-        {/* Second photo on hover */}
-        {photos[1] && (
-          <Image
-            src={photos[1]}
-            alt={product.name}
-            fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-contain p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-            style={{ mixBlendMode: "multiply" }}
-          />
+        {hasPhoto ? (
+          <>
+            <Image
+              src={photo}
+              alt={product.name}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className={`object-contain p-6 mix-blend-multiply transition-opacity duration-300 ${photos[1] ? "group-hover:opacity-0" : ""}`}
+            />
+            {photos[1] && (
+              <Image
+                src={photos[1]}
+                alt={product.name}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                className="object-contain p-6 mix-blend-multiply opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              />
+            )}
+          </>
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-muted/30">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 8v4l2 2" />
+              <path d="M4.93 4.93l14.14 14.14" />
+            </svg>
+            <span className="text-[11px] font-bold mt-2">Foto není k dispozici</span>
+          </div>
         )}
         {/* Wishlist heart — top-right, always visible on mobile */}
         <div className="absolute top-2 right-2 z-10 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
@@ -162,7 +176,7 @@ export function ProductCard({ product, badge }: ProductCardProps) {
                     key={v.id}
                     disabled={!inStock}
                     onClick={(e) => inStock && handleSizeClick(e, v)}
-                    className={`h-[30px] min-w-[40px] px-2 text-[12px] font-bold rounded-[6px] transition-colors cursor-pointer ${
+                    className={`h-[40px] min-w-[44px] px-2 text-[12px] font-bold rounded-[6px] transition-colors cursor-pointer ${
                       inStock
                         ? "bg-navy text-white hover:bg-navy/80"
                         : "bg-wash text-muted/40 line-through cursor-not-allowed"
@@ -194,9 +208,9 @@ export function ProductCard({ product, badge }: ProductCardProps) {
           </div>
         )}
 
-        {/* Quick-add button — always visible on mobile, hover on desktop */}
+        {/* Quick-add button — desktop hover only (mobile taps through to product page) */}
         {stock > 0 && !showSizes && !added && (
-          <div className="absolute bottom-3 left-3 right-3 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 translate-y-0 lg:translate-y-2 lg:group-hover:translate-y-0 transition-all duration-200 z-10">
+          <div className="absolute bottom-3 left-3 right-3 hidden lg:block opacity-0 lg:group-hover:opacity-100 translate-y-2 lg:group-hover:translate-y-0 transition-all duration-200 z-10">
             <button
               className="w-full h-[36px] bg-navy text-white text-[11px] font-extrabold uppercase tracking-[0.08em] rounded-[var(--radius-pill)] hover:bg-navy/90 transition-colors cursor-pointer"
               onClick={handleQuickAdd}
@@ -237,15 +251,21 @@ export function ProductCard({ product, badge }: ProductCardProps) {
             <span className="text-[11px] text-muted">({product.reviewCount})</span>
           </div>
         )}
-        {hasOwnStock && (
+        {(hasOwnStock || hasSupplierStock) && (
           <span className="text-[11px] font-bold text-green-600">Skladem</span>
         )}
-        {hasSupplierStock && (
-          <span className="text-[11px] font-bold text-amber-600">Na objednávku</span>
-        )}
         {availableSizes.length > 0 && (
-          <div className="text-[11px] text-muted mt-1.5 truncate">
-            {availableSizes.slice(0, 6).join(" · ")}{availableSizes.length > 6 ? " ..." : ""}
+          <div className="flex flex-wrap gap-1 mt-2">
+            {availableSizes.slice(0, 6).map((size) => (
+              <span key={size} className="inline-block px-1.5 py-0.5 text-[11px] font-medium text-ink bg-wash rounded">
+                {size}
+              </span>
+            ))}
+            {availableSizes.length > 6 && (
+              <span className="inline-block px-1.5 py-0.5 text-[11px] font-medium text-muted bg-wash rounded">
+                +{availableSizes.length - 6}
+              </span>
+            )}
           </div>
         )}
       </div>

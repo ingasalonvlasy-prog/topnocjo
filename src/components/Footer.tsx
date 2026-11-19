@@ -25,9 +25,9 @@ export function Footer() {
           <div>
             <h4 className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/40 mb-4">Nakupování</h4>
             <ul className="space-y-2.5">
-              <li><Link href="/kategorie/beh" className="text-[13px] text-white/70 hover:text-white transition-colors">Běh</Link></li>
-              <li><Link href="/kategorie/hory-a-outdoor" className="text-[13px] text-white/70 hover:text-white transition-colors">Hory a outdoor</Link></li>
-              <li><Link href="/kategorie/zima" className="text-[13px] text-white/70 hover:text-white transition-colors">Zima</Link></li>
+              <li><Link href="/kategorie/muzi" className="text-[13px] text-white/70 hover:text-white transition-colors">Muži</Link></li>
+              <li><Link href="/kategorie/zeny" className="text-[13px] text-white/70 hover:text-white transition-colors">Ženy</Link></li>
+              <li><Link href="/kategorie/deti" className="text-[13px] text-white/70 hover:text-white transition-colors">Děti</Link></li>
               <li><Link href="/bazar" className="text-[13px] text-white/70 hover:text-white transition-colors">Bazar</Link></li>
               <li><Link href="/akce" className="text-[13px] text-white/70 hover:text-white transition-colors">Akce</Link></li>
             </ul>
@@ -41,6 +41,7 @@ export function Footer() {
               <li><Link href="/vraceni-zbozi" className="text-[13px] text-white/70 hover:text-white transition-colors">Vrácení zboží</Link></li>
               <li><Link href="/reklamace" className="text-[13px] text-white/70 hover:text-white transition-colors">Reklamace</Link></li>
               <li><Link href="/velikosti" className="text-[13px] text-white/70 hover:text-white transition-colors">Velikosti</Link></li>
+              <li><Link href="/kontakt" className="text-[13px] text-white/70 hover:text-white transition-colors">Kontakt</Link></li>
             </ul>
           </div>
 
@@ -52,6 +53,7 @@ export function Footer() {
               <li><Link href="/znacky" className="text-[13px] text-white/70 hover:text-white transition-colors">Značky</Link></li>
               <li><Link href="/blog" className="text-[13px] text-white/70 hover:text-white transition-colors">Blog</Link></li>
               <li><Link href="/obchodni-podminky" className="text-[13px] text-white/70 hover:text-white transition-colors">Obchodní podmínky</Link></li>
+              <li><Link href="/cookies" className="text-[13px] text-white/70 hover:text-white transition-colors">Cookies</Link></li>
             </ul>
           </div>
 
@@ -91,12 +93,12 @@ export function Footer() {
                 <polyline points="6 9 12 15 18 9"/>
               </svg>
             </summary>
-            <ul className="space-y-2.5 pb-4">
-              <li><Link href="/kategorie/beh" className="text-[13px] text-white/70">Běh</Link></li>
-              <li><Link href="/kategorie/hory-a-outdoor" className="text-[13px] text-white/70">Hory a outdoor</Link></li>
-              <li><Link href="/kategorie/zima" className="text-[13px] text-white/70">Zima</Link></li>
-              <li><Link href="/bazar" className="text-[13px] text-white/70">Bazar</Link></li>
-              <li><Link href="/akce" className="text-[13px] text-white/70">Akce</Link></li>
+            <ul className="space-y-1 pb-4">
+              <li><Link href="/kategorie/muzi" className="text-[14px] text-white/70 block py-1.5">Muži</Link></li>
+              <li><Link href="/kategorie/zeny" className="text-[14px] text-white/70 block py-1.5">Ženy</Link></li>
+              <li><Link href="/kategorie/deti" className="text-[14px] text-white/70 block py-1.5">Děti</Link></li>
+              <li><Link href="/bazar" className="text-[14px] text-white/70 block py-1.5">Bazar</Link></li>
+              <li><Link href="/akce" className="text-[14px] text-white/70 block py-1.5">Akce</Link></li>
             </ul>
           </details>
 
@@ -107,11 +109,12 @@ export function Footer() {
                 <polyline points="6 9 12 15 18 9"/>
               </svg>
             </summary>
-            <ul className="space-y-2.5 pb-4">
-              <li><Link href="/doprava-a-platba" className="text-[13px] text-white/70">Doprava a platba</Link></li>
-              <li><Link href="/vraceni-zbozi" className="text-[13px] text-white/70">Vrácení zboží</Link></li>
-              <li><Link href="/reklamace" className="text-[13px] text-white/70">Reklamace</Link></li>
-              <li><Link href="/velikosti" className="text-[13px] text-white/70">Velikosti</Link></li>
+            <ul className="space-y-1 pb-4">
+              <li><Link href="/doprava-a-platba" className="text-[14px] text-white/70 block py-1.5">Doprava a platba</Link></li>
+              <li><Link href="/vraceni-zbozi" className="text-[14px] text-white/70 block py-1.5">Vrácení zboží</Link></li>
+              <li><Link href="/reklamace" className="text-[14px] text-white/70 block py-1.5">Reklamace</Link></li>
+              <li><Link href="/velikosti" className="text-[14px] text-white/70 block py-1.5">Velikosti</Link></li>
+              <li><Link href="/kontakt" className="text-[14px] text-white/70 block py-1.5">Kontakt</Link></li>
             </ul>
           </details>
 
@@ -122,19 +125,20 @@ export function Footer() {
                 <polyline points="6 9 12 15 18 9"/>
               </svg>
             </summary>
-            <ul className="space-y-2.5 pb-4">
-              <li><Link href="/o-nas" className="text-[13px] text-white/70">Kdo jsme</Link></li>
-              <li><Link href="/znacky" className="text-[13px] text-white/70">Značky</Link></li>
-              <li><Link href="/blog" className="text-[13px] text-white/70">Blog</Link></li>
-              <li><Link href="/obchodni-podminky" className="text-[13px] text-white/70">Obchodní podmínky</Link></li>
+            <ul className="space-y-1 pb-4">
+              <li><Link href="/o-nas" className="text-[14px] text-white/70 block py-1.5">Kdo jsme</Link></li>
+              <li><Link href="/znacky" className="text-[14px] text-white/70 block py-1.5">Značky</Link></li>
+              <li><Link href="/blog" className="text-[14px] text-white/70 block py-1.5">Blog</Link></li>
+              <li><Link href="/obchodni-podminky" className="text-[14px] text-white/70 block py-1.5">Obchodní podmínky</Link></li>
+              <li><Link href="/cookies" className="text-[14px] text-white/70 block py-1.5">Cookies</Link></li>
             </ul>
           </details>
 
           <div className="py-4">
             <span className="text-[13px] font-bold uppercase tracking-[0.08em] text-white/60 block mb-3">Kontakt</span>
-            <ul className="space-y-2.5">
-              <li><a href="mailto:obchod@qsport.cz" className="text-[13px] text-white/70">obchod@qsport.cz</a></li>
-              <li><a href="tel:+420777447464" className="text-[13px] text-white/70">+420 777 447 464</a></li>
+            <ul className="space-y-1">
+              <li><a href="mailto:obchod@qsport.cz" className="text-[14px] text-white/70 block py-1.5">obchod@qsport.cz</a></li>
+              <li><a href="tel:+420777447464" className="text-[14px] text-white/70 block py-1.5">+420 777 447 464</a></li>
               <li className="flex gap-3 pt-1">
                 <a href="https://instagram.com/qsport.cz" target="_blank" rel="noopener noreferrer" className="text-[13px] text-white/40">Instagram</a>
                 <a href="https://facebook.com/qsport.cz" target="_blank" rel="noopener noreferrer" className="text-[13px] text-white/40">Facebook</a>
@@ -145,7 +149,7 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div className="border-t border-white/10 pt-5 flex flex-col sm:flex-row justify-between items-center gap-3 text-[12px] text-white/30">
-          <span>&copy; 2026 Qsport.cz</span>
+          <span>&copy; {new Date().getFullYear()} Qsport.cz</span>
         </div>
       </div>
     </footer>

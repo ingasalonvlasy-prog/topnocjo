@@ -73,11 +73,10 @@ export default async function BrandsPage() {
                       alt={brand.name}
                       width={120}
                       height={60}
-                      className="object-contain max-h-[60px] w-auto"
-                      style={{ mixBlendMode: "multiply" }}
+                      className="object-contain max-h-[60px] w-auto mix-blend-multiply"
                     />
                   ) : (
-                    <span className="text-[36px] font-extrabold text-navy/60">{brand.name[0]}</span>
+                    <span className="text-[14px] font-extrabold uppercase tracking-[0.08em] text-navy/40">{brand.name}</span>
                   )}
                 </div>
 

@@ -15,7 +15,7 @@ import crypto from "crypto";
 
 // ── Config ──────────────────────────────────────────────────────────────────
 
-const SHOPIFY_TOKEN = "EXPIRED_REMOVED";
+const SHOPIFY_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN ?? "";
 const SHOPIFY_STORE = "zt2xr1-ry.myshopify.com";
 const API_VERSION = "2024-01";
 const BASE_URL = `https://${SHOPIFY_STORE}/admin/api/${API_VERSION}`;

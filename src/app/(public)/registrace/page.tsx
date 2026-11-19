@@ -29,7 +29,11 @@ export default async function RegistracePage({
     const password = formData.get("password") as string;
     const passwordConfirm = formData.get("passwordConfirm") as string;
     const newsletter = formData.get("newsletter") === "on";
+    const gdpr = formData.get("gdpr") === "on";
 
+    if (!gdpr) {
+      redirect("/registrace?error=gdpr");
+    }
     if (!email || !password) {
       redirect("/registrace?error=missing");
     }
@@ -61,6 +65,7 @@ export default async function RegistracePage({
   }
 
   const errorMessages: Record<string, string> = {
+    gdpr: "Pro registraci je nutný souhlas se zpracováním osobních údajů.",
     missing: "Vyplň e-mail a heslo.",
     weak: "Heslo musí mít alespoň 8 znaků.",
     mismatch: "Hesla se neshodují.",
@@ -138,6 +143,22 @@ export default async function RegistracePage({
                 className="w-full py-2.5 px-4 text-[14px] font-medium border border-line rounded-[var(--radius-field)] bg-white focus:border-navy focus:shadow-[0_0_0_3px_rgba(11,23,39,0.06)] outline-none transition-all"
               />
             </div>
+
+            <label className="flex items-start gap-2.5 mb-4 cursor-pointer">
+              <input
+                type="checkbox"
+                name="gdpr"
+                required
+                className="mt-0.5 w-4 h-4 rounded border-line text-navy focus:ring-navy"
+              />
+              <span className="text-[13px] text-ink">
+                Souhlasím se zpracováním{" "}
+                <Link href="/obchodni-podminky" target="_blank" className="text-blue hover:underline">
+                  osobních údajů
+                </Link>{" "}
+                <span className="text-sale">*</span>
+              </span>
+            </label>
 
             <label className="flex items-start gap-2.5 mb-6 cursor-pointer">
               <input

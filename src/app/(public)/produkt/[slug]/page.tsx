@@ -107,7 +107,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const productType = product.productType?.toUpperCase() || "";
 
   return (
-    <>
+    <div className="pb-[80px] md:pb-0">
       {/* Breadcrumbs */}
       <div className="max-w-[var(--container)] mx-auto px-6 pt-4 pb-3">
         <nav className="text-[13px] text-muted">
@@ -200,13 +200,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           {/* Trust lines with colored dots + separators */}
           <div className="space-y-0 border-t border-line">
             <div className="flex items-center gap-3 py-3.5 border-b border-line">
-              <span className={`w-[10px] h-[10px] rounded-full shrink-0 ${bestAvailability === "in_stock" ? "bg-[#34D399]" : bestAvailability === "on_order" ? "bg-amber-400" : "bg-red-400"}`} />
+              <span className={`w-[10px] h-[10px] rounded-full shrink-0 ${(bestAvailability === "in_stock" || bestAvailability === "on_order") ? "bg-[#34D399]" : "bg-red-400"}`} />
               <span className="text-[14px] font-medium text-ink">
-                {bestAvailability === "in_stock"
+                {(bestAvailability === "in_stock" || bestAvailability === "on_order")
                   ? "Skladem – expedice 1–3 pracovní dny"
-                  : bestAvailability === "on_order"
-                    ? "Na objednávku – expedice 3–7 pracovních dnů"
-                    : "Vyprodáno"}
+                  : "Vyprodáno"}
               </span>
             </div>
             <div className="flex items-center gap-3 py-3.5 border-b border-line">
@@ -262,7 +260,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         }
         highlights.push({
           label: "Dostupnost",
-          value: bestAvailability === "in_stock" ? "Skladem" : bestAvailability === "on_order" ? "Na objednávku" : "Vyprodáno",
+          value: (bestAvailability === "in_stock" || bestAvailability === "on_order") ? "Skladem" : "Vyprodáno",
           icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.125-.504 1.125-1.125v-1.5c0-1.036-.84-1.875-1.875-1.875h-.375a2.625 2.625 0 0 0-2.625-2.625H6.75a2.625 2.625 0 0 0-2.625 2.625v7.5" /></svg>,
         });
 
@@ -346,6 +344,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-    </>
+    </div>
   );
 }

@@ -61,6 +61,8 @@ export default async function AkcePage({
   if (priceMin !== undefined) activeFilterCount++;
   if (inStock) activeFilterCount++;
 
+  const showSizeFilter = filterOptions.sizeType !== null && filterOptions.sizeType !== "mixed";
+
   return (
     <div>
       {/* Navy hero banner */}
@@ -100,6 +102,7 @@ export default async function AkcePage({
               brands={filterOptions.brands}
               sizes={filterOptions.sizes}
               priceRange={filterOptions.priceRange}
+              showSizeFilter={showSizeFilter}
             />
           </aside>
 
@@ -115,6 +118,7 @@ export default async function AkcePage({
                     sizes={filterOptions.sizes}
                     priceRange={filterOptions.priceRange}
                     activeFilterCount={activeFilterCount}
+                    showSizeFilter={showSizeFilter}
                   />
                 </div>
               </div>

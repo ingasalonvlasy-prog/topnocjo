@@ -14,6 +14,8 @@ const nextConfig: NextConfig = {
       { hostname: "placehold.co" },
       { hostname: "**.cdninstagram.com" },
       { hostname: "**.fbcdn.net" },
+      { hostname: "images.unsplash.com" },
+      { hostname: "**.public.blob.vercel-storage.com" },
     ],
   },
   async headers() {

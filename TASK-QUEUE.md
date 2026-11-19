@@ -8,7 +8,7 @@ Stav: probíhá (plánování)
 Projekt: /Users/zen/qsport
 
 ### Kompletní zadání:
-- Token: EXPIRED_REMOVED
+- Token: (expired-removed)
 - Store: zt2xr1-ry.myshopify.com (ID: 108970705235)
 - 15092 produktů, 59 kolekcí, 89 objednávek, 15651 zákazníků
 - Uživatel: "přihlaš se a stahni si feedy, jak tam jsou a zadej je to adminu"

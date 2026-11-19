@@ -6,7 +6,7 @@ export type ProductWithVariants = Prisma.ProductGetPayload<{
 }>;
 
 export interface GetProductsParams {
-  categoryId?: string;
+  categoryId?: string | string[];
   brandSlug?: string;
   size?: string;
   priceMin?: number;
@@ -41,10 +41,15 @@ export async function getFilteredProducts(params: GetProductsParams): Promise<{
 
   const where: Prisma.ProductWhereInput = {
     status: "ACTIVE",
+    photos: { not: "[]" },
   };
 
   if (categoryId) {
-    where.categories = { some: { categoryId } };
+    if (Array.isArray(categoryId)) {
+      where.categories = { some: { categoryId: { in: categoryId } } };
+    } else {
+      where.categories = { some: { categoryId } };
+    }
   }
 
   if (brandSlug) {
@@ -52,10 +57,14 @@ export async function getFilteredProducts(params: GetProductsParams): Promise<{
   }
 
   if (search) {
+    const searchNorm = search.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     where.OR = [
+      { nameSearch: { contains: searchNorm } },
       { name: { contains: search } },
+      { brand: { nameSearch: { contains: searchNorm } } },
       { brand: { name: { contains: search } } },
       { productType: { contains: search } },
+      { tags: { contains: search } },
     ];
   }
 

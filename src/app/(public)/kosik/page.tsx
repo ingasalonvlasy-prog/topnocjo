@@ -73,7 +73,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="max-w-[var(--container)] mx-auto px-6 py-8">
+    <div className="max-w-[var(--container)] mx-auto px-6 py-8 pb-[140px] lg:pb-8">
       {/* Breadcrumbs */}
       <nav className="text-[13px] text-muted mb-6">
         <Link href="/" className="hover:text-navy transition-colors">Domů</Link>
@@ -127,8 +127,7 @@ export default function CartPage() {
                         alt={item.productName}
                         width={100}
                         height={100}
-                        className="w-full h-full object-contain p-2"
-                        style={{ mixBlendMode: "multiply" }}
+                        className="w-full h-full object-contain p-2 mix-blend-multiply"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-muted text-xs">Foto</div>

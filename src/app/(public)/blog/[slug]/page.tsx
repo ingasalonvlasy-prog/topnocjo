@@ -7,6 +7,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/products";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -126,8 +127,8 @@ export default async function BlogPostPage({
 
         {/* Content */}
         <div
-          className="[&_h2]:text-[22px] [&_h2]:font-extrabold [&_h2]:text-navy [&_h2]:mt-8 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-navy [&_h3]:mt-6 [&_h3]:mb-2 [&_p]:text-[16px] [&_p]:text-ink [&_p]:leading-relaxed [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4 [&_li]:text-[16px] [&_li]:text-ink [&_li]:mb-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4 [&_a]:text-blue [&_a]:hover:underline [&_strong]:font-bold [&_img]:rounded-[var(--radius-card)] [&_img]:my-4 [&_blockquote]:border-l-4 [&_blockquote]:border-lime [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted"
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          className="overflow-hidden [&_h2]:text-[22px] [&_h2]:font-extrabold [&_h2]:text-navy [&_h2]:mt-8 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-navy [&_h3]:mt-6 [&_h3]:mb-2 [&_p]:text-[16px] [&_p]:text-ink [&_p]:leading-relaxed [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4 [&_li]:text-[16px] [&_li]:text-ink [&_li]:mb-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4 [&_a]:text-blue [&_a]:hover:underline [&_strong]:font-bold [&_img]:rounded-[var(--radius-card)] [&_img]:my-4 [&_img]:max-w-full [&_img]:h-auto [&_table]:block [&_table]:overflow-x-auto [&_blockquote]:border-l-4 [&_blockquote]:border-lime [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted"
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
         />
 
         {/* Related products — "Co na to z Qsportu" */}
@@ -147,8 +148,7 @@ export default async function BlogPostPage({
                           alt={product.name}
                           width={200}
                           height={200}
-                          className="w-full h-full object-contain"
-                          style={{ mixBlendMode: "multiply" }}
+                          className="w-full h-full object-contain mix-blend-multiply"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-line text-[11px]">IMG</div>

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/products";
 import { createOrder } from "./actions";
+import { PAYMENT_METHOD_LABELS } from "@/lib/order-constants";
 
 const inputCls =
   "w-full py-2.5 px-4 text-[14px] font-medium border border-line rounded-[var(--radius-field)] bg-white focus:border-navy focus:shadow-[0_0_0_3px_rgba(11,23,39,0.06)] outline-none transition-all";
@@ -47,6 +48,7 @@ export default function CheckoutPage() {
   } | null>(null);
   const [discountLoading, setDiscountLoading] = useState(false);
   const [discountError, setDiscountError] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "transfer">("card");
   const [checkoutTrackId, setCheckoutTrackId] = useState<string | null>(null);
   const [userData, setUserData] = useState<{
     email: string; phone?: string; firstName?: string; lastName?: string;
@@ -88,7 +90,7 @@ export default function CheckoutPage() {
             })),
             subtotal,
             shippingMethodId: cartShipping?.methodId || undefined,
-            paymentMethod: "card",
+            paymentMethod,
           }),
         });
         const data = await res.json();
@@ -234,7 +236,7 @@ export default function CheckoutPage() {
         shippingMethodId: cartShipping.methodId,
         pickupPointId: cartShipping.pickupPointId || "",
         pickupPointName: cartShipping.pickupPointName || "",
-        paymentMethod: "card",
+        paymentMethod,
         note: (fd.get("note") as string)?.trim() || "",
         discountCode: discountApplied?.code || "",
         items: items.map((i) => ({ variantId: i.variantId, quantity: i.quantity })),
@@ -253,7 +255,7 @@ export default function CheckoutPage() {
   const submitLabel = "Objednat a zaplatit";
 
   return (
-    <div className="max-w-[var(--container)] mx-auto px-6 py-8">
+    <div className="max-w-[var(--container)] mx-auto px-6 py-8 pb-[140px] lg:pb-8">
       {/* Breadcrumbs */}
       <nav className="text-[13px] text-muted mb-6">
         <Link href="/" className="hover:text-navy transition-colors">Domů</Link>
@@ -442,9 +444,38 @@ export default function CheckoutPage() {
               )}
             </div>
 
-            {/* 4. Discount code */}
+            {/* 4. Payment method */}
             <div className="bg-white border border-line rounded-[10px] p-6">
-              <h2 className="text-[18px] font-bold text-navy mb-4">4. Slevový kód</h2>
+              <h2 className="text-[18px] font-bold text-navy mb-4">4. Způsob platby</h2>
+              <div className="space-y-3">
+                {(["card", "transfer"] as const).map((method) => (
+                  <label
+                    key={method}
+                    className={`flex items-center gap-3 p-4 rounded-[8px] border cursor-pointer transition-all ${
+                      paymentMethod === method
+                        ? "border-navy bg-navy/5"
+                        : "border-line hover:border-navy/40"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value={method}
+                      checked={paymentMethod === method}
+                      onChange={() => setPaymentMethod(method)}
+                      className="w-4 h-4 text-navy focus:ring-navy"
+                    />
+                    <span className="text-[14px] font-bold text-ink">
+                      {PAYMENT_METHOD_LABELS[method]}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* 5. Discount code */}
+            <div className="bg-white border border-line rounded-[10px] p-6">
+              <h2 className="text-[18px] font-bold text-navy mb-4">5. Slevový kód</h2>
               {discountApplied ? (
                 <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                   <div>
@@ -520,9 +551,9 @@ export default function CheckoutPage() {
               )}
             </div>
 
-            {/* 5. Note */}
+            {/* 6. Note */}
             <div className="bg-white border border-line rounded-[10px] p-6">
-              <h2 className="text-[18px] font-bold text-navy mb-4">5. Poznámka</h2>
+              <h2 className="text-[18px] font-bold text-navy mb-4">6. Poznámka</h2>
               <textarea
                 name="note"
                 rows={3}
@@ -547,8 +578,7 @@ export default function CheckoutPage() {
                           alt=""
                           width={48}
                           height={48}
-                          className="w-full h-full object-contain p-1"
-                          style={{ mixBlendMode: "multiply" }}
+                          className="w-full h-full object-contain p-1 mix-blend-multiply"
                         />
                       )}
                     </div>

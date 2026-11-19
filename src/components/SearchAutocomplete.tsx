@@ -30,7 +30,7 @@ function clearRecentSearches() {
 }
 
 interface SearchResult {
-  products: { id: string; name: string; slug: string; brand: string; photo: string | null; price: number; comparePrice: number | null }[];
+  products: { id: string; name: string; slug: string; brand: string; photo: string | null; price: number; comparePrice: number | null; inStock?: boolean; onOrder?: boolean }[];
   brands: { id: string; name: string; slug: string }[];
   categories: { id: string; name: string; slug: string }[];
 }
@@ -190,9 +190,23 @@ export function SearchAutocomplete({
 
   let flatIndex = 0;
 
+  const isHero = variant === "hero";
+
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className={`relative ${isHero ? "max-w-[640px] mx-auto" : ""}`}>
       <form onSubmit={handleSubmit} className="relative">
+        <svg
+          className={`absolute ${isHero ? "left-5 text-white/40" : "left-3 text-muted"} top-1/2 -translate-y-1/2`}
+          width={isHero ? 22 : 18}
+          height={isHero ? 22 : 18}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
         <input
           type="search"
           value={query}
@@ -209,34 +223,22 @@ export function SearchAutocomplete({
           }}
           placeholder={placeholder}
           className={
-            variant === "hero"
-              ? "w-full py-4 pl-12 pr-4 text-[16px] font-medium border-0 rounded-[var(--radius-pill)] bg-white text-ink shadow-lg focus:shadow-xl outline-none transition-all"
+            isHero
+              ? "w-full h-14 lg:h-16 pl-14 pr-5 text-[16px] lg:text-[18px] font-medium rounded-full bg-white/10 border border-white/20 text-white placeholder:text-white/40 outline-none focus:border-lime focus:bg-white/15 focus:shadow-[0_0_0_4px_rgba(206,255,47,0.15)] transition-all"
               : "w-full py-2.5 pl-10 pr-4 text-[14px] font-medium border border-line rounded-[var(--radius-field)] bg-wash focus:bg-white focus:border-navy focus:shadow-[0_0_0_3px_rgba(11,23,39,0.06)] outline-none transition-all"
           }
           autoComplete="off"
         />
-        <svg
-          className={`absolute ${variant === "hero" ? "left-4" : "left-3"} top-1/2 -translate-y-1/2 text-muted`}
-          width={variant === "hero" ? 22 : 18}
-          height={variant === "hero" ? 22 : 18}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <circle cx="11" cy="11" r="8"/>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
         {loading && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <div className="w-4 h-4 border-2 border-line border-t-navy rounded-full animate-spin" />
+          <div className={`absolute ${isHero ? "right-5" : "right-3"} top-1/2 -translate-y-1/2`}>
+            <div className={`${isHero ? "w-5 h-5 border-2 border-white/20 border-t-lime" : "w-4 h-4 border-2 border-line border-t-navy"} rounded-full animate-spin`} />
           </div>
         )}
       </form>
 
       {/* Dropdown */}
       {isOpen && results && totalResults > 0 && (
-        <div className={`absolute top-full left-0 right-0 ${variant === "hero" ? "mt-2" : "mt-1"} bg-white border border-line rounded-[var(--radius-card)] shadow-lg z-[60] overflow-hidden max-h-[420px] overflow-y-auto text-ink`}>
+        <div className={`absolute top-full left-0 right-0 ${isHero ? "mt-2 rounded-[12px] shadow-2xl" : "mt-1 rounded-[var(--radius-card)] shadow-lg"} bg-white border border-line z-[60] overflow-hidden max-h-[420px] overflow-y-auto text-ink`}>
           {/* Products */}
           {results.products.length > 0 && (
             <div>
@@ -261,8 +263,7 @@ export function SearchAutocomplete({
                           alt={product.name}
                           width={44}
                           height={44}
-                          className="w-full h-full object-contain p-0.5"
-                          style={{ mixBlendMode: "multiply" }}
+                          className="w-full h-full object-contain p-0.5 mix-blend-multiply"
                         />
                       ) : (
                         <svg className="text-line" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -284,6 +285,9 @@ export function SearchAutocomplete({
                       <div className="text-[13px] font-extrabold text-navy">{formatPrice(product.price)}</div>
                       {product.comparePrice && product.comparePrice > product.price && (
                         <div className="text-[11px] text-muted line-through">{formatPrice(product.comparePrice)}</div>
+                      )}
+                      {(product.inStock || product.onOrder) && (
+                        <div className="text-[10px] font-bold text-green-600">Skladem</div>
                       )}
                     </div>
                   </Link>

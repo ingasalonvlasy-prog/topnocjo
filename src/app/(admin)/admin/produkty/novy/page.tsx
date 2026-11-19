@@ -41,9 +41,21 @@ async function createProduct(formData: FormData) {
     }
   }
 
+  // Build compound nameSearch: name + productType + brand name + category names
+  const brandForSearch = await prisma.brand.findUnique({ where: { id: brandId }, select: { name: true } });
+  const searchParts = [name];
+  if (productType) searchParts.push(productType);
+  if (brandForSearch) searchParts.push(brandForSearch.name);
+  if (categoryIds.length > 0) {
+    const cats = await prisma.category.findMany({ where: { id: { in: categoryIds } }, select: { name: true } });
+    for (const c of cats) searchParts.push(c.name);
+  }
+  const nameSearch = searchParts.join(" ").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
   const product = await prisma.product.create({
     data: {
       name,
+      nameSearch,
       slug,
       brandId,
       productType,

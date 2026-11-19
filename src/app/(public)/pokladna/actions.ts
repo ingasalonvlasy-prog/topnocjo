@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/db";
-import { generateOrderNumber } from "@/lib/orders";
+import { generateOrderNumberWithRetry } from "@/lib/orders";
 import { createPayment } from "@/lib/comgate";
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -81,7 +81,7 @@ export async function createOrder(data: CheckoutData) {
 
   const subtotal = orderItems.reduce((sum, i) => sum + i.totalPrice, 0);
 
-  // 4. Validate & apply discount code
+  // 4. Validate & apply discount code (atomic: increment only if still valid)
   let discountAmount = 0;
   let discountCodeStr: string | null = null;
   if (data.discountCode) {
@@ -91,22 +91,29 @@ export async function createOrder(data: CheckoutData) {
       const now = new Date();
       const validDate = (!discount.validFrom || now >= discount.validFrom) &&
         (!discount.validTo || now <= discount.validTo);
-      const validUsage = !discount.usageLimit || discount.usageCount < discount.usageLimit;
       const validMin = !discount.minOrderAmount || subtotal >= discount.minOrderAmount;
 
-      if (validDate && validUsage && validMin) {
-        discountCodeStr = discount.code;
-        if (discount.type === "percentage") {
-          discountAmount = Math.round((subtotal * discount.value) / 100);
-        } else {
-          discountAmount = discount.value;
-        }
-        if (discountAmount > subtotal) discountAmount = subtotal;
-
-        await prisma.discountCode.update({
-          where: { id: discount.id },
+      if (validDate && validMin) {
+        // Atomic increment: only succeeds if usageCount is still under usageLimit
+        const updated = await prisma.discountCode.updateMany({
+          where: {
+            id: discount.id,
+            ...(discount.usageLimit != null
+              ? { usageCount: { lt: discount.usageLimit } }
+              : {}),
+          },
           data: { usageCount: { increment: 1 } },
         });
+
+        if (updated.count > 0) {
+          discountCodeStr = discount.code;
+          if (discount.type === "percentage") {
+            discountAmount = Math.round((subtotal * discount.value) / 100);
+          } else {
+            discountAmount = discount.value;
+          }
+          if (discountAmount > subtotal) discountAmount = subtotal;
+        }
       }
     }
   }
@@ -128,7 +135,7 @@ export async function createOrder(data: CheckoutData) {
   const user = await getCurrentUser();
 
   // 7. Create order
-  const orderNumber = await generateOrderNumber();
+  const orderNumber = await generateOrderNumberWithRetry();
   const viewToken = crypto.randomUUID();
   const order = await prisma.order.create({
     data: {

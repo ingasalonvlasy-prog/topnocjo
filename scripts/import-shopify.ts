@@ -20,7 +20,7 @@ import { join } from "path";
 
 // ── Config ──────────────────────────────────────────────────────────────────
 
-const SHOPIFY_TOKEN = "EXPIRED_REMOVED";
+const SHOPIFY_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN ?? "";
 const SHOPIFY_STORE = "zt2xr1-ry.myshopify.com";
 const API_VERSION = "2024-01";
 const BASE_URL = `https://${SHOPIFY_STORE}/admin/api/${API_VERSION}`;
@@ -97,6 +97,10 @@ interface ImportState {
 }
 
 // ── Utilities ───────────────────────────────────────────────────────────────
+
+function stripDiacritics(str: string): string {
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
 
 function slugify(text: string): string {
   return text
@@ -352,11 +356,18 @@ async function importProduct(
     ? sp.body_html.replace(/<[^>]*>/g, "").trim()
     : null;
 
-  // 7. Upsert product
+  // 7. Build nameSearch (name + productType + vendor)
+  const searchParts = [sp.title];
+  if (sp.product_type) searchParts.push(sp.product_type);
+  searchParts.push(sp.vendor);
+  const nameSearch = stripDiacritics(searchParts.join(" ")).toLowerCase();
+
+  // 8. Upsert product
   const product = await prisma.product.upsert({
     where: { slug },
     update: {
       name: sp.title,
+      nameSearch,
       description,
       bodyHtml: sp.body_html,
       brandId,
@@ -370,6 +381,7 @@ async function importProduct(
     },
     create: {
       name: sp.title,
+      nameSearch,
       slug,
       description,
       bodyHtml: sp.body_html,
@@ -384,7 +396,7 @@ async function importProduct(
     },
   });
 
-  // 8. Import variants
+  // 9. Import variants
   await importVariants(product.id, sp.variants, sp, skuSet);
 }
 
@@ -399,11 +411,13 @@ async function getOrCreateBrand(
   }
 
   const slug = slugify(normalizedVendor);
+  const nameSearch = stripDiacritics(normalizedVendor).toLowerCase();
   const brand = await prisma.brand.upsert({
     where: { slug },
-    update: {},
+    update: { nameSearch },
     create: {
       name: normalizedVendor,
+      nameSearch,
       slug: slug || `brand-${Date.now()}`,
     },
   });
