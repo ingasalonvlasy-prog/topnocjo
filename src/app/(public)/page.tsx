@@ -283,9 +283,30 @@ export default async function HomePage() {
         {/* 3 big gender cards — product photo + gradient overlay */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
           {[
-            { slug: "muzi", name: "Muži", bg: "bg-sky", gradient: "from-sky via-sky/70 to-transparent", desc: "Bundy, kalhoty, trička, termoprádlo" },
-            { slug: "zeny", name: "Ženy", bg: "bg-peach", gradient: "from-peach via-peach/70 to-transparent", desc: "Bundy, sukně, mikiny, termoprádlo" },
-            { slug: "deti", name: "Děti", bg: "bg-mint", gradient: "from-mint via-mint/70 to-transparent", desc: "Bundy, kalhoty, trička, mikiny" },
+            {
+              slug: "muzi", name: "Muži", bg: "bg-sky", gradient: "from-sky via-sky/70 to-transparent", desc: "Bundy, kalhoty, trička, termoprádlo",
+              icon: (
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-navy">
+                  <circle cx="17" cy="4" r="2"/><path d="M13 7l3 3 3-3"/><path d="M16 10v4l-4 4"/><path d="M6 20l4-4"/><path d="M16 14l2 6"/><path d="M6 12l4-2 3 2"/>
+                </svg>
+              ),
+            },
+            {
+              slug: "zeny", name: "Ženy", bg: "bg-peach", gradient: "from-peach via-peach/70 to-transparent", desc: "Bundy, sukně, mikiny, termoprádlo",
+              icon: (
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-navy">
+                  <circle cx="15" cy="4" r="2"/><path d="M11 7l3 2 3-2"/><path d="M14 9v3l-5 6"/><path d="M14 12l4 8"/><path d="M5 20l3-5"/><path d="M9 15l-3-2"/>
+                </svg>
+              ),
+            },
+            {
+              slug: "deti", name: "Děti", bg: "bg-mint", gradient: "from-mint via-mint/70 to-transparent", desc: "Bundy, kalhoty, trička, mikiny",
+              icon: (
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-navy">
+                  <circle cx="12" cy="5" r="2"/><path d="M9 8h6"/><path d="M12 8v5"/><path d="M9 20l3-7 3 7"/><circle cx="18" cy="14" r="3"/><path d="M15 14h-3"/>
+                </svg>
+              ),
+            },
           ].map((item) => {
             const data = genderData[item.slug];
             return (
@@ -307,6 +328,10 @@ export default async function HomePage() {
                 {/* Gradient overlay for text readability */}
                 <div className={`absolute inset-0 bg-gradient-to-r ${item.gradient}`} />
                 <div className="aspect-[4/3] p-6 flex flex-col justify-between relative z-10">
+                  {/* Sport icon — decorative */}
+                  <div className="absolute top-4 right-4 opacity-15 group-hover:opacity-25 transition-opacity">
+                    {item.icon}
+                  </div>
                   <div>
                     <h3 className="text-[32px] lg:text-[40px] font-extrabold text-navy tracking-[-0.02em]">{item.name}</h3>
                     <p className="text-[13px] text-navy/50 font-medium mt-1">{item.desc}</p>
@@ -327,16 +352,47 @@ export default async function HomePage() {
         {/* Sport categories — smaller row below */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
           {[
-            { slug: "beh", name: "Běh", bg: "bg-mint" },
-            { slug: "zima", name: "Zima", bg: "bg-sky" },
-            { slug: "hory-a-outdoor", name: "Outdoor", bg: "bg-sky" },
-            { slug: "doplnky", name: "Doplňky", bg: "bg-lilac" },
+            {
+              slug: "beh", name: "Běh", bg: "bg-mint",
+              icon: (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-navy">
+                  <path d="M13 4a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/><path d="M6 20l4-4 2 1 3-4"/><path d="M15 13l2 7"/><path d="M8 16l-2-3 4-2"/>
+                </svg>
+              ),
+            },
+            {
+              slug: "zima", name: "Zima", bg: "bg-sky",
+              icon: (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-navy">
+                  <path d="M12 2v20M2 12h20"/><path d="M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83"/><path d="M19.07 4.93l-2.83 2.83M7.76 16.24l-2.83 2.83"/><path d="M12 7l-2 2 2 2 2-2-2-2z"/>
+                </svg>
+              ),
+            },
+            {
+              slug: "hory-a-outdoor", name: "Outdoor", bg: "bg-sky",
+              icon: (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-navy">
+                  <path d="M8 21l4-10 4 10"/><path d="M2 21h20"/><path d="M12 11l3-6 5 10"/><path d="M12 7l-1-4"/>
+                </svg>
+              ),
+            },
+            {
+              slug: "doplnky", name: "Doplňky", bg: "bg-lilac",
+              icon: (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-navy">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
+              ),
+            },
           ].map((item) => (
             <Link
               key={item.slug}
               href={`/kategorie/${item.slug}`}
-              className={`group ${item.bg} rounded-[10px] p-4 min-h-[100px] flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition-all`}
+              className={`group relative ${item.bg} rounded-[10px] p-4 min-h-[100px] flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition-all`}
             >
+              <div className="absolute top-3 right-3 opacity-15">
+                {item.icon}
+              </div>
               <h3 className="text-[18px] font-extrabold text-navy">{item.name}</h3>
               <div className="flex items-center gap-1 mt-1">
                 <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-navy/50">Prozkoumat</span>
