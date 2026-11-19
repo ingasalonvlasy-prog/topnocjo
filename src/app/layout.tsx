@@ -35,7 +35,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="cs" className={`${manrope.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col font-sans bg-white text-ink">
+      <body className="min-h-full flex flex-col font-sans bg-white text-ink overflow-x-clip">
         {children}
       </body>
     </html>

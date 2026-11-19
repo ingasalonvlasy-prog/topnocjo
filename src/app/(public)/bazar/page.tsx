@@ -13,10 +13,10 @@ import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
 type SortOption = "price_asc" | "price_desc" | "name" | "newest";
 
 export const metadata = {
-  title: "Bazar | Qsport.cz",
+  title: "Bazar",
   description: "Secondhand sportovní vybavení za skvělé ceny. Použité, ale stále skvělé — bazar na Qsport.cz.",
   openGraph: {
-    title: "Bazar | Qsport.cz",
+    title: "Bazar",
     description: "Secondhand sportovní vybavení za skvělé ceny. Použité, ale stále skvělé — bazar na Qsport.cz.",
   },
 };

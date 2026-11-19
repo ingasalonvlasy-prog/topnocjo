@@ -7,10 +7,10 @@ import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
 const pastelBgs = ["bg-mint", "bg-sky", "bg-peach", "bg-lilac"];
 
 export const metadata: Metadata = {
-  title: "Prémiové značky | Qsport.cz",
+  title: "Prémiové značky",
   description: "Spolupracujeme s nejlepšími sportovními značkami. ON, POC, Maloja, Alpina, Mizuno, LEKI a další na Qsport.cz.",
   openGraph: {
-    title: "Prémiové značky | Qsport.cz",
+    title: "Prémiové značky",
     description: "Spolupracujeme s nejlepšími sportovními značkami. ON, POC, Maloja, Alpina, Mizuno, LEKI a další na Qsport.cz.",
   },
 };

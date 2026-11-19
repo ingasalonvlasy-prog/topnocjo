@@ -12,10 +12,10 @@ import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
 type SortOption = "price_asc" | "price_desc" | "name" | "newest";
 
 export const metadata = {
-  title: "Akce a výprodej | Qsport.cz",
+  title: "Akce a výprodej",
   description: "Zlevněné sportovní vybavení, oblečení a doplňky za akční ceny. Využij slevy na Qsport.cz.",
   openGraph: {
-    title: "Akce a výprodej | Qsport.cz",
+    title: "Akce a výprodej",
     description: "Zlevněné sportovní vybavení, oblečení a doplňky za akční ceny. Využij slevy na Qsport.cz.",
   },
 };

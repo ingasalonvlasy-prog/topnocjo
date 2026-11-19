@@ -7,7 +7,7 @@ import { AccountNav } from "@/components/AccountNav";
 import { ProductCard } from "@/components/ProductCard";
 
 export const metadata: Metadata = {
-  title: "Oblíbené produkty | Qsport.cz",
+  title: "Oblíbené produkty",
 };
 
 export default async function WishlistPage() {

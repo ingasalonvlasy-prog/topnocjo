@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const brand = await prisma.brand.findUnique({ where: { slug } });
   if (!brand) return { title: "Značka nenalezena" };
-  const title = `${brand.name} — sportovní vybavení | Qsport.cz`;
+  const title = `${brand.name} — sportovní vybavení`;
   const description = `Sportovní vybavení ${brand.name} na Qsport.cz — boty, oblečení a doplňky za skvělé ceny.`;
   return {
     title,

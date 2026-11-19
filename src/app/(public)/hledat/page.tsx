@@ -14,7 +14,7 @@ type SortOption = "price_asc" | "price_desc" | "name" | "newest";
 export async function generateMetadata({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }): Promise<Metadata> {
   const sp = await searchParams;
   const query = (sp.q as string) || "";
-  const title = query ? `${query} — Hledání | Qsport.cz` : "Vyhledávání | Qsport.cz";
+  const title = query ? `${query} — Hledání` : "Vyhledávání";
   const description = query
     ? `Výsledky hledání pro „${query}" na Qsport.cz`
     : "Hledej sportovní vybavení na Qsport.cz";

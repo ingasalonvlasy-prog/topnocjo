@@ -7,7 +7,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { AccountNav } from "@/components/AccountNav";
 
 export const metadata: Metadata = {
-  title: "Údaje a adresa | Qsport.cz",
+  title: "Údaje a adresa",
 };
 
 export default async function SettingsPage({

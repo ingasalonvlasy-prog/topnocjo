@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { ContactForm } from "./ContactForm";
 
 export const metadata: Metadata = {
-  title: "Kontakt | Qsport.cz",
+  title: "Kontakt",
   description: "Kontaktujte nás — e-mail, telefon, sociální sítě.",
-  openGraph: { title: "Kontakt | Qsport.cz", description: "Kontaktujte nás — e-mail, telefon, sociální sítě." },
+  openGraph: { title: "Kontakt", description: "Kontaktujte nás — e-mail, telefon, sociální sítě." },
 };
 
 export default function ContactPage() {

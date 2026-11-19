@@ -15,7 +15,7 @@ import {
 import type { OrderStatus, PaymentStatus } from "@/lib/order-constants";
 
 export const metadata: Metadata = {
-  title: "Objednávky | Qsport.cz",
+  title: "Objednávky",
 };
 
 export default async function OrdersPage() {

@@ -42,7 +42,7 @@ export default async function PublicLayout({ children }: { children: React.React
   return (
     <CartProvider>
       <Header categories={categories} />
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 min-w-0">{children}</main>
       <Footer />
       <CookieConsent />
     </CartProvider>

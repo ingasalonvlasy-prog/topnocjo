@@ -3,9 +3,9 @@ import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export const metadata: Metadata = {
-  title: "Cookies | Qsport.cz",
+  title: "Cookies",
   description: "Informace o používání cookies na Qsport.cz",
-  openGraph: { title: "Cookies | Qsport.cz", description: "Informace o používání cookies na Qsport.cz" },
+  openGraph: { title: "Cookies", description: "Informace o používání cookies na Qsport.cz" },
 };
 
 export default function CookiesPage() {

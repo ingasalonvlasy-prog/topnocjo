@@ -5,7 +5,7 @@ import { hashPassword, createSession } from "@/lib/auth";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Obnova hesla | Qsport.cz",
+  title: "Obnova hesla",
 };
 
 export default async function ResetPasswordPage({

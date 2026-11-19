@@ -56,7 +56,7 @@ function ShortDescriptionCard({ bodyHtml }: { bodyHtml: string }) {
       <div>
         <h3 className="text-[14px] font-bold text-navy mb-1">O produktu</h3>
         <div
-          className="text-[14px] leading-relaxed text-ink [&_p]:mb-0"
+          className="text-[14px] leading-relaxed text-ink break-words [&_p]:mb-0"
           dangerouslySetInnerHTML={{ __html: sanitizeHtml(bodyHtml) }}
         />
       </div>
@@ -119,7 +119,7 @@ export function ProductTabs({ description, bodyHtml, brand, productType, sku, va
               <ShortDescriptionCard bodyHtml={bodyHtml} />
             ) : (
               <div
-                className="overflow-hidden text-[14px] leading-relaxed text-ink
+                className="overflow-hidden break-words text-[14px] leading-relaxed text-ink
                   [&_h2]:text-[20px] [&_h2]:font-extrabold [&_h2]:text-navy [&_h2]:mt-8 [&_h2]:mb-3
                   [&_h3]:text-[16px] [&_h3]:font-bold [&_h3]:text-navy [&_h3]:mt-6 [&_h3]:mb-2
                   [&_p]:mb-4 [&_p]:text-ink
@@ -131,7 +131,8 @@ export function ProductTabs({ description, bodyHtml, brand, productType, sku, va
                   [&_img]:rounded-[8px] [&_img]:my-4 [&_img]:max-w-full [&_img]:h-auto
                   [&_table]:block [&_table]:overflow-x-auto [&_table]:text-[13px]
                   [&_th]:text-left [&_th]:font-bold [&_th]:text-navy [&_th]:py-2 [&_th]:border-b [&_th]:border-line
-                  [&_td]:py-2 [&_td]:border-b [&_td]:border-line"
+                  [&_td]:py-2 [&_td]:border-b [&_td]:border-line
+                  [&_pre]:overflow-x-auto [&_pre]:max-w-full [&_iframe]:max-w-full"
                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(bodyHtml) }}
               />
             )

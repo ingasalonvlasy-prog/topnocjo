@@ -5,9 +5,9 @@ import { hashPassword, createSession, getCurrentUser } from "@/lib/auth";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Registrace | Qsport.cz",
+  title: "Registrace",
   description: "Vytvoř si účet na Qsport.cz — sleduj objednávky a nakupuj rychleji.",
-  openGraph: { title: "Registrace | Qsport.cz", description: "Vytvoř si účet na Qsport.cz — sleduj objednávky a nakupuj rychleji." },
+  openGraph: { title: "Registrace", description: "Vytvoř si účet na Qsport.cz — sleduj objednávky a nakupuj rychleji." },
 };
 
 export default async function RegistracePage({

@@ -7,10 +7,10 @@ import { Pagination } from "@/components/Pagination";
 import { BlogCard } from "@/components/BlogCard";
 
 export const metadata: Metadata = {
-  title: "Blog | Qsport.cz",
+  title: "Blog",
   description: "Články o běhu, outdooru a sportovním vybavení. Tipy, recenze a novinky ze světa sportu.",
   openGraph: {
-    title: "Blog | Qsport.cz",
+    title: "Blog",
     description: "Články o běhu, outdooru a sportovním vybavení.",
   },
 };

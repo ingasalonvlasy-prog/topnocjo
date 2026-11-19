@@ -7,7 +7,7 @@ import { PasswordReset } from "@/lib/emails/password-reset";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Zapomenuté heslo | Qsport.cz",
+  title: "Zapomenuté heslo",
 };
 
 export default async function ForgotPasswordPage({
