@@ -130,7 +130,7 @@ export function Header({ categories = [] }: HeaderProps) {
           {/* Mobile header — hamburger left, logo center, search+account+cart right */}
           <div className="flex lg:hidden items-center justify-between h-[56px] relative">
             <button
-              className="w-10 h-10 flex items-center justify-center text-ink"
+              className="w-11 h-11 flex items-center justify-center text-ink"
               onClick={() => { setMenuOpen(!menuOpen); setMobileSearchOpen(false); }}
               aria-label="Menu"
             >
@@ -212,7 +212,7 @@ export function Header({ categories = [] }: HeaderProps) {
       />
       <nav
         className={`fixed left-0 right-0 bottom-0 z-50 bg-white lg:hidden overflow-y-auto overscroll-contain transition-transform duration-200 ease-out ${
-          menuOpen ? "translate-y-0" : "-translate-y-full"
+          menuOpen ? "translate-y-0" : "-translate-y-full pointer-events-none"
         }`}
         style={{ top: 56 }}
       >
