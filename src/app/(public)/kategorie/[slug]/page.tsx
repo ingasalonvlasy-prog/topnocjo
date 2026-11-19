@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { unstable_cache } from "next/cache";
 import { getFilteredProducts } from "@/lib/products";
 import { getFilterOptions } from "@/lib/filter-options";
 import { ProductCard } from "@/components/ProductCard";
@@ -15,9 +16,36 @@ import { cleanTitle } from "@/lib/seo";
 
 type SortOption = "price_asc" | "price_desc" | "name" | "newest";
 
+const getCachedCategoryMeta = unstable_cache(
+  async (slug: string) =>
+    prisma.category.findUnique({
+      where: { slug },
+      select: { name: true, seoTitle: true, seoDesc: true },
+    }),
+  ["category-meta"],
+  { revalidate: 600, tags: ["category"] }
+);
+
+const getCachedCategoryWithChildren = unstable_cache(
+  async (slug: string) =>
+    prisma.category.findUnique({
+      where: { slug },
+      include: {
+        children: { orderBy: { position: "asc" } },
+        parent: {
+          include: {
+            children: { orderBy: { position: "asc" } },
+          },
+        },
+      },
+    }),
+  ["category-detail"],
+  { revalidate: 600, tags: ["category"] }
+);
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const category = await prisma.category.findUnique({ where: { slug } });
+  const category = await getCachedCategoryMeta(slug);
   if (!category) return { title: "Kategorie nenalezena" };
   const title = cleanTitle(category.seoTitle || category.name);
   return {
@@ -40,17 +68,7 @@ export default async function CategoryPage({
   const { slug } = await params;
   const sp = await searchParams;
 
-  const category = await prisma.category.findUnique({
-    where: { slug },
-    include: {
-      children: { orderBy: { position: "asc" } },
-      parent: {
-        include: {
-          children: { orderBy: { position: "asc" } },
-        },
-      },
-    },
-  });
+  const category = await getCachedCategoryWithChildren(slug);
   if (!category) notFound();
 
   const page = Number(sp.strana) || 1;

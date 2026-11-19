@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
+import { unstable_cache } from "next/cache";
 import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
 
 const pastelBgs = ["bg-mint", "bg-sky", "bg-peach", "bg-lilac"];
@@ -15,17 +16,27 @@ export const metadata: Metadata = {
   },
 };
 
+const getCachedBrandsWithCount = unstable_cache(
+  async () => {
+    try {
+      return await prisma.brand.findMany({
+        where: { products: { some: { status: "ACTIVE" } } },
+        select: {
+          slug: true,
+          name: true,
+          logo: true,
+          _count: { select: { products: { where: { status: "ACTIVE" } } } },
+        },
+        orderBy: { name: "asc" },
+      });
+    } catch { return []; }
+  },
+  ["brands-page"],
+  { revalidate: 3600, tags: ["brand"] }
+);
+
 export default async function BrandsPage() {
-  const brands = await prisma.brand.findMany({
-    where: { products: { some: { status: "ACTIVE" } } },
-    select: {
-      slug: true,
-      name: true,
-      logo: true,
-      _count: { select: { products: { where: { status: "ACTIVE" } } } },
-    },
-    orderBy: { name: "asc" },
-  });
+  const brands = await getCachedBrandsWithCount();
 
   return (
     <div>

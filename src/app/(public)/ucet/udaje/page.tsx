@@ -6,6 +6,8 @@ import { getCurrentUser, hashPassword, verifyPassword } from "@/lib/auth";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { AccountNav } from "@/components/AccountNav";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Údaje a adresa",
 };

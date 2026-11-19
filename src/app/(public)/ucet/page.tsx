@@ -8,6 +8,8 @@ import type { OrderStatus } from "@/lib/order-constants";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { AccountNav } from "@/components/AccountNav";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Můj účet",
 };

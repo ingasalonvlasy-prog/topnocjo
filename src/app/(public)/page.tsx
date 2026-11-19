@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/db";
+import { unstable_cache } from "next/cache";
 import { ProductCard } from "@/components/ProductCard";
 import { SearchAutocomplete } from "@/components/SearchAutocomplete";
 import { getLatestBlogPosts } from "@/lib/blog";
@@ -9,6 +10,131 @@ import { NewsletterForm } from "@/components/NewsletterForm";
 import { buildOrganizationJsonLd, buildWebSiteJsonLd } from "@/lib/structured-data";
 import { getInstagramPosts } from "@/lib/instagram";
 import { InstagramGrid } from "@/components/InstagramGrid";
+
+const getCachedBrands = unstable_cache(
+  async () => {
+    try { return await prisma.brand.findMany({ orderBy: { name: "asc" } }); }
+    catch { return []; }
+  },
+  ["homepage-brands"],
+  { revalidate: 3600, tags: ["brand"] }
+);
+
+const getCachedBestsellers = unstable_cache(
+  async () => {
+    try {
+      return await prisma.product.findMany({
+        where: {
+          status: "ACTIVE",
+          photos: { contains: "shopify" },
+          variants: {
+            some: {
+              active: true,
+              OR: [{ ownStock: { gt: 0 } }, { supplierStock: { gt: 0 } }],
+            },
+          },
+        },
+        include: {
+          variants: { where: { active: true }, orderBy: { position: "asc" } },
+          brand: true,
+          categories: { include: { category: true } },
+        },
+        orderBy: { updatedAt: "desc" },
+        take: 60,
+      });
+    } catch { return []; }
+  },
+  ["homepage-bestsellers"],
+  { revalidate: 600, tags: ["product", "homepage-bestsellers"] }
+);
+
+const getCachedBlogPosts = unstable_cache(
+  async () => {
+    try { return await getLatestBlogPosts(3); }
+    catch { return []; }
+  },
+  ["homepage-blog"],
+  { revalidate: 1800, tags: ["blog"] }
+);
+
+const getCachedInstagramPosts = unstable_cache(
+  async () => {
+    try { return await getInstagramPosts(6); }
+    catch { return []; }
+  },
+  ["homepage-instagram"],
+  { revalidate: 3600 }
+);
+
+const getCachedPocProducts = unstable_cache(
+  async () => {
+    try {
+      return await prisma.product.findMany({
+        where: {
+          status: "ACTIVE",
+          photos: { contains: "shopify" },
+          brand: { slug: "poc" },
+        },
+        include: {
+          variants: { where: { active: true }, orderBy: { position: "asc" } },
+          brand: true,
+          categories: { include: { category: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 4,
+      });
+    } catch { return []; }
+  },
+  ["homepage-poc"],
+  { revalidate: 3600, tags: ["product"] }
+);
+
+const getCachedGenderData = unstable_cache(
+  async () => {
+    try {
+      const genderCategories = await prisma.category.findMany({
+        where: { slug: { in: ["muzi", "zeny", "deti"] } },
+        include: { children: { select: { id: true } } },
+      });
+
+      const genderData: Record<string, { count: number; photo: string | null }> = {};
+      await Promise.all(
+        genderCategories.map(async (gc) => {
+          const allIds = [gc.id, ...gc.children.map((c) => c.id)];
+          const [count, sample] = await Promise.all([
+            prisma.product.count({
+              where: {
+                status: "ACTIVE",
+                photos: { not: "[]" },
+                categories: { some: { categoryId: { in: allIds } } },
+              },
+            }),
+            prisma.product.findFirst({
+              where: {
+                status: "ACTIVE",
+                photos: { contains: "shopify" },
+                categories: { some: { categoryId: { in: allIds } } },
+              },
+              select: { photos: true },
+              orderBy: { createdAt: "desc" },
+            }),
+          ]);
+          let photo: string | null = null;
+          if (sample) {
+            try {
+              const photos = JSON.parse(sample.photos);
+              if (photos.length > 0) photo = photos[0];
+            } catch {}
+          }
+          genderData[gc.slug] = { count, photo };
+        })
+      );
+      return genderData;
+    } catch { return {}; }
+  },
+  ["homepage-gender"],
+  { revalidate: 3600, tags: ["category", "product"] }
+);
 
 const categoryPastels: Record<string, string> = {
   "muzi": "bg-sky",
@@ -24,82 +150,14 @@ const categoryPastels: Record<string, string> = {
 
 
 export default async function HomePage() {
-  const [brands, bestsellers, blogPosts, instagramPosts, pocProducts, genderCategories] = await Promise.all([
-    prisma.brand.findMany({ orderBy: { name: "asc" } }),
-    prisma.product.findMany({
-      where: {
-        status: "ACTIVE",
-        photos: { contains: "shopify" },
-        variants: {
-          some: {
-            active: true,
-            OR: [{ ownStock: { gt: 0 } }, { supplierStock: { gt: 0 } }],
-          },
-        },
-      },
-      include: {
-        variants: { where: { active: true }, orderBy: { position: "asc" } },
-        brand: true,
-        categories: { include: { category: true } },
-      },
-      orderBy: { updatedAt: "desc" },
-      take: 60,
-    }),
-    getLatestBlogPosts(3),
-    getInstagramPosts(6),
-    prisma.product.findMany({
-      where: {
-        status: "ACTIVE",
-        photos: { contains: "shopify" },
-        brand: { slug: "poc" },
-      },
-      include: {
-        variants: { where: { active: true }, orderBy: { position: "asc" } },
-        brand: true,
-        categories: { include: { category: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 4,
-    }),
-    prisma.category.findMany({
-      where: { slug: { in: ["muzi", "zeny", "deti"] } },
-      include: { children: { select: { id: true } } },
-    }),
+  const [brands, bestsellers, blogPosts, instagramPosts, pocProducts, genderData] = await Promise.all([
+    getCachedBrands(),
+    getCachedBestsellers(),
+    getCachedBlogPosts(),
+    getCachedInstagramPosts(),
+    getCachedPocProducts(),
+    getCachedGenderData(),
   ]);
-
-  // Build gender category counts (parent + all children) and fetch card images
-  const genderData: Record<string, { count: number; photo: string | null }> = {};
-  await Promise.all(
-    genderCategories.map(async (gc) => {
-      const allIds = [gc.id, ...gc.children.map((c) => c.id)];
-      const [count, sample] = await Promise.all([
-        prisma.product.count({
-          where: {
-            status: "ACTIVE",
-            photos: { not: "[]" },
-            categories: { some: { categoryId: { in: allIds } } },
-          },
-        }),
-        prisma.product.findFirst({
-          where: {
-            status: "ACTIVE",
-            photos: { contains: "shopify" },
-            categories: { some: { categoryId: { in: allIds } } },
-          },
-          select: { photos: true },
-          orderBy: { createdAt: "desc" },
-        }),
-      ]);
-      let photo: string | null = null;
-      if (sample) {
-        try {
-          const photos = JSON.parse(sample.photos);
-          if (photos.length > 0) photo = photos[0];
-        } catch {}
-      }
-      genderData[gc.slug] = { count, photo };
-    })
-  );
 
   return (
     <div>

@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db";
 import { hashPassword, createSession, getCurrentUser } from "@/lib/auth";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Registrace",
   description: "Vytvoř si účet na Qsport.cz — sleduj objednávky a nakupuj rychleji.",

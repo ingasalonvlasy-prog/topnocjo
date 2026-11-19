@@ -14,6 +14,8 @@ import {
 } from "@/lib/order-constants";
 import type { OrderStatus, PaymentStatus } from "@/lib/order-constants";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Objednávky",
 };

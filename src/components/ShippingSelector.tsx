@@ -1,10 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useCart, type SelectedShipping } from "@/lib/cart";
 import { formatPrice } from "@/lib/products";
-import { ZasilkovnaWidget, type PacketaPoint } from "@/components/ZasilkovnaWidget";
-import { GlsWidget, type GlsPoint } from "@/components/GlsWidget";
+import type { PacketaPoint } from "@/components/ZasilkovnaWidget";
+import type { GlsPoint } from "@/components/GlsWidget";
+
+const ZasilkovnaWidget = dynamic(
+  () => import("@/components/ZasilkovnaWidget").then((m) => m.ZasilkovnaWidget),
+  { ssr: false }
+);
+const GlsWidget = dynamic(
+  () => import("@/components/GlsWidget").then((m) => m.GlsWidget),
+  { ssr: false }
+);
 
 interface ShippingOption {
   id: string;

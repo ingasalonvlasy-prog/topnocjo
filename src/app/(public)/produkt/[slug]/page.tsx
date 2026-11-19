@@ -13,7 +13,14 @@ import { buildProductJsonLd, buildBreadcrumbJsonLd } from "@/lib/structured-data
 import { ReviewSummary } from "@/components/ReviewSection";
 import { ShareButtons } from "@/components/ShareButtons";
 import { prisma } from "@/lib/db";
+import { unstable_cache } from "next/cache";
 import { cleanTitle } from "@/lib/seo";
+
+const getCachedProduct = unstable_cache(
+  async (slug: string) => getProductBySlug(slug),
+  ["product-detail"],
+  { revalidate: 300, tags: ["product"] }
+);
 
 const categoryPastels: Record<string, string> = {
   "bezecke-boty": "bg-mint",
@@ -29,7 +36,7 @@ const categoryPastels: Record<string, string> = {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const product = await getCachedProduct(slug);
   if (!product) return { title: "Produkt nenalezen" };
 
   const photos: string[] = JSON.parse(product.photos || "[]");
@@ -48,7 +55,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const product = await getCachedProduct(slug);
   if (!product) notFound();
 
   const photos: string[] = JSON.parse(product.photos || "[]");

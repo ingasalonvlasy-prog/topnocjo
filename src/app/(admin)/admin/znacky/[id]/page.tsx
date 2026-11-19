@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 
@@ -28,6 +28,7 @@ export default async function BrandEditPage({
       data: { name, slug, logo },
     });
 
+    updateTag("brand");
     revalidatePath("/admin/znacky");
     redirect("/admin/znacky");
   }

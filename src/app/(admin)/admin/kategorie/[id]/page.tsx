@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 
@@ -38,6 +38,8 @@ export default async function CategoryEditPage({
       data: { name, slug, parentId, position, seoTitle, seoDesc, image },
     });
 
+    updateTag("category");
+    updateTag("nav-categories");
     revalidatePath("/admin/kategorie");
     redirect("/admin/kategorie");
   }

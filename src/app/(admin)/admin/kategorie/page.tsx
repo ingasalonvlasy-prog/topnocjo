@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 
@@ -28,6 +28,8 @@ export default async function AdminCategoriesPage() {
     await prisma.category.create({
       data: { name, slug, position: (maxPos._max.position ?? 0) + 1 },
     });
+    updateTag("category");
+    updateTag("nav-categories");
     revalidatePath("/admin/kategorie");
   }
 
@@ -42,6 +44,8 @@ export default async function AdminCategoriesPage() {
     if (cat && cat._count.products === 0 && cat._count.children === 0) {
       await prisma.category.delete({ where: { id } });
     }
+    updateTag("category");
+    updateTag("nav-categories");
     revalidatePath("/admin/kategorie");
     redirect("/admin/kategorie");
   }

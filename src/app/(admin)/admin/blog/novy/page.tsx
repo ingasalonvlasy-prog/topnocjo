@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import Link from "next/link";
 import { BLOG_SECTIONS, SECTION_LABELS, SPORT_TAGS, type BlogSection } from "@/lib/blog-constants";
 import { WysiwygEditor } from "@/components/admin/WysiwygEditor";
@@ -66,6 +66,7 @@ export default function NewBlogPostPage() {
       },
     });
 
+    updateTag("blog");
     revalidatePath("/admin/blog");
     revalidatePath("/blog");
     redirect(`/admin/blog/${post.id}`);

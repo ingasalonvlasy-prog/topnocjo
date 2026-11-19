@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/products";
 import { logAdminAction } from "@/lib/admin-log";
@@ -79,6 +79,8 @@ async function updateProduct(formData: FormData) {
 
   logAdminAction("update", "product", id, name);
 
+  updateTag("product");
+  updateTag("homepage-bestsellers");
   revalidatePath(`/admin/produkty/${id}`);
   redirect(`/admin/produkty/${id}?saved=1`);
 }
@@ -108,6 +110,7 @@ async function updateVariant(formData: FormData) {
     },
   });
 
+  updateTag("product");
   revalidatePath(`/admin/produkty/${productId}`);
   redirect(`/admin/produkty/${productId}?saved=variant`);
 }
@@ -138,6 +141,7 @@ async function addVariant(formData: FormData) {
     },
   });
 
+  updateTag("product");
   revalidatePath(`/admin/produkty/${productId}`);
   redirect(`/admin/produkty/${productId}?saved=variant-added`);
 }
@@ -155,6 +159,7 @@ async function deleteVariant(formData: FormData) {
     await prisma.variant.delete({ where: { id: variantId } });
   }
 
+  updateTag("product");
   revalidatePath(`/admin/produkty/${productId}`);
   redirect(`/admin/produkty/${productId}`);
 }

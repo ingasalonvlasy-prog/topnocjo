@@ -6,6 +6,8 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { AccountNav } from "@/components/AccountNav";
 import { ProductCard } from "@/components/ProductCard";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Oblíbené produkty",
 };

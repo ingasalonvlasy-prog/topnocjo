@@ -5,6 +5,8 @@ import { formatPrice } from "@/lib/products";
 import { getCurrentUser } from "@/lib/auth";
 import { ClearCartOnMount } from "./ClearCart";
 
+export const dynamic = "force-dynamic";
+
 interface Props {
   params: Promise<{ orderNumber: string }>;
   searchParams: Promise<{ new?: string; fallback?: string; platba?: string; token?: string }>;

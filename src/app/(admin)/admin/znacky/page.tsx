@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 
@@ -22,6 +22,7 @@ export default async function AdminBrandsPage() {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
     await prisma.brand.create({ data: { name, slug } });
+    updateTag("brand");
     revalidatePath("/admin/znacky");
   }
 
@@ -36,6 +37,7 @@ export default async function AdminBrandsPage() {
     if (brand && brand._count.products === 0) {
       await prisma.brand.delete({ where: { id } });
     }
+    updateTag("brand");
     revalidatePath("/admin/znacky");
     redirect("/admin/znacky");
   }
