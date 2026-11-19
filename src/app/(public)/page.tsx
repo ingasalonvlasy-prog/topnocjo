@@ -286,24 +286,24 @@ export default async function HomePage() {
             {
               slug: "muzi", name: "Muži", bg: "bg-sky", gradient: "from-sky via-sky/70 to-transparent", desc: "Bundy, kalhoty, trička, termoprádlo",
               icon: (
-                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-navy">
-                  <circle cx="17" cy="4" r="2"/><path d="M13 7l3 3 3-3"/><path d="M16 10v4l-4 4"/><path d="M6 20l4-4"/><path d="M16 14l2 6"/><path d="M6 12l4-2 3 2"/>
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-navy">
+                  <polyline points="12,8 28,24 12,40" /><polyline points="24,8 40,24 24,40" />
                 </svg>
               ),
             },
             {
               slug: "zeny", name: "Ženy", bg: "bg-peach", gradient: "from-peach via-peach/70 to-transparent", desc: "Bundy, sukně, mikiny, termoprádlo",
               icon: (
-                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-navy">
-                  <circle cx="15" cy="4" r="2"/><path d="M11 7l3 2 3-2"/><path d="M14 9v3l-5 6"/><path d="M14 12l4 8"/><path d="M5 20l3-5"/><path d="M9 15l-3-2"/>
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-navy">
+                  <path d="M4 32C12 12 24 44 44 16" /><path d="M4 38C12 18 24 50 44 22" />
                 </svg>
               ),
             },
             {
               slug: "deti", name: "Děti", bg: "bg-mint", gradient: "from-mint via-mint/70 to-transparent", desc: "Bundy, kalhoty, trička, mikiny",
               icon: (
-                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-navy">
-                  <circle cx="12" cy="5" r="2"/><path d="M9 8h6"/><path d="M12 8v5"/><path d="M9 20l3-7 3 7"/><circle cx="18" cy="14" r="3"/><path d="M15 14h-3"/>
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-navy">
+                  <line x1="24" y1="4" x2="24" y2="44" /><line x1="4" y1="24" x2="44" y2="24" /><line x1="10" y1="10" x2="38" y2="38" /><line x1="38" y1="10" x2="10" y2="38" />
                 </svg>
               ),
             },
