@@ -164,13 +164,13 @@ export default async function AbandonedCheckoutsPage({
 
       {/* Tabs + search */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between border-b border-gray-200 px-4">
-          <div className="flex gap-0">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-200 px-4">
+          <div className="flex gap-0 overflow-x-auto">
             {tabs.map((tab) => (
               <a
                 key={tab.key}
                 href={`?stav=${tab.key}${searchQuery ? `&q=${searchQuery}` : ""}`}
-                className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                className={`px-3 sm:px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                   statusFilter === tab.key
                     ? "border-blue-600 text-blue-600"
                     : "border-transparent text-gray-500 hover:text-gray-700"
@@ -181,17 +181,17 @@ export default async function AbandonedCheckoutsPage({
               </a>
             ))}
           </div>
-          <form method="get" className="flex items-center gap-2">
+          <form method="get" className="flex items-center gap-2 pb-3 sm:pb-0">
             <input type="hidden" name="stav" value={statusFilter} />
             <input
               name="q"
               defaultValue={searchQuery}
               placeholder="Hledat email..."
-              className="h-8 px-3 text-sm border border-gray-300 rounded-md focus:border-blue-500 outline-none w-48"
+              className="h-8 px-3 text-sm border border-gray-300 rounded-md focus:border-blue-500 outline-none w-full sm:w-48"
             />
             <button
               type="submit"
-              className="h-8 px-3 text-xs font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+              className="h-8 px-3 text-xs font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors shrink-0"
             >
               Hledat
             </button>
@@ -199,12 +199,13 @@ export default async function AbandonedCheckoutsPage({
         </div>
 
         {/* Table */}
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="text-left px-4 py-3 font-medium text-gray-500">Datum</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500 hidden md:table-cell">Datum</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500">Zákazník</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-500">Položky</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500 hidden sm:table-cell">Položky</th>
               <th className="text-right px-4 py-3 font-medium text-gray-500">Celkem</th>
               <th className="text-center px-4 py-3 font-medium text-gray-500">Stav</th>
               <th className="text-center px-4 py-3 font-medium text-gray-500">Akce</th>
@@ -218,7 +219,7 @@ export default async function AbandonedCheckoutsPage({
 
               return (
                 <tr key={c.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap hidden md:table-cell">
                     {formatDate(c.createdAt)}
                   </td>
                   <td className="px-4 py-3">
@@ -227,7 +228,7 @@ export default async function AbandonedCheckoutsPage({
                       <p className="text-xs text-gray-500">{[c.firstName, c.lastName].filter(Boolean).join(" ")}</p>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 hidden sm:table-cell">
                     <span className="text-gray-700">{c.itemCount} ks</span>
                     {preview && (
                       <p className="text-xs text-gray-400 truncate max-w-[200px]" title={preview}>{preview}</p>
@@ -287,6 +288,7 @@ export default async function AbandonedCheckoutsPage({
             )}
           </tbody>
         </table>
+        </div>
 
         {/* Pagination */}
         {totalPages > 1 && (

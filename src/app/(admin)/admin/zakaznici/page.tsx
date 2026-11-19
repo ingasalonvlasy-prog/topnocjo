@@ -111,7 +111,7 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Zákazníci</h1>
           <p className="text-sm text-gray-500 mt-1">
@@ -121,7 +121,7 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
         <a
           href="/api/admin/customers/export"
           download
-          className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+          className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors self-start sm:self-auto"
         >
           Export CSV
         </a>
@@ -154,7 +154,7 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
       </div>
 
       {/* Segment tabs */}
-      <div className="flex flex-wrap gap-1 mb-4 bg-white rounded-lg border border-gray-200 shadow-sm p-1">
+      <div className="flex gap-1 mb-4 bg-white rounded-lg border border-gray-200 shadow-sm p-1 overflow-x-auto">
         {([
           { value: "", label: "Všichni" },
           { value: "new", label: "Noví (30d)" },
@@ -169,7 +169,7 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
             <Link
               key={seg.value}
               href={`/admin/zakaznici${sp.toString() ? `?${sp.toString()}` : ""}`}
-              className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+              className={`px-3 py-1.5 text-sm rounded-md transition-colors whitespace-nowrap ${
                 segment === seg.value
                   ? "bg-gray-900 text-white font-medium"
                   : "text-gray-600 hover:bg-gray-100"
@@ -237,8 +237,8 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="px-4 py-3 text-left font-medium text-gray-600">Zákazník</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Telefon</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Registrace</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600 hidden sm:table-cell">Telefon</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600 hidden md:table-cell">Registrace</th>
                   <th className="px-4 py-3 text-center font-medium text-gray-600 hidden md:table-cell">Newsletter</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-600 hidden lg:table-cell">Lokalita</th>
                   <th className="px-4 py-3 text-center font-medium text-gray-600">Objednávky</th>
@@ -265,8 +265,8 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
                         </Link>
                         <div className="text-xs text-gray-500">{user.email}</div>
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{user.phone || "—"}</td>
-                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                      <td className="px-4 py-3 text-gray-600 hidden sm:table-cell">{user.phone || "—"}</td>
+                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap hidden md:table-cell">
                         {user.createdAt.toLocaleDateString("cs-CZ", {
                           day: "numeric",
                           month: "short",
@@ -300,10 +300,10 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 hidden sm:block">
               Strana {page} z {totalPages}
             </p>
-            <div className="flex gap-1">
+            <div className="flex gap-1 mx-auto sm:mx-0">
               {page > 1 && (
                 <PageLink page={page - 1} search={search} segment={segment} label="&larr;" />
               )}

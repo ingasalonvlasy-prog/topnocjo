@@ -48,7 +48,7 @@ export default async function AdminReviewsPage({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Recenze</h1>
         {pendingCount > 0 && (
           <span className="inline-flex items-center px-3 py-1 text-sm font-bold text-amber-800 bg-amber-100 rounded-full">
@@ -58,7 +58,7 @@ export default async function AdminReviewsPage({
       </div>
 
       {/* Filters */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-6">
         {filters.map((f) => (
           <Link
             key={f.id}
@@ -81,14 +81,15 @@ export default async function AdminReviewsPage({
         </div>
       ) : (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="text-left px-4 py-3 font-semibold text-gray-600">Produkt</th>
-                <th className="text-left px-4 py-3 font-semibold text-gray-600">Autor</th>
+                <th className="text-left px-4 py-3 font-semibold text-gray-600 hidden sm:table-cell">Autor</th>
                 <th className="text-left px-4 py-3 font-semibold text-gray-600">Hodnocení</th>
-                <th className="text-left px-4 py-3 font-semibold text-gray-600">Recenze</th>
-                <th className="text-left px-4 py-3 font-semibold text-gray-600">Datum</th>
+                <th className="text-left px-4 py-3 font-semibold text-gray-600 hidden md:table-cell">Recenze</th>
+                <th className="text-left px-4 py-3 font-semibold text-gray-600 hidden lg:table-cell">Datum</th>
                 <th className="text-left px-4 py-3 font-semibold text-gray-600">Stav</th>
                 <th className="text-right px-4 py-3 font-semibold text-gray-600">Akce</th>
               </tr>
@@ -107,9 +108,9 @@ export default async function AdminReviewsPage({
                         : review.product.name}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 font-medium text-gray-900">{review.authorName}</td>
+                  <td className="px-4 py-3 font-medium text-gray-900 hidden sm:table-cell">{review.authorName}</td>
                   <td className="px-4 py-3 text-amber-500">{renderStars(review.rating)}</td>
-                  <td className="px-4 py-3 text-gray-700 max-w-[300px]">
+                  <td className="px-4 py-3 text-gray-700 max-w-[300px] hidden md:table-cell">
                     {review.title && (
                       <span className="font-bold text-gray-900">{review.title}: </span>
                     )}
@@ -117,7 +118,7 @@ export default async function AdminReviewsPage({
                       ? review.content.slice(0, 80) + "..."
                       : review.content}
                   </td>
-                  <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
+                  <td className="px-4 py-3 text-gray-500 whitespace-nowrap hidden lg:table-cell">
                     {formatDate(review.createdAt)}
                   </td>
                   <td className="px-4 py-3">
@@ -138,6 +139,7 @@ export default async function AdminReviewsPage({
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

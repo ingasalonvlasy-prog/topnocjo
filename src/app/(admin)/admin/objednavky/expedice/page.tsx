@@ -68,37 +68,37 @@ export default async function FulfillmentPage({ searchParams }: Props) {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Expedice</h1>
           <p className="text-sm text-gray-500 mt-1">
             Přehled objednávek k odeslání a splněných zásilek
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <button className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
+        <div className="flex flex-wrap items-center gap-2">
+          <button className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18.75 12h.008v.008h-.008V12Zm-2.25 0h.008v.008H16.5V12Z" />
             </svg>
-            Packing slipy
+            <span className="hidden sm:inline">Packing slipy</span>
           </button>
-          <button className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
+          <button className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
             </svg>
-            Exportovat CSV
+            <span className="hidden sm:inline">Exportovat CSV</span>
           </button>
-          <button className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
+          <button className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
             </svg>
-            Předávací protokol
+            <span className="hidden sm:inline">Předávací protokol</span>
           </button>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-gray-200">
+      <div className="flex gap-1 mb-6 border-b border-gray-200 overflow-x-auto">
         {tabs.map((t) => (
           <Link
             key={t.key}
@@ -143,12 +143,12 @@ export default async function FulfillmentPage({ searchParams }: Props) {
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="px-4 py-3 text-left font-medium text-gray-600">Číslo</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-600">Zákazník</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Vytvořeno</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600 hidden md:table-cell">Vytvořeno</th>
                   <th className="px-4 py-3 text-right font-medium text-gray-600">Cena</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Stav</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Plnění</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Tracking</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Doprava</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600 hidden sm:table-cell">Stav</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600 hidden lg:table-cell">Plnění</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600 hidden xl:table-cell">Tracking</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600 hidden xl:table-cell">Doprava</th>
                   <th className="px-4 py-3 text-center font-medium text-gray-600">Akce</th>
                 </tr>
               </thead>
@@ -177,7 +177,7 @@ export default async function FulfillmentPage({ searchParams }: Props) {
                         </div>
                         <div className="text-xs text-gray-500">{order.email}</div>
                       </td>
-                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap text-xs">
+                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap text-xs hidden md:table-cell">
                         {order.createdAt.toLocaleDateString("cs-CZ", {
                           day: "numeric",
                           month: "short",
@@ -192,17 +192,17 @@ export default async function FulfillmentPage({ searchParams }: Props) {
                       <td className="px-4 py-3 text-right font-bold text-gray-900 whitespace-nowrap">
                         {formatPrice(order.total)}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 hidden sm:table-cell">
                         <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${statusColor.bg} ${statusColor.text}`}>
                           {ORDER_STATUS_LABELS[statusKey] || order.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 hidden lg:table-cell">
                         <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${fulfillment.bg} ${fulfillment.text}`}>
                           {fulfillment.label}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 hidden xl:table-cell">
                         {order.trackingNumber ? (
                           <div>
                             {order.trackingUrl ? (
@@ -227,7 +227,7 @@ export default async function FulfillmentPage({ searchParams }: Props) {
                           <span className="text-xs text-gray-400">—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 hidden xl:table-cell">
                         <div className="text-xs text-gray-900">{order.shipping?.name || "—"}</div>
                         {order.pickupPointName && (
                           <div className="text-xs text-gray-500 truncate max-w-[140px]" title={order.pickupPointName}>

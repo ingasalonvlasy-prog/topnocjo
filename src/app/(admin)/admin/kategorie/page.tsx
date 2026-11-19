@@ -80,14 +80,15 @@ export default async function AdminCategoriesPage() {
       </form>
 
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
               <th className="text-left px-4 py-3 font-semibold text-gray-600">Název</th>
-              <th className="text-left px-4 py-3 font-semibold text-gray-600">Slug</th>
-              <th className="text-left px-4 py-3 font-semibold text-gray-600 hidden sm:table-cell">Nadřazená</th>
+              <th className="text-left px-4 py-3 font-semibold text-gray-600 hidden sm:table-cell">Slug</th>
+              <th className="text-left px-4 py-3 font-semibold text-gray-600 hidden md:table-cell">Nadřazená</th>
               <th className="text-center px-4 py-3 font-semibold text-gray-600">Produkty</th>
-              <th className="text-center px-4 py-3 font-semibold text-gray-600">Podkat.</th>
+              <th className="text-center px-4 py-3 font-semibold text-gray-600 hidden sm:table-cell">Podkat.</th>
               <th className="text-right px-4 py-3 font-semibold text-gray-600">Akce</th>
             </tr>
           </thead>
@@ -97,12 +98,12 @@ export default async function AdminCategoriesPage() {
               return [
                 <tr key={cat.id} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="px-4 py-3 font-medium text-gray-900">{cat.name}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 hidden sm:table-cell">
                     <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{cat.slug}</code>
                   </td>
-                  <td className="px-4 py-3 text-gray-500 hidden sm:table-cell">—</td>
+                  <td className="px-4 py-3 text-gray-500 hidden md:table-cell">—</td>
                   <td className="px-4 py-3 text-center text-gray-600">{cat._count.products}</td>
-                  <td className="px-4 py-3 text-center text-gray-600">{cat._count.children}</td>
+                  <td className="px-4 py-3 text-center text-gray-600 hidden sm:table-cell">{cat._count.children}</td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Link
@@ -127,12 +128,12 @@ export default async function AdminCategoriesPage() {
                     <td className="px-4 py-3 pl-8 font-medium text-gray-700">
                       <span className="text-gray-400 mr-1">└</span> {sub.name}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 hidden sm:table-cell">
                       <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{sub.slug}</code>
                     </td>
-                    <td className="px-4 py-3 text-gray-500 text-xs hidden sm:table-cell">{cat.name}</td>
+                    <td className="px-4 py-3 text-gray-500 text-xs hidden md:table-cell">{cat.name}</td>
                     <td className="px-4 py-3 text-center text-gray-600">{sub._count.products}</td>
-                    <td className="px-4 py-3 text-center text-gray-600">{sub._count.children}</td>
+                    <td className="px-4 py-3 text-center text-gray-600 hidden sm:table-cell">{sub._count.children}</td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Link
@@ -164,6 +165,7 @@ export default async function AdminCategoriesPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

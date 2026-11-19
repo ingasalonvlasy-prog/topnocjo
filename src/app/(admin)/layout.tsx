@@ -12,7 +12,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <>
       <AdminSidebar newOrderCount={newOrderCount} />
       <div className="lg:ml-60 min-h-screen bg-gray-50">
-        <div className="p-6 lg:p-8">{children}</div>
+        <div className="pt-16 px-4 pb-6 sm:px-6 lg:pt-8 lg:px-8">{children}</div>
       </div>
     </>
   );

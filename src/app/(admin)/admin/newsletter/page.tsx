@@ -44,7 +44,7 @@ export default async function AdminNewsletterPage({ searchParams }: Props) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Newsletter</h1>
           <p className="text-sm text-gray-500 mt-1">
@@ -160,7 +160,7 @@ export default async function AdminNewsletterPage({ searchParams }: Props) {
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="px-4 py-3 text-left font-medium text-gray-600">Email</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-600">Stav</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Datum přihlášení</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600 hidden sm:table-cell">Datum přihlášení</th>
                   <th className="px-4 py-3 text-right font-medium text-gray-600">Akce</th>
                 </tr>
               </thead>
@@ -179,7 +179,7 @@ export default async function AdminNewsletterPage({ searchParams }: Props) {
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap hidden sm:table-cell">
                       {s.subscribedAt.toLocaleDateString("cs-CZ", {
                         day: "numeric",
                         month: "short",
@@ -199,10 +199,10 @@ export default async function AdminNewsletterPage({ searchParams }: Props) {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 hidden sm:block">
               Strana {page} z {totalPages}
             </p>
-            <div className="flex gap-1">
+            <div className="flex gap-1 mx-auto sm:mx-0">
               {page > 1 && (
                 <PageLink page={page - 1} search={search} filter={filter} label="&larr;" />
               )}

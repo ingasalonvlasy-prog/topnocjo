@@ -71,12 +71,13 @@ export default async function AdminBrandsPage() {
       </form>
 
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
               <th className="text-left px-4 py-3 font-semibold text-gray-600">Název</th>
-              <th className="text-left px-4 py-3 font-semibold text-gray-600">Slug</th>
-              <th className="text-left px-4 py-3 font-semibold text-gray-600">Logo</th>
+              <th className="text-left px-4 py-3 font-semibold text-gray-600 hidden sm:table-cell">Slug</th>
+              <th className="text-left px-4 py-3 font-semibold text-gray-600 hidden md:table-cell">Logo</th>
               <th className="text-center px-4 py-3 font-semibold text-gray-600">Produkty</th>
               <th className="text-right px-4 py-3 font-semibold text-gray-600">Akce</th>
             </tr>
@@ -85,10 +86,10 @@ export default async function AdminBrandsPage() {
             {brands.map((brand) => (
               <tr key={brand.id} className="border-b border-gray-100 hover:bg-gray-50">
                 <td className="px-4 py-3 font-medium text-gray-900">{brand.name}</td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3 hidden sm:table-cell">
                   <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{brand.slug}</code>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3 hidden md:table-cell">
                   {brand.logo ? (
                     <img
                       src={brand.logo}
@@ -131,6 +132,7 @@ export default async function AdminBrandsPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

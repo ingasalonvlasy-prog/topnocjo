@@ -106,10 +106,10 @@ export default async function AdminCustomerDetailPage({ params }: Props) {
                   <thead>
                     <tr className="border-b border-gray-200 bg-gray-50">
                       <th className="px-4 py-3 text-left font-medium text-gray-600">Číslo</th>
-                      <th className="px-4 py-3 text-left font-medium text-gray-600">Datum</th>
+                      <th className="px-4 py-3 text-left font-medium text-gray-600 hidden md:table-cell">Datum</th>
                       <th className="px-4 py-3 text-left font-medium text-gray-600">Stav</th>
-                      <th className="px-4 py-3 text-left font-medium text-gray-600">Platba</th>
-                      <th className="px-4 py-3 text-left font-medium text-gray-600">Položky</th>
+                      <th className="px-4 py-3 text-left font-medium text-gray-600 hidden sm:table-cell">Platba</th>
+                      <th className="px-4 py-3 text-left font-medium text-gray-600 hidden lg:table-cell">Položky</th>
                       <th className="px-4 py-3 text-right font-medium text-gray-600">Celkem</th>
                     </tr>
                   </thead>
@@ -137,7 +137,7 @@ export default async function AdminCustomerDetailPage({ params }: Props) {
                               #{order.orderNumber}
                             </Link>
                           </td>
-                          <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                          <td className="px-4 py-3 text-gray-600 whitespace-nowrap hidden md:table-cell">
                             {order.createdAt.toLocaleDateString("cs-CZ", {
                               day: "numeric",
                               month: "short",
@@ -151,14 +151,14 @@ export default async function AdminCustomerDetailPage({ params }: Props) {
                               {ORDER_STATUS_LABELS[statusKey] || order.status}
                             </span>
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="px-4 py-3 hidden sm:table-cell">
                             <span
                               className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${paymentColor.bg} ${paymentColor.text}`}
                             >
                               {PAYMENT_STATUS_LABELS[paymentKey] || order.paymentStatus}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-gray-600">
+                          <td className="px-4 py-3 text-gray-600 hidden lg:table-cell">
                             {itemCount} ks
                           </td>
                           <td className="px-4 py-3 text-right font-bold text-gray-900 whitespace-nowrap">

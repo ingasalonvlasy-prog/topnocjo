@@ -78,7 +78,7 @@ export function OrderTableClient({ orders }: OrderTableClientProps) {
     <>
       {/* Bulk action bar */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 px-4 py-2.5 bg-blue-50 border-b border-blue-200">
+        <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 bg-blue-50 border-b border-blue-200">
           <span className="text-sm font-medium text-blue-700">
             {selectedIds.size} vybráno
           </span>
@@ -98,7 +98,7 @@ export function OrderTableClient({ orders }: OrderTableClientProps) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-200 bg-gray-50">
-              <th className="px-4 py-3 w-10">
+              <th className="px-4 py-3 w-10 hidden sm:table-cell">
                 <input
                   type="checkbox"
                   checked={allSelected}
@@ -107,14 +107,14 @@ export function OrderTableClient({ orders }: OrderTableClientProps) {
                 />
               </th>
               <th className="px-4 py-3 text-left font-medium text-gray-600">Číslo</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">Datum</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-600 hidden md:table-cell">Datum</th>
               <th className="px-4 py-3 text-left font-medium text-gray-600">Zákazník</th>
-              <th className="px-4 py-3 text-center font-medium text-gray-600">Položky</th>
+              <th className="px-4 py-3 text-center font-medium text-gray-600 hidden lg:table-cell">Položky</th>
               <th className="px-4 py-3 text-right font-medium text-gray-600">Celkem</th>
               <th className="px-4 py-3 text-left font-medium text-gray-600">Platba</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">Plnění</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">Termín</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">Doprava</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-600 hidden md:table-cell">Plnění</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-600 hidden xl:table-cell">Termín</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-600 hidden xl:table-cell">Doprava</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -138,7 +138,7 @@ export function OrderTableClient({ orders }: OrderTableClientProps) {
                     selectedIds.has(order.id) ? "bg-blue-50/50" : ""
                   }`}
                 >
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 hidden sm:table-cell">
                     <input
                       type="checkbox"
                       checked={selectedIds.has(order.id)}
@@ -154,7 +154,7 @@ export function OrderTableClient({ orders }: OrderTableClientProps) {
                       #{order.orderNumber}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap hidden md:table-cell">
                     {new Date(order.createdAt).toLocaleDateString("cs-CZ", {
                       day: "numeric",
                       month: "short",
@@ -166,7 +166,7 @@ export function OrderTableClient({ orders }: OrderTableClientProps) {
                     </div>
                     <div className="text-xs text-gray-500">{order.email}</div>
                   </td>
-                  <td className="px-4 py-3 text-center text-gray-600">
+                  <td className="px-4 py-3 text-center text-gray-600 hidden lg:table-cell">
                     {order.itemCount}
                   </td>
                   <td className="px-4 py-3 text-right font-bold text-gray-900 whitespace-nowrap">
@@ -179,17 +179,17 @@ export function OrderTableClient({ orders }: OrderTableClientProps) {
                       {PAYMENT_STATUS_LABELS[paymentKey] || order.paymentStatus}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 hidden md:table-cell">
                     <span
                       className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${fulfillment.bg} ${fulfillment.text}`}
                     >
                       {fulfillment.label}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
+                  <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap hidden xl:table-cell">
                     {relativeDateLabel(order.createdAt, order.status)}
                   </td>
-                  <td className="px-4 py-3 text-xs text-gray-600">
+                  <td className="px-4 py-3 text-xs text-gray-600 hidden xl:table-cell">
                     {order.shippingName || "—"}
                   </td>
                 </tr>

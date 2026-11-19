@@ -24,7 +24,7 @@ export default async function AdminDiscountsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Slevové kódy</h1>
           <p className="text-sm text-gray-500 mt-1">
@@ -79,10 +79,10 @@ export default async function AdminDiscountsPage() {
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="px-4 py-3 text-left font-medium text-gray-600">Kód</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Typ</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600 hidden sm:table-cell">Typ</th>
                   <th className="px-4 py-3 text-right font-medium text-gray-600">Sleva</th>
-                  <th className="px-4 py-3 text-center font-medium text-gray-600">Použití</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Platnost</th>
+                  <th className="px-4 py-3 text-center font-medium text-gray-600 hidden md:table-cell">Použití</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600 hidden lg:table-cell">Platnost</th>
                   <th className="px-4 py-3 text-center font-medium text-gray-600">Stav</th>
                 </tr>
               </thead>
@@ -102,7 +102,7 @@ export default async function AdminDiscountsPage() {
                           {code.code}
                         </Link>
                       </td>
-                      <td className="px-4 py-3 text-gray-600">
+                      <td className="px-4 py-3 text-gray-600 hidden sm:table-cell">
                         {code.type === "percentage" ? "Procenta" : "Fixní"}
                       </td>
                       <td className="px-4 py-3 text-right font-bold text-gray-900">
@@ -110,11 +110,11 @@ export default async function AdminDiscountsPage() {
                           ? `${code.value} %`
                           : formatPrice(code.value)}
                       </td>
-                      <td className="px-4 py-3 text-center text-gray-600">
+                      <td className="px-4 py-3 text-center text-gray-600 hidden md:table-cell">
                         {code.usageCount}
                         {code.usageLimit ? ` / ${code.usageLimit}` : ""}
                       </td>
-                      <td className="px-4 py-3 text-gray-600 text-xs whitespace-nowrap">
+                      <td className="px-4 py-3 text-gray-600 text-xs whitespace-nowrap hidden lg:table-cell">
                         {code.validFrom || code.validTo
                           ? `${formatDate(code.validFrom)} – ${formatDate(code.validTo)}`
                           : "Bez omezení"}

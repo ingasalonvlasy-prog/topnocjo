@@ -43,7 +43,7 @@ export function StatCard({ label, value, change, changeType = "neutral", icon, s
             <p className={`text-xs mt-1 ${
               changeType === "up" ? "text-green-600" : changeType === "down" ? "text-red-500" : "text-gray-500"
             }`}>
-              {changeType === "up" ? "+" : ""}{change}
+              {change}
             </p>
           )}
         </div>

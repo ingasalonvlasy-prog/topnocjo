@@ -90,19 +90,20 @@ export default async function AdminLogPage({
       {/* Log table */}
       {logs.length > 0 ? (
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="text-left font-medium text-gray-500 px-4 py-3">Čas</th>
+                <th className="text-left font-medium text-gray-500 px-4 py-3 hidden md:table-cell">Čas</th>
                 <th className="text-left font-medium text-gray-500 px-4 py-3">Akce</th>
                 <th className="text-left font-medium text-gray-500 px-4 py-3">Entita</th>
-                <th className="text-left font-medium text-gray-500 px-4 py-3">Detail</th>
+                <th className="text-left font-medium text-gray-500 px-4 py-3 hidden sm:table-cell">Detail</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {logs.map((log) => (
                 <tr key={log.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-500 whitespace-nowrap tabular-nums">
+                  <td className="px-4 py-3 text-gray-500 whitespace-nowrap tabular-nums hidden md:table-cell">
                     {log.createdAt.toLocaleDateString("cs-CZ")}
                     {" "}
                     {log.createdAt.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
@@ -115,13 +116,14 @@ export default async function AdminLogPage({
                   <td className="px-4 py-3 text-gray-700 font-medium">
                     {entityLabels[log.entity] || log.entity}
                   </td>
-                  <td className="px-4 py-3 text-gray-500 max-w-[400px] truncate">
+                  <td className="px-4 py-3 text-gray-500 max-w-[400px] truncate hidden sm:table-cell">
                     {log.detail || "—"}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       ) : (
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8 text-center">

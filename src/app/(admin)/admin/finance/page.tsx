@@ -198,7 +198,7 @@ export default async function FinancePage({
   return (
     <div>
       {/* Header + period selector */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Finance</h1>
           <p className="text-sm text-gray-500 mt-1">
@@ -356,7 +356,7 @@ export default async function FinancePage({
 
       {/* Recent transactions */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between p-6 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-6 pb-4">
           <h2 className="text-lg font-semibold text-gray-900">Poslední transakce</h2>
           <a
             href="/api/admin/orders/export"
@@ -371,18 +371,18 @@ export default async function FinancePage({
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Datum</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 hidden md:table-cell">Datum</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Objednávka</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Zákazník</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 hidden sm:table-cell">Zákazník</th>
                   <th className="text-right px-4 py-3 font-medium text-gray-500">Částka</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Metoda</th>
-                  <th className="text-center px-4 py-3 font-medium text-gray-500">Stav</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 hidden lg:table-cell">Metoda</th>
+                  <th className="text-center px-4 py-3 font-medium text-gray-500 hidden lg:table-cell">Stav</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {recentPaidOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap hidden md:table-cell">
                       {order.createdAt.toLocaleDateString("cs-CZ", {
                         day: "numeric",
                         month: "numeric",
@@ -397,18 +397,18 @@ export default async function FinancePage({
                         #{order.orderNumber}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-gray-700">
+                    <td className="px-4 py-3 text-gray-700 hidden sm:table-cell">
                       {order.firstName} {order.lastName}
                     </td>
                     <td className="px-4 py-3 text-right font-medium text-gray-900 whitespace-nowrap">
                       {formatPrice(order.total)}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 hidden lg:table-cell">
                       <span className="text-xs text-gray-600">
                         {methodLabels[order.paymentMethod] || order.paymentMethod}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-4 py-3 text-center hidden lg:table-cell">
                       <span className="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">
                         Zaplaceno
                       </span>

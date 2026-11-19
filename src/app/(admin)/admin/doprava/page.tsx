@@ -60,7 +60,7 @@ export default async function ShippingPage({ searchParams }: Props) {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-gray-200">
+      <div className="flex gap-1 mb-6 border-b border-gray-200 overflow-x-auto">
         {tabs.map((t) => (
           <Link
             key={t.key}

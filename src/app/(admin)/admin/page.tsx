@@ -309,7 +309,7 @@ export default async function AdminDashboard({
   return (
     <div>
       {/* Header + period selector */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <div className="flex items-center gap-2">
           {[
@@ -384,12 +384,12 @@ export default async function AdminDashboard({
             </svg>
             Zpět na dashboard
           </Link>
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">{activeStat.title}</h2>
               <p className="text-sm text-gray-500">{activeStat.description}</p>
             </div>
-            <div className="text-right">
+            <div className="sm:text-right">
               <p className="text-3xl font-bold text-gray-900">{activeStat.value}</p>
               <p
                 className={`text-sm font-medium ${

@@ -76,7 +76,7 @@ export default async function AdminProductsPage({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Produkty</h1>
           <p className="text-sm text-gray-500 mt-1">{total} produktů celkem</p>
@@ -131,7 +131,7 @@ export default async function AdminProductsPage({
       {/* Filters */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 mb-6">
         <form className="flex flex-wrap gap-3 items-end">
-          <div className="flex-1 min-w-[200px]">
+          <div className="flex-1 min-w-0 sm:min-w-[200px]">
             <label className="block text-xs font-medium text-gray-500 mb-1">Hledat</label>
             <input
               type="text"
@@ -141,7 +141,7 @@ export default async function AdminProductsPage({
               className="w-full h-9 text-sm border border-gray-300 rounded-md px-3 focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none"
             />
           </div>
-          <div className="w-36">
+          <div className="w-full sm:w-36">
             <label className="block text-xs font-medium text-gray-500 mb-1">Stav</label>
             <select
               name="status"
@@ -154,7 +154,7 @@ export default async function AdminProductsPage({
               <option value="ARCHIVED">Archivovaný</option>
             </select>
           </div>
-          <div className="w-40">
+          <div className="w-full sm:w-40">
             <label className="block text-xs font-medium text-gray-500 mb-1">Značka</label>
             <select
               name="brand"
@@ -167,7 +167,7 @@ export default async function AdminProductsPage({
               ))}
             </select>
           </div>
-          <div className="w-40">
+          <div className="w-full sm:w-40">
             <label className="block text-xs font-medium text-gray-500 mb-1">Kategorie</label>
             <select
               name="category"

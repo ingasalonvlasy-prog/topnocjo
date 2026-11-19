@@ -61,13 +61,14 @@ export default async function AdminBlogPage() {
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
               <th className="text-left px-4 py-3 font-semibold text-gray-600">Název</th>
-              <th className="text-left px-4 py-3 font-semibold text-gray-600">Sekce</th>
-              <th className="text-left px-4 py-3 font-semibold text-gray-600">Autor</th>
-              <th className="text-left px-4 py-3 font-semibold text-gray-600">Publikováno</th>
+              <th className="text-left px-4 py-3 font-semibold text-gray-600 hidden sm:table-cell">Sekce</th>
+              <th className="text-left px-4 py-3 font-semibold text-gray-600 hidden md:table-cell">Autor</th>
+              <th className="text-left px-4 py-3 font-semibold text-gray-600 hidden md:table-cell">Publikováno</th>
               <th className="text-left px-4 py-3 font-semibold text-gray-600">Stav</th>
               <th className="text-right px-4 py-3 font-semibold text-gray-600">Akce</th>
             </tr>
@@ -91,13 +92,13 @@ export default async function AdminBlogPage() {
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 hidden sm:table-cell">
                     <span className="inline-block px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 rounded-full">
                       {sectionLabel}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{post.author}</td>
-                  <td className="px-4 py-3 text-gray-600">{formatDate(post.publishedAt)}</td>
+                  <td className="px-4 py-3 text-gray-600 hidden md:table-cell">{post.author}</td>
+                  <td className="px-4 py-3 text-gray-600 hidden md:table-cell">{formatDate(post.publishedAt)}</td>
                   <td className="px-4 py-3">
                     <form action={togglePublished}>
                       <input type="hidden" name="id" value={post.id} />
@@ -142,6 +143,7 @@ export default async function AdminBlogPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

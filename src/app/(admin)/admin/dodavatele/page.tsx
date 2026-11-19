@@ -74,7 +74,7 @@ export default async function SuppliersPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dodavatelé</h1>
           <p className="text-sm text-gray-500 mt-1">{suppliers.length} dodavatelů</p>
@@ -94,13 +94,14 @@ export default async function SuppliersPage() {
 
       {/* Supplier list */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden mb-8">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               <th className="text-left px-4 py-3 font-medium text-gray-500">Dodavatel</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-500">Formát</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-500">Kontakt</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-500">Poslední import</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500 hidden sm:table-cell">Formát</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500 hidden md:table-cell">Kontakt</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500 hidden lg:table-cell">Poslední import</th>
               <th className="text-center px-4 py-3 font-medium text-gray-500">Stav</th>
               <th className="text-center px-4 py-3 font-medium text-gray-500">Akce</th>
             </tr>
@@ -114,12 +115,12 @@ export default async function SuppliersPage() {
                   </Link>
                   <p className="text-xs text-gray-400 font-mono">{s.code}</p>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3 hidden sm:table-cell">
                   <span className="inline-block px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-600 uppercase">
                     {s.feedFormat}
                   </span>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3 hidden md:table-cell">
                   {s.contactEmail ? (
                     <a href={`mailto:${s.contactEmail}`} className="text-xs text-green-600 hover:text-green-800">
                       {s.contactName || s.contactEmail}
@@ -130,7 +131,7 @@ export default async function SuppliersPage() {
                     <span className="text-xs text-gray-400">—</span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-gray-600">
+                <td className="px-4 py-3 text-gray-600 hidden lg:table-cell">
                   {s.lastImportAt
                     ? new Date(s.lastImportAt).toLocaleString("cs-CZ", { day: "numeric", month: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })
                     : "—"}
@@ -178,6 +179,7 @@ export default async function SuppliersPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Add supplier form */}
@@ -259,7 +261,7 @@ export default async function SuppliersPage() {
             {recentLogs.map((log) => {
               const supplier = suppliers.find((s) => s.id === log.supplierId);
               return (
-                <div key={log.id} className="flex items-center gap-4 text-sm py-2 border-b border-gray-100 last:border-0">
+                <div key={log.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm py-2 border-b border-gray-100 last:border-0">
                   <span className={`w-2 h-2 rounded-full shrink-0 ${
                     log.status === "success" ? "bg-green-500" : log.status === "partial" ? "bg-yellow-500" : "bg-red-500"
                   }`} />

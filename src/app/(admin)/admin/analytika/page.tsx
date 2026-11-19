@@ -400,6 +400,7 @@ export default async function AdminAnalyticsPage({ searchParams }: Props) {
             {topBrands.length === 0 ? (
               <div className="p-6 text-center text-sm text-gray-500">Žádná data.</div>
             ) : (
+              <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
@@ -420,6 +421,7 @@ export default async function AdminAnalyticsPage({ searchParams }: Props) {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
 
@@ -431,6 +433,7 @@ export default async function AdminAnalyticsPage({ searchParams }: Props) {
             {topCategories.length === 0 ? (
               <div className="p-6 text-center text-sm text-gray-500">Žádná data.</div>
             ) : (
+              <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
@@ -451,6 +454,7 @@ export default async function AdminAnalyticsPage({ searchParams }: Props) {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         </div>

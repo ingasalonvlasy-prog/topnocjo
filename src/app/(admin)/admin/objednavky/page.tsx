@@ -194,14 +194,14 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
   return (
     <div>
       {/* Header with buttons */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Objednávky</h1>
           <p className="text-sm text-gray-500 mt-1">
             {total} {total === 1 ? "objednávka" : total < 5 ? "objednávky" : "objednávek"}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Suspense fallback={null}>
             <ExportOrdersButton />
           </Suspense>
@@ -213,7 +213,8 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
-            Vytvořit objednávku
+            <span className="hidden sm:inline">Vytvořit objednávku</span>
+            <span className="sm:hidden">Nová</span>
           </Link>
         </div>
       </div>
@@ -281,10 +282,10 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 hidden sm:block">
               Strana {page} z {totalPages}
             </p>
-            <div className="flex gap-1">
+            <div className="flex gap-1 mx-auto sm:mx-0">
               {page > 1 && (
                 <PaginationLink page={page - 1} params={params} label="&larr;" />
               )}
