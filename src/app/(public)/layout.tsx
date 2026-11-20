@@ -4,24 +4,36 @@ import { CartProvider } from "@/lib/cart";
 import { CookieConsent } from "@/components/CookieConsent";
 import { prisma } from "@/lib/db";
 import { unstable_cache } from "next/cache";
-import type { NavCategory } from "@/components/MegaMenu";
+import type { NavCategory, NavBrand } from "@/components/MegaMenu";
 
 const NAV_SLUGS = ["muzi", "zeny", "deti"];
 
-const getNavCategories = unstable_cache(
-  async (): Promise<NavCategory[]> => {
+const getNavData = unstable_cache(
+  async (): Promise<{ categories: NavCategory[]; topBrands: NavBrand[] }> => {
     try {
-      const cats = await prisma.category.findMany({
-        where: { parentId: null, slug: { in: NAV_SLUGS } },
-        include: {
-          children: {
-            orderBy: { position: "asc" },
-            select: { id: true, name: true, slug: true },
+      const [cats, topBrands] = await Promise.all([
+        prisma.category.findMany({
+          where: { parentId: null, slug: { in: NAV_SLUGS } },
+          include: {
+            children: {
+              orderBy: { position: "asc" },
+              select: { id: true, name: true, slug: true },
+            },
           },
-        },
-        orderBy: { position: "asc" },
-      });
-      return NAV_SLUGS
+          orderBy: { position: "asc" },
+        }),
+        prisma.brand.findMany({
+          where: {
+            logo: { not: null },
+            products: { some: { status: "ACTIVE" } },
+          },
+          select: { name: true, slug: true, logo: true },
+          take: 8,
+          orderBy: { name: "asc" },
+        }),
+      ]);
+
+      const categories = NAV_SLUGS
         .map((slug) => cats.find((c) => c.slug === slug))
         .filter((c): c is NonNullable<typeof c> => c != null)
         .map((c) => ({
@@ -30,20 +42,29 @@ const getNavCategories = unstable_cache(
           slug: c.slug,
           children: c.children,
         }));
+
+      return {
+        categories,
+        topBrands: topBrands.map((b) => ({
+          name: b.name,
+          slug: b.slug,
+          logo: b.logo,
+        })),
+      };
     } catch {
-      return [];
+      return { categories: [], topBrands: [] };
     }
   },
-  ["nav-categories"],
-  { revalidate: 300, tags: ["nav-categories"] }
+  ["nav-data"],
+  { revalidate: 300, tags: ["nav-categories", "brand"] }
 );
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
-  const categories = await getNavCategories();
+  const { categories, topBrands } = await getNavData();
 
   return (
     <CartProvider>
-      <Header categories={categories} />
+      <Header categories={categories} topBrands={topBrands} />
       <main className="flex-1 min-w-0">{children}</main>
       <Footer />
       <CookieConsent />
