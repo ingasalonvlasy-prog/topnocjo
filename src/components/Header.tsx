@@ -190,7 +190,6 @@ export function Header({ categories = [], topBrands = [] }: HeaderProps) {
               {genderCategories.map((cat) => (
                 <div
                   key={cat.slug}
-                  className="relative"
                   onMouseEnter={() => {
                     if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
                     setHoveredGender(cat.slug);
