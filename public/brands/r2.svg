@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80">
+  <circle cx="100" cy="40" r="32" fill="none" stroke="#0B1727" stroke-width="2.5"/>
+  <text x="100" y="48" text-anchor="middle"
+    font-family="system-ui, -apple-system, sans-serif"
+    font-weight="800" font-size="28"
+    fill="#0B1727">R2</text>
+</svg>
