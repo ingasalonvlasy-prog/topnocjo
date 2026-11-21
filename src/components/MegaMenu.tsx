@@ -385,7 +385,7 @@ export function MobileMenuContent({ categories, topBrands, onClose }: MobileMenu
         {genderCategories.map((cat) => (
           <button
             key={cat.slug}
-            className={`flex-1 py-3 text-[14px] font-bold text-center transition-colors ${
+            className={`flex-1 py-4 min-h-[48px] text-[15px] font-bold text-center transition-colors ${
               activeGender === cat.slug
                 ? "text-navy border-b-2 border-navy"
                 : "text-muted"
@@ -401,7 +401,7 @@ export function MobileMenuContent({ categories, topBrands, onClose }: MobileMenu
       {activeCategory && (
         <Link
           href={`/kategorie/${activeCategory.slug}`}
-          className="flex items-center gap-1.5 py-3 text-[14px] font-bold text-navy"
+          className="flex items-center gap-1.5 py-4 min-h-[48px] text-[14px] font-bold text-navy"
           onClick={onClose}
         >
           Vše pro {activeCategory.name.toLowerCase()}
@@ -461,7 +461,7 @@ function MobileSectionAccordion({ section, onClose }: { section: MenuSection; on
   return (
     <div className="border-b border-wash">
       <button
-        className="w-full flex items-center justify-between py-3 text-[15px] font-medium text-ink"
+        className="w-full flex items-center justify-between py-4 min-h-[48px] text-[15px] font-medium text-ink"
         onClick={() => setOpen(!open)}
       >
         {section.title}
@@ -482,7 +482,7 @@ function MobileSectionAccordion({ section, onClose }: { section: MenuSection; on
             <Link
               key={link.slug + link.label}
               href={`/kategorie/${link.slug}`}
-              className="block py-2.5 text-[14px] text-ink"
+              className="block py-3 min-h-[44px] flex items-center text-[14px] text-ink"
               onClick={onClose}
             >
               {link.label}

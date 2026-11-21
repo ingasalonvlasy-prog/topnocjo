@@ -248,7 +248,7 @@ export function Header({ categories = [], topBrands = [] }: HeaderProps) {
         </div>
       </header>
 
-      {/* Mobile menu — full-screen overlay */}
+      {/* Mobile menu — left-side drawer */}
       <div
         className={`fixed inset-0 bg-black/30 z-40 lg:hidden transition-opacity duration-200 ${
           menuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -256,11 +256,24 @@ export function Header({ categories = [], topBrands = [] }: HeaderProps) {
         onClick={() => setMenuOpen(false)}
       />
       <nav
-        className={`fixed left-0 right-0 bottom-0 z-50 bg-white lg:hidden overflow-y-auto overscroll-contain transition-transform duration-200 ease-out ${
-          menuOpen ? "translate-y-0" : "-translate-y-full pointer-events-none"
+        className={`fixed top-0 left-0 bottom-0 w-[85vw] max-w-[360px] z-50 bg-white lg:hidden overflow-y-auto overscroll-contain transition-transform duration-300 ease-out shadow-2xl ${
+          menuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
-        style={{ top: 56 }}
       >
+        {/* Drawer header */}
+        <div className="sticky top-0 bg-white border-b border-line px-6 flex items-center justify-between z-10 min-h-[56px]">
+          <span className="text-[16px] font-bold text-navy">Menu</span>
+          <button
+            onClick={() => setMenuOpen(false)}
+            className="w-12 h-12 flex items-center justify-center text-muted hover:text-ink -mr-2"
+            aria-label="Zavřít menu"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
         <div className="px-6 py-2">
           <MobileMenuContent
             categories={categories}
@@ -274,7 +287,7 @@ export function Header({ categories = [], topBrands = [] }: HeaderProps) {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`block py-3 text-[15px] font-medium border-b border-wash/50 last:border-0 ${
+                className={`block py-4 min-h-[48px] flex items-center text-[15px] font-medium border-b border-wash/50 last:border-0 ${
                   link.isAccent
                     ? "text-sale font-bold"
                     : "text-ink"
@@ -286,7 +299,7 @@ export function Header({ categories = [], topBrands = [] }: HeaderProps) {
             ))}
             <Link
               href="/ucet"
-              className="block py-3 text-[15px] font-medium text-ink border-t border-wash"
+              className="block py-4 min-h-[48px] flex items-center text-[15px] font-medium text-ink border-t border-wash"
               onClick={() => setMenuOpen(false)}
             >
               Můj účet
