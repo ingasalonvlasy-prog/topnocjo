@@ -16,6 +16,37 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+async function updateCustomer(formData: FormData) {
+  "use server";
+  await requireAdmin();
+  const userId = formData.get("userId") as string;
+  const email = (formData.get("email") as string)?.trim().toLowerCase();
+  const firstName = (formData.get("firstName") as string)?.trim() || null;
+  const lastName = (formData.get("lastName") as string)?.trim() || null;
+  const phone = (formData.get("phone") as string)?.trim() || null;
+  const street = (formData.get("street") as string)?.trim() || null;
+  const zip = (formData.get("zip") as string)?.trim() || null;
+  const city = (formData.get("city") as string)?.trim() || null;
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new Error("Neplatný email");
+  }
+
+  // Check email uniqueness (exclude current user)
+  const existing = await prisma.user.findFirst({
+    where: { email, id: { not: userId } },
+  });
+  if (existing) {
+    throw new Error("Email je již používán jiným zákazníkem");
+  }
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { email, firstName, lastName, phone, street, zip, city },
+  });
+  revalidatePath(`/admin/zakaznici/${userId}`);
+}
+
 async function updateNote(formData: FormData) {
   "use server";
   await requireAdmin();
@@ -197,25 +228,92 @@ export default async function AdminCustomerDetailPage({ params }: Props) {
             </div>
           </div>
 
-          {/* Contact */}
+          {/* Contact — editable */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
             <h3 className="text-sm font-bold text-gray-900 mb-3">Kontakt</h3>
-            <div className="space-y-2 text-sm">
-              <div>
-                <span className="text-gray-500">E-mail:</span>{" "}
-                <span className="text-gray-900">{user.email}</span>
-              </div>
-              <div>
-                <span className="text-gray-500">Telefon:</span>{" "}
-                <span className="text-gray-900">{user.phone || "—"}</span>
-              </div>
-              {address && (
+            <form action={updateCustomer} className="space-y-3">
+              <input type="hidden" name="userId" value={user.id} />
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <span className="text-gray-500">Adresa:</span>{" "}
-                  <span className="text-gray-900">{address}</span>
+                  <label className="block text-xs text-gray-500 mb-0.5">Jméno</label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    defaultValue={user.firstName || ""}
+                    placeholder="Jméno"
+                    className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm focus:border-gray-500 focus:outline-none"
+                  />
                 </div>
-              )}
-            </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-0.5">Příjmení</label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    defaultValue={user.lastName || ""}
+                    placeholder="Příjmení"
+                    className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm focus:border-gray-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-0.5">E-mail</label>
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  defaultValue={user.email}
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm focus:border-gray-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-0.5">Telefon</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  defaultValue={user.phone || ""}
+                  placeholder="+420..."
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm focus:border-gray-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-0.5">Ulice</label>
+                <input
+                  type="text"
+                  name="street"
+                  defaultValue={user.street || ""}
+                  placeholder="Ulice a č.p."
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm focus:border-gray-500 focus:outline-none"
+                />
+              </div>
+              <div className="grid grid-cols-[100px_1fr] gap-2">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-0.5">PSČ</label>
+                  <input
+                    type="text"
+                    name="zip"
+                    defaultValue={user.zip || ""}
+                    placeholder="PSČ"
+                    className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm focus:border-gray-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-0.5">Město</label>
+                  <input
+                    type="text"
+                    name="city"
+                    defaultValue={user.city || ""}
+                    placeholder="Město"
+                    className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm focus:border-gray-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+              <button
+                type="submit"
+                className="w-full mt-1 px-3 py-1.5 text-xs font-medium rounded-md bg-gray-900 text-white hover:bg-gray-800 transition-colors"
+              >
+                Uložit kontakt
+              </button>
+            </form>
           </div>
 
           {/* Account info */}

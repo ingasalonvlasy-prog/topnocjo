@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
+import { syncContactToResend } from "@/lib/newsletter-sync";
 
 interface Props {
   searchParams: Promise<Record<string, string | undefined>>;
@@ -24,6 +25,9 @@ export default async function UnsubscribePage({ searchParams }: Props) {
       where: { email: emailValue },
       data: { newsletter: false },
     });
+
+    // Sync to Resend (fire-and-forget)
+    syncContactToResend(emailValue, false).catch(() => {});
 
     redirect(`/odhlasit-newsletter?email=${encodeURIComponent(emailValue)}&done=true`);
   }

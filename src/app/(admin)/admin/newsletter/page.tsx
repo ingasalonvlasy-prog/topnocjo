@@ -51,13 +51,21 @@ export default async function AdminNewsletterPage({ searchParams }: Props) {
             {total} {total === 1 ? "odběratel" : total < 5 ? "odběratelé" : "odběratelů"}
           </p>
         </div>
-        <a
-          href="/api/admin/newsletter/export"
-          download
-          className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          Export CSV
-        </a>
+        <div className="flex gap-2">
+          <Link
+            href="/admin/newsletter/kampane"
+            className="px-4 py-2 text-sm font-medium rounded-md bg-gray-900 text-white hover:bg-gray-800 transition-colors"
+          >
+            Kampaně
+          </Link>
+          <a
+            href="/api/admin/newsletter/export"
+            download
+            className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Export CSV
+          </a>
+        </div>
       </div>
 
       {/* Stat cards */}

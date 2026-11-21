@@ -323,12 +323,29 @@ model DiscountCode {
 }
 
 model NewsletterSubscriber {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  active       Boolean  @default(true)
-  subscribedAt DateTime @default(now())
+  id              String   @id @default(cuid())
+  email           String   @unique
+  active          Boolean  @default(true)
+  resendContactId String?  @unique
+  subscribedAt    DateTime @default(now())
 
   @@map("newsletter_subscribers")
+}
+
+model NewsletterCampaign {
+  id             String    @id @default(cuid())
+  name           String
+  subject        String
+  content        String
+  status         String    @default("DRAFT")
+  resendId       String?
+  scheduledAt    DateTime?
+  sentAt         DateTime?
+  recipientCount Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("newsletter_campaigns")
 }
 
 model Setting {

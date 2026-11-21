@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { syncContactToResend } from "@/lib/newsletter-sync";
 
 export async function POST(req: NextRequest) {
   const { email } = (await req.json()) as { email?: string };
@@ -19,6 +20,9 @@ export async function POST(req: NextRequest) {
     update: { active: true },
     create: { email: trimmed },
   });
+
+  // Sync to Resend (fire-and-forget)
+  syncContactToResend(trimmed, true).catch(() => {});
 
   return NextResponse.json({ success: true });
 }
