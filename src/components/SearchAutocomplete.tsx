@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { trackSearch } from "@/lib/analytics";
 
 const RECENT_KEY = "qsport_recent_searches";
 const MAX_RECENT = 5;
@@ -133,6 +134,7 @@ export function SearchAutocomplete({
     const q = query.trim();
     if (q) {
       saveRecentSearch(q);
+      trackSearch(q);
       setIsOpen(false);
       setShowRecent(false);
       router.push(`/hledat?q=${encodeURIComponent(q)}`);

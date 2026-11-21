@@ -69,6 +69,29 @@ export default function CookiesPage() {
             Pomáhají nám pochopit, jak návštěvníci web používají — které stránky jsou nejnavštěvovanější,
             odkud přicházejí a jak se na webu pohybují. Všechna data jsou anonymní.
           </p>
+          <div className="bg-wash rounded-[8px] p-4">
+            <table className="w-full text-[13px]">
+              <thead>
+                <tr className="text-left text-muted">
+                  <th className="pb-2 font-bold">Cookie</th>
+                  <th className="pb-2 font-bold">Účel</th>
+                  <th className="pb-2 font-bold">Platnost</th>
+                </tr>
+              </thead>
+              <tbody className="text-ink">
+                <tr className="border-t border-line/50">
+                  <td className="py-2 font-medium">_ga</td>
+                  <td className="py-2">Google Analytics — identifikace návštěvníka</td>
+                  <td className="py-2">2 roky</td>
+                </tr>
+                <tr className="border-t border-line/50">
+                  <td className="py-2 font-medium">_ga_*</td>
+                  <td className="py-2">Google Analytics — session data</td>
+                  <td className="py-2">2 roky</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
           <h2 className="text-[18px] font-bold text-navy mt-8 mb-3">Marketingové cookies</h2>
           <p>

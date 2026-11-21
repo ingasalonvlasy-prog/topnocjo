@@ -7,6 +7,7 @@ import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/products";
 import { createOrder } from "./actions";
 import { PAYMENT_METHOD_LABELS } from "@/lib/order-constants";
+import { trackBeginCheckout } from "@/lib/analytics";
 
 const inputCls =
   "w-full py-2.5 px-4 text-[14px] font-medium border border-line rounded-[var(--radius-field)] bg-white focus:border-navy focus:shadow-[0_0_0_3px_rgba(11,23,39,0.06)] outline-none transition-all";
@@ -141,6 +142,24 @@ export default function CheckoutPage() {
   const isPersonalPickup = cartShipping?.methodType === "personal";
   const discountAmount = discountApplied?.discountAmount || 0;
   const total = subtotal - discountAmount + cartShippingPrice;
+
+  // GA4: track begin_checkout on load
+  useEffect(() => {
+    if (loaded && items.length > 0) {
+      trackBeginCheckout(
+        items.map(i => ({
+          item_id: i.variantId,
+          item_name: i.productName,
+          item_variant: i.variantTitle,
+          price: i.price / 100,
+          quantity: i.quantity,
+        })),
+        subtotal / 100,
+        discountApplied?.code
+      );
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded]);
 
   if (!loaded) {
     return <CheckoutSkeleton />;

@@ -20,6 +20,8 @@ function setConsentCookie(consent: ConsentState) {
   localStorage.setItem(COOKIE_KEY, JSON.stringify(consent));
   // Set a simple cookie so server can check consent exists
   document.cookie = `${COOKIE_KEY}=${consent.level}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+  // Notify other components (GoogleAnalytics)
+  window.dispatchEvent(new Event("cookie-consent-changed"));
 }
 
 function getStoredConsent(): ConsentState | null {

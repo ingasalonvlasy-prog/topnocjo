@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect } from "react";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/products";
 import { CrossSellProducts } from "@/components/CrossSellProducts";
 import { ShippingSelector } from "@/components/ShippingSelector";
+import { trackViewCart } from "@/lib/analytics";
 
 const FREE_SHIPPING_THRESHOLD = 200000; // 2000 Kč in haléře
 
@@ -32,6 +34,23 @@ export default function CartPage() {
   if (!loaded) {
     return <CartSkeleton />;
   }
+
+  // GA4: track view_cart on load
+  useEffect(() => {
+    if (loaded && items.length > 0) {
+      trackViewCart(
+        items.map(i => ({
+          item_id: i.variantId,
+          item_name: i.productName,
+          item_variant: i.variantTitle,
+          price: i.price / 100,
+          quantity: i.quantity,
+        })),
+        subtotal / 100
+      );
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded]);
 
   const freeFrom = selectedShipping?.freeFrom || FREE_SHIPPING_THRESHOLD;
   const freeShippingRemaining = Math.max(0, freeFrom - subtotal);

@@ -116,7 +116,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const productType = product.productType?.toUpperCase() || "";
 
   return (
-    <div className="pb-[80px] md:pb-0">
+    <div className="pb-24 md:pb-0">
       {/* Breadcrumbs */}
       <div className="max-w-[var(--container)] mx-auto px-6 pt-4 pb-3">
         <nav className="text-[13px] text-muted">
@@ -324,7 +324,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <RecentlyViewed currentProductId={product.id} />
 
       {/* Track this view */}
-      <TrackProductView productId={product.id} />
+      <TrackProductView
+        productId={product.id}
+        ga4Item={{
+          item_id: product.id,
+          item_name: product.name,
+          item_brand: product.brand.name,
+          item_category: category?.name,
+          price: price / 100,
+        }}
+        value={price / 100}
+      />
 
       {/* Mobile sticky CTA bar */}
       <MobileStickyBar

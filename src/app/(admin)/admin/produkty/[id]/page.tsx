@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/products";
 import { logAdminAction } from "@/lib/admin-log";
 import { requireAdmin } from "@/lib/auth";
+import { WysiwygEditor } from "@/components/admin/WysiwygEditor";
 
 async function updateProduct(formData: FormData) {
   "use server";
@@ -21,6 +22,10 @@ async function updateProduct(formData: FormData) {
   const productType = formData.get("productType") as string;
   const seoTitle = formData.get("seoTitle") as string;
   const seoDescription = formData.get("seoDescription") as string;
+  const tagsStr = formData.get("tags") as string;
+  const tagsArr = tagsStr
+    ? tagsStr.split(",").map((t) => t.trim()).filter(Boolean)
+    : [];
 
   // Collect photo URLs
   const photoUrls: string[] = [];
@@ -64,6 +69,7 @@ async function updateProduct(formData: FormData) {
         productType,
         seoTitle: seoTitle || null,
         seoDescription: seoDescription || null,
+        tags: JSON.stringify(tagsArr),
         photos: JSON.stringify(photoUrls),
       },
     });
@@ -97,6 +103,8 @@ async function updateVariant(formData: FormData) {
   const size = (formData.get("size") as string)?.trim() || null;
   const color = (formData.get("color") as string)?.trim() || null;
   const sku = (formData.get("sku") as string)?.trim() || null;
+  const barcode = (formData.get("barcode") as string)?.trim() || null;
+  const costPriceStr = formData.get("costPrice") as string;
 
   await prisma.variant.update({
     where: { id: variantId },
@@ -107,6 +115,8 @@ async function updateVariant(formData: FormData) {
       size,
       color,
       sku,
+      barcode,
+      costPrice: costPriceStr ? Math.round(parseFloat(costPriceStr) * 100) : null,
     },
   });
 
@@ -192,6 +202,7 @@ export default async function AdminProductDetailPage({
 
   const photos: string[] = JSON.parse(product.photos || "[]");
   const productCategoryIds = product.categories.map((c) => c.categoryId);
+  const productTags: string[] = JSON.parse(product.tags || "[]");
 
   return (
     <div>
@@ -246,12 +257,7 @@ export default async function AdminProductDetailPage({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">HTML obsah</label>
-                  <textarea
-                    name="bodyHtml"
-                    defaultValue={product.bodyHtml || ""}
-                    rows={5}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none resize-y"
-                  />
+                  <WysiwygEditor name="bodyHtml" defaultValue={product.bodyHtml || ""} />
                 </div>
               </div>
             </div>
@@ -375,6 +381,24 @@ export default async function AdminProductDetailPage({
                           <input
                             name="sku"
                             defaultValue={v.sku || ""}
+                            className="w-full h-8 px-2 text-sm border border-gray-300 rounded focus:border-green-500 outline-none font-mono text-xs"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">Nákupní cena</label>
+                          <input
+                            name="costPrice"
+                            type="number"
+                            step="0.01"
+                            defaultValue={v.costPrice ? (v.costPrice / 100).toFixed(0) : ""}
+                            className="w-full h-8 px-2 text-sm border border-gray-300 rounded focus:border-green-500 outline-none text-right"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">EAN / Barcode</label>
+                          <input
+                            name="barcode"
+                            defaultValue={v.barcode || ""}
                             className="w-full h-8 px-2 text-sm border border-gray-300 rounded focus:border-green-500 outline-none font-mono text-xs"
                           />
                         </div>
@@ -508,6 +532,18 @@ export default async function AdminProductDetailPage({
                 defaultValue={product.productType || ""}
                 className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none"
               />
+            </div>
+
+            {/* Tags */}
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">Tagy</h3>
+              <input
+                name="tags"
+                defaultValue={productTags.join(", ")}
+                placeholder="běh, trail, obuv"
+                className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none"
+              />
+              <p className="text-xs text-gray-400 mt-1">Oddělené čárkou</p>
             </div>
 
             {/* Categories — working checkboxes */}

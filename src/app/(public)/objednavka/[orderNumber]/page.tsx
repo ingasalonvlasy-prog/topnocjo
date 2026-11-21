@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/products";
 import { getCurrentUser } from "@/lib/auth";
 import { ClearCartOnMount } from "./ClearCart";
+import { TrackPurchase } from "@/components/TrackPurchase";
 
 export const dynamic = "force-dynamic";
 
@@ -57,6 +58,22 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
   return (
     <div className="max-w-[700px] mx-auto px-6 py-12">
       {isNew && <ClearCartOnMount />}
+      {isNew && (
+        <TrackPurchase
+          transactionId={order.orderNumber}
+          value={order.total / 100}
+          shipping={order.shippingPrice / 100}
+          discount={order.discountAmount ? order.discountAmount / 100 : undefined}
+          coupon={order.discountCode || undefined}
+          items={order.items.map(item => ({
+            item_id: item.variantId || item.productId || item.id,
+            item_name: item.productName,
+            item_variant: item.variantTitle,
+            price: item.unitPrice / 100,
+            quantity: item.quantity,
+          }))}
+        />
+      )}
 
       {/* Header */}
       <div className="text-center mb-8">

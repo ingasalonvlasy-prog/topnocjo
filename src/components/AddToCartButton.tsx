@@ -2,6 +2,7 @@
 
 import { useCart } from "@/lib/cart";
 import { useState } from "react";
+import { trackAddToCart } from "@/lib/analytics";
 
 interface AddToCartButtonProps {
   variant: {
@@ -35,6 +36,16 @@ export function AddToCartButton({ variant, product }: AddToCartButtonProps) {
       comparePrice: variant.comparePrice || undefined,
       photo: product.photo,
     });
+    trackAddToCart(
+      {
+        item_id: variant.id,
+        item_name: product.name,
+        item_variant: variant.title,
+        price: variant.price / 100,
+        quantity: 1,
+      },
+      variant.price / 100
+    );
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   }

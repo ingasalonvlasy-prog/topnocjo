@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { formatPrice } from "@/lib/products";
 import { useCart } from "@/lib/cart";
+import { trackAddToCart } from "@/lib/analytics";
 
 interface MobileStickyBarProps {
   price: number;
@@ -53,6 +54,16 @@ export function MobileStickyBar({
       comparePrice: variant.comparePrice || undefined,
       photo,
     });
+    trackAddToCart(
+      {
+        item_id: variant.id,
+        item_name: productName,
+        item_variant: variant.title,
+        price: variant.price / 100,
+        quantity: 1,
+      },
+      variant.price / 100
+    );
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   }

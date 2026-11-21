@@ -2,7 +2,9 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CartProvider } from "@/lib/cart";
 import { CookieConsent } from "@/components/CookieConsent";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { prisma } from "@/lib/db";
+import { getSetting } from "@/lib/settings";
 import { unstable_cache } from "next/cache";
 import type { NavCategory, NavBrand } from "@/components/MegaMenu";
 
@@ -59,11 +61,27 @@ const getNavData = unstable_cache(
   { revalidate: 300, tags: ["nav-categories", "brand"] }
 );
 
+const getGA4Id = unstable_cache(
+  async () => {
+    try {
+      return await getSetting("ga4_measurement_id");
+    } catch {
+      return null;
+    }
+  },
+  ["ga4-id"],
+  { revalidate: 300, tags: ["settings"] }
+);
+
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
-  const { categories, topBrands } = await getNavData();
+  const [{ categories, topBrands }, ga4Id] = await Promise.all([
+    getNavData(),
+    getGA4Id(),
+  ]);
 
   return (
     <CartProvider>
+      {ga4Id && <GoogleAnalytics measurementId={ga4Id} />}
       <Header categories={categories} topBrands={topBrands} />
       <main className="flex-1 min-w-0">{children}</main>
       <Footer />

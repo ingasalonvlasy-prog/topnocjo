@@ -54,3 +54,13 @@ export async function saveSeoSettings(formData: FormData) {
   }
   revalidatePath("/admin/nastaveni");
 }
+
+export async function saveAnalyticsSettings(formData: FormData) {
+  await requireAdmin();
+  const keys = ["ga4_measurement_id", "gtm_container_id"];
+  for (const key of keys) {
+    const value = (formData.get(key) as string)?.trim() ?? "";
+    await setSetting(key, value);
+  }
+  revalidatePath("/admin/nastaveni");
+}

@@ -89,6 +89,12 @@ const getCachedPocProducts = unstable_cache(
   { revalidate: 3600, tags: ["product"] }
 );
 
+const GENDER_FALLBACK_IMAGES: Record<string, string> = {
+  muzi: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&h=600&fit=crop",
+  zeny: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&h=600&fit=crop",
+  deti: "https://images.unsplash.com/photo-1596464716127-f2a82984de30?w=800&h=600&fit=crop",
+};
+
 const getCachedGenderData = unstable_cache(
   async () => {
     try {
@@ -101,31 +107,14 @@ const getCachedGenderData = unstable_cache(
       await Promise.all(
         genderCategories.map(async (gc) => {
           const allIds = [gc.id, ...gc.children.map((c) => c.id)];
-          const [count, sample] = await Promise.all([
-            prisma.product.count({
-              where: {
-                status: "ACTIVE",
-                photos: { not: "[]" },
-                categories: { some: { categoryId: { in: allIds } } },
-              },
-            }),
-            prisma.product.findFirst({
-              where: {
-                status: "ACTIVE",
-                photos: { contains: "shopify" },
-                categories: { some: { categoryId: { in: allIds } } },
-              },
-              select: { photos: true },
-              orderBy: { createdAt: "desc" },
-            }),
-          ]);
-          let photo: string | null = null;
-          if (sample) {
-            try {
-              const photos = JSON.parse(sample.photos);
-              if (photos.length > 0) photo = photos[0];
-            } catch {}
-          }
+          const count = await prisma.product.count({
+            where: {
+              status: "ACTIVE",
+              photos: { not: "[]" },
+              categories: { some: { categoryId: { in: allIds } } },
+            },
+          });
+          const photo = gc.image || GENDER_FALLBACK_IMAGES[gc.slug] || null;
           genderData[gc.slug] = { count, photo };
         })
       );

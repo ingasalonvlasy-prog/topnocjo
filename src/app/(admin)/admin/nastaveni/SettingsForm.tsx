@@ -6,6 +6,7 @@ import {
   saveEmailSettings,
   saveSocialSettings,
   saveSeoSettings,
+  saveAnalyticsSettings,
 } from "./actions";
 
 function SaveButton({ pending }: { pending: boolean }) {
@@ -271,6 +272,54 @@ export function SeoSettingsForm({ settings }: StoreFormProps) {
             placeholder="Sportovní vybavení od značek On, POC, Maloja, Alpina a Mizuno. Rychlé doručení, osobní přístup."
             className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm bg-white text-gray-900 focus:border-gray-400 focus:outline-none resize-none"
           />
+        </div>
+      </div>
+    </form>
+  );
+}
+
+export function AnalyticsSettingsForm({ settings }: StoreFormProps) {
+  const [pending, startTransition] = useTransition();
+  const [saved, setSaved] = useState(false);
+
+  function handleSubmit(formData: FormData) {
+    setSaved(false);
+    startTransition(async () => {
+      await saveAnalyticsSettings(formData);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    });
+  }
+
+  return (
+    <form action={handleSubmit}>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-gray-900">Analytika</h2>
+        <div className="flex items-center gap-3">
+          <SuccessMessage show={saved} />
+          <SaveButton pending={pending} />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">GA4 Measurement ID</label>
+          <input
+            name="ga4_measurement_id"
+            defaultValue={settings.ga4_measurement_id || ""}
+            placeholder="G-XXXXXXXXXX"
+            className="w-full h-10 px-3 border border-gray-200 rounded-md text-sm bg-white text-gray-900 focus:border-gray-400 focus:outline-none"
+          />
+          <p className="text-xs text-gray-400 mt-1">Z Google Analytics 4 &rarr; Admin &rarr; Data Streams</p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">GTM Container ID</label>
+          <input
+            name="gtm_container_id"
+            defaultValue={settings.gtm_container_id || ""}
+            placeholder="GTM-XXXXXXX"
+            className="w-full h-10 px-3 border border-gray-200 rounded-md text-sm bg-white text-gray-900 focus:border-gray-400 focus:outline-none"
+          />
+          <p className="text-xs text-gray-400 mt-1">Volitelné — pro budoucí GTM integraci</p>
         </div>
       </div>
     </form>
